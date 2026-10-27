@@ -1,0 +1,52 @@
+apiVersion: delivery.re8ch.com/v1alpha1
+kind: ReleaseContract
+metadata:
+  name: agent-runtime-domain-llm-gateway
+spec:
+  authorityDomain: agent-runtime
+  target:
+    cluster: re8ch
+    namespace: llm-gateway
+  source:
+    renderer: kustomize
+    revision: github-main-reviewed
+    repository: 8iops/agent-gitops
+    path: releases/agent-runtime-domain-llm-gateway
+  provenance:
+    repository: 8iops/agent-gitops
+    workflow: .github/workflows/static-release.yml
+    ref: refs/heads/main
+    environment: release-executor-agent-runtime
+    audience: https://kube-api.re8ch.com/release-executor-agent-runtime
+    signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
+    issuer: https://token.actions.githubusercontent.com
+  authorization:
+    fieldManager: re8ch-release/agent-runtime-domain-llm-gateway
+    resources:
+    - apps/Deployment
+    - core/ConfigMap
+    - core/Service
+    objectNames:
+    - litellm
+    - litellm-config
+    - litellm-postgresql
+    allowClusterScoped: false
+    requireExisting: true
+    forceConflictObjects:
+    - apps/Deployment/llm-gateway/litellm
+    - apps/Deployment/llm-gateway/litellm-postgresql
+    - core/ConfigMap/llm-gateway/litellm-config
+    - core/Service/llm-gateway/litellm
+    - core/Service/llm-gateway/litellm-postgresql
+  inventory:
+    digest: sha256:f36d15ec815fc7768886cf05295e0f25a3213041ad8bff99c3456a6c0445e5aa
+  lifecycle:
+    prune: false
+    healthTimeoutSeconds: 300
+    protectedKinds:
+    - Namespace
+    - CustomResourceDefinition
+    - PersistentVolume
+    - PersistentVolumeClaim
+    - StorageClass
+    deletionAllowlist: []
