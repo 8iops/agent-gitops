@@ -1,0 +1,8 @@
+# Cluster-scoped projection policy is owned by the main Flux policy boundary.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-conformance-runner-projection-contract
+  namespace: api-conformance-runners
+data:
+  authority: flux-system-policy-boundary

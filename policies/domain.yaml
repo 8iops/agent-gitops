@@ -1,0 +1,5 @@
+domain: agent-runtime
+controllerNamespace: flux-agent-system
+forbidden:
+  - {apiVersion: source.toolkit.fluxcd.io/v1, kind: OCIRepository, namespace: flux-system, name: connectool}
+  - {apiVersion: helm.toolkit.fluxcd.io/v2, kind: HelmRelease, namespace: flux-system, name: connectool}

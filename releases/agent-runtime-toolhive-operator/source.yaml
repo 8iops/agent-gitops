@@ -1,0 +1,22 @@
+apiVersion: delivery.re8ch.com/locked-helm-render/v1alpha1
+kind: LockedHelmRender
+metadata:
+  name: agent-runtime-toolhive-operator
+spec:
+  chart: oci://ghcr.io/stacklok/toolhive/toolhive-operator@sha256:4881731dd7ceaf0fefcdecdb23b1c87d16b1f60fe8aa5ee75304fd33f4fa4d22
+  version: 0.50.0
+  releaseName: toolhive-operator
+  namespace: toolhive-system
+  includeCRDs: true
+  values: values.yaml
+  valuesDigest: sha256:d756926be28ff2d5572a97d885498ce24505f48e04259499476fdc10037c7975
+  renderedResources: resources.yaml
+  renderedResourcesDigest: sha256:b7f59a3b0e85284bc8311c9d9f380676a6856a7a5c5804eb2c2cffdf81825ddc
+  postRender:
+    deploymentStrategy:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: toolhive-operator
+      value:
+        type: RollingUpdate
+        rollingUpdate: {maxUnavailable: 1, maxSurge: 0}

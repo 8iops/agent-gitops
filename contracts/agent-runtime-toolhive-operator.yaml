@@ -1,0 +1,70 @@
+apiVersion: delivery.re8ch.com/v1alpha1
+kind: ReleaseContract
+metadata:
+  name: agent-runtime-toolhive-operator
+spec:
+  authorityDomain: agent-runtime
+  target:
+    cluster: re8ch
+    namespace: toolhive-system
+  source:
+    renderer: kustomize
+    revision: helm-oci@sha256:4881731dd7ceaf0fefcdecdb23b1c87d16b1f60fe8aa5ee75304fd33f4fa4d22
+    repository: 8iops/agent-gitops
+    path: releases/agent-runtime-toolhive-operator
+    chartOCI: oci://ghcr.io/stacklok/toolhive/toolhive-operator@sha256:4881731dd7ceaf0fefcdecdb23b1c87d16b1f60fe8aa5ee75304fd33f4fa4d22
+    values:
+    - path: releases/agent-runtime-toolhive-operator/values.yaml
+      digest: sha256:d756926be28ff2d5572a97d885498ce24505f48e04259499476fdc10037c7975
+  provenance:
+    repository: 8iops/agent-gitops
+    workflow: .github/workflows/static-release.yml
+    ref: refs/heads/main
+    environment: release-executor-agent-runtime
+    audience: https://kube-api.re8ch.com/release-executor-agent-runtime
+    signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
+    issuer: https://token.actions.githubusercontent.com
+  authorization:
+    fieldManager: re8ch-release/agent-runtime-toolhive-operator
+    forceConflictObjects:
+    - apps/Deployment/toolhive-system/toolhive-operator
+    - rbac.authorization.k8s.io/Role/toolhive-system/toolhive-operator-leader-election-role
+    - rbac.authorization.k8s.io/RoleBinding/toolhive-system/toolhive-operator-leader-election-rolebinding
+    resources:
+    - apps/Deployment
+    - core/ServiceAccount
+    - rbac.authorization.k8s.io/ClusterRole
+    - rbac.authorization.k8s.io/Role
+    - rbac.authorization.k8s.io/RoleBinding
+    objectNames:
+    - toolhive-operator
+    - toolhive-operator-leader-election-role
+    - toolhive-operator-leader-election-rolebinding
+    - toolhive-operator-manager-role
+    - toolhive-operator-manager-rolebinding
+    allowClusterScoped: true
+  inventory:
+    digest: sha256:42edb2752cc620f7c203c14cdc0bbd2e57182d7c8c121e4587f222c9c8392b64
+  lifecycle:
+    prune: true
+    healthTimeoutSeconds: 300
+    protectedKinds:
+    - Namespace
+    - CustomResourceDefinition
+    - PersistentVolume
+    - PersistentVolumeClaim
+    - StorageClass
+    stages:
+    - name: cluster-rbac
+      kinds: [ServiceAccount, ClusterRole, Role, RoleBinding]
+      automaticRollback: false
+    - name: runtime
+      kinds: [Deployment]
+      automaticRollback: true
+    deletionAllowlist:
+    - apps/Deployment/toolhive-system/toolhive-operator
+    - core/ServiceAccount/toolhive-system/toolhive-operator
+    - rbac.authorization.k8s.io/ClusterRole/_/toolhive-operator-manager-role
+    - rbac.authorization.k8s.io/Role/toolhive-system/toolhive-operator-leader-election-role
+    - rbac.authorization.k8s.io/RoleBinding/toolhive-system/toolhive-operator-leader-election-rolebinding
+    - rbac.authorization.k8s.io/RoleBinding/toolhive-system/toolhive-operator-manager-rolebinding
