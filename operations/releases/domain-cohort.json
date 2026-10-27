@@ -9,40 +9,22 @@
       "contract": "contracts/agent-runtime-domain-ai-operations.yaml"
     },
     {
-      "name": "agent-runtime-domain-anycam",
-      "namespace": "anycam",
-      "objects": 3,
-      "contract": "contracts/agent-runtime-domain-anycam.yaml"
-    },
-    {
       "name": "agent-runtime-domain-api-conformance-system",
       "namespace": "api-conformance-system",
-      "objects": 17,
+      "objects": 11,
       "contract": "contracts/agent-runtime-domain-api-conformance-system.yaml"
     },
     {
       "name": "agent-runtime-domain-auth",
       "namespace": "auth",
-      "objects": 7,
+      "objects": 5,
       "contract": "contracts/agent-runtime-domain-auth.yaml"
-    },
-    {
-      "name": "agent-runtime-domain-bench",
-      "namespace": "bench",
-      "objects": 1,
-      "contract": "contracts/agent-runtime-domain-bench.yaml"
     },
     {
       "name": "agent-runtime-domain-codex-archive",
       "namespace": "codex-archive",
       "objects": 1,
       "contract": "contracts/agent-runtime-domain-codex-archive.yaml"
-    },
-    {
-      "name": "agent-runtime-domain-codex-platform",
-      "namespace": "codex-platform",
-      "objects": 2,
-      "contract": "contracts/agent-runtime-domain-codex-platform.yaml"
     },
     {
       "name": "agent-runtime-domain-cosyvoice",
@@ -53,7 +35,7 @@
     {
       "name": "agent-runtime-domain-credential-broker",
       "namespace": "credential-broker",
-      "objects": 5,
+      "objects": 3,
       "contract": "contracts/agent-runtime-domain-credential-broker.yaml"
     },
     {
@@ -71,20 +53,8 @@
     {
       "name": "agent-runtime-domain-git-workspaces",
       "namespace": "git-workspaces",
-      "objects": 118,
+      "objects": 108,
       "contract": "contracts/agent-runtime-domain-git-workspaces.yaml"
-    },
-    {
-      "name": "agent-runtime-domain-ledger",
-      "namespace": "ledger",
-      "objects": 1,
-      "contract": "contracts/agent-runtime-domain-ledger.yaml"
-    },
-    {
-      "name": "agent-runtime-domain-llm-gateway",
-      "namespace": "llm-gateway",
-      "objects": 2,
-      "contract": "contracts/agent-runtime-domain-llm-gateway.yaml"
     },
     {
       "name": "agent-runtime-domain-mcp-registry",
@@ -93,37 +63,13 @@
       "contract": "contracts/agent-runtime-domain-mcp-registry.yaml"
     },
     {
-      "name": "agent-runtime-domain-observability-system",
-      "namespace": "observability-system",
-      "objects": 2,
-      "contract": "contracts/agent-runtime-domain-observability-system.yaml"
-    },
-    {
-      "name": "agent-runtime-domain-opensandbox-system",
-      "namespace": "opensandbox-system",
-      "objects": 2,
-      "contract": "contracts/agent-runtime-domain-opensandbox-system.yaml"
-    },
-    {
-      "name": "agent-runtime-domain-rook-ceph",
-      "namespace": "rook-ceph",
-      "objects": 4,
-      "contract": "contracts/agent-runtime-domain-rook-ceph.yaml"
-    },
-    {
-      "name": "agent-runtime-domain-supabase-pg-re8ch",
-      "namespace": "supabase-pg-re8ch",
-      "objects": 4,
-      "contract": "contracts/agent-runtime-domain-supabase-pg-re8ch.yaml"
-    },
-    {
       "name": "agent-runtime-domain-toolhive-system",
       "namespace": "toolhive-system",
-      "objects": 39,
+      "objects": 33,
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 239,
+  "publishableObjects": 192,
   "deferred": [
     {
       "identity": "apps/Deployment/mcp-registry/mcp-registry-postgresql",
@@ -172,6 +118,194 @@
     {
       "identity": "kustomize.toolkit.fluxcd.io/Kustomization/flux-agent-system/api-conformance-runner-bootstrap",
       "reason": "retired-flux-control-resource"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/anycam/kyverno-toolhive-pull-secret-source",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/api-conformance-system/api-conformance-controller",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/api-conformance-system/api-conformance-pull-target",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/api-conformance-system/api-conformance-result-proxy",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/auth/re8ch:toolhive-platform-restart",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/codex-platform/re8ch:toolhive-platform-restart",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/credential-broker/credential-broker",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/git-workspaces/git-workspace-controller",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/git-workspaces/mailbox-provisioner",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/git-workspaces/owner-review-verifier",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/git-workspaces/repo-pilot-bot-governance-reader",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/git-workspaces/work-evidence-publisher",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/llm-gateway/re8ch:toolhive-platform-restart",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/observability-system/re8ch:toolhive-platform-restart",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/opensandbox-system/re8ch:toolhive-platform-restart",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/rook-ceph/re8ch:ops-mcp-ceph-observe",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/rook-ceph/re8ch:toolhive-ceph-osd-recovery",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/supabase-pg-re8ch/ops-admin-postgres-credential",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/supabase-pg-re8ch/re8ch:toolhive-platform-restart",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/toolhive-system/api-conformance-pull-source",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/toolhive-system/kyverno-toolhive-pull-secret-target",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/toolhive-system/retire-toolhive-session-redis",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/anycam/credential-broker-secret-injector",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/anycam/kyverno-toolhive-pull-secret-source",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/api-conformance-system/api-conformance-controller",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/api-conformance-system/api-conformance-pull-target",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/api-conformance-system/api-conformance-result-proxy",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/auth/re8ch:toolhive-platform-restart",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/bench/credential-broker-secret-injector",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/codex-platform/re8ch:toolhive-platform-restart",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/credential-broker/credential-broker",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/git-workspaces/git-workspace-controller",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/git-workspaces/mailbox-provisioner",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/git-workspaces/owner-review-verifier",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/git-workspaces/repo-pilot-bot-governance-reader",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/git-workspaces/work-evidence-publishers",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/ledger/credential-broker-secret-injector",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/llm-gateway/re8ch:toolhive-platform-restart",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/observability-system/re8ch:toolhive-platform-restart",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/opensandbox-system/re8ch:toolhive-platform-restart",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/rook-ceph/re8ch:ops-mcp-ceph-observe",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/rook-ceph/re8ch:toolhive-ceph-osd-recovery",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/supabase-pg-re8ch/ops-admin-postgres-credential",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/supabase-pg-re8ch/re8ch:toolhive-platform-restart",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/toolhive-system/api-conformance-pull-source",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/toolhive-system/kyverno-toolhive-pull-secret-target",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/toolhive-system/retire-toolhive-session-redis",
+      "reason": "platform-owned-rbac"
     },
     {
       "identity": "source.toolkit.fluxcd.io/OCIRepository/flux-agent-system/toolhive-operator",

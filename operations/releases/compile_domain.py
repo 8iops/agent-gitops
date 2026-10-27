@@ -41,6 +41,7 @@ def release_name(namespace):
 def classify(item,reserved):
     ident=object_identity(item)
     if ident in reserved:return 'existing-release-contract'
+    if group(item)=='rbac.authorization.k8s.io':return 'platform-owned-rbac'
     if item['kind']=='Secret':return 'secret-provisioning'
     if contains_encrypted(item):return 'restricted-cloud-decryption'
     if group(item) in FLUX_GROUPS:return 'helm-render' if item['kind']=='HelmRelease' else 'retired-flux-control-resource'
@@ -88,7 +89,6 @@ def compile_outputs():
         role_rules=[]
         for (api,resource),names in sorted(rules.items()):
             verbs=['get','patch','update']
-            if api=='rbac.authorization.k8s.io' and resource=='roles':verbs+=['escalate','bind']
             role_rules.append({'apiGroups':['' if api=='core' else api],'resources':[resource],'resourceNames':sorted(names),'verbs':verbs})
         access += [{'apiVersion':'v1','kind':'ConfigMap','metadata':{'name':state,'namespace':namespace,'labels':{'delivery.re8ch.com/state':'accepted','delivery.re8ch.com/authority-domain':DOMAIN}}},
           {'apiVersion':'rbac.authorization.k8s.io/v1','kind':'Role','metadata':{'name':name,'namespace':namespace},'rules':role_rules},

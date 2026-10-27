@@ -28,8 +28,6 @@ spec:
     - core/ServiceAccount
     - governance.re8ch.com/GitAccount
     - governance.re8ch.com/GitWorkspace
-    - rbac.authorization.k8s.io/Role
-    - rbac.authorization.k8s.io/RoleBinding
     objectNames:
     - 2woodblog-maintain
     - advanced-fabric-maintain
@@ -85,14 +83,11 @@ spec:
     - registry-product-site-maintain
     - repo-pilot-bot
     - repo-pilot-bot-dex-grant-request
-    - repo-pilot-bot-governance-reader
     - service-backend-maintain
     - space-mining-stage-maintain
     - thiking-machine-maintain
     - tool-distribution-maintain
     - user-hub-maintain
-    - work-evidence-publisher
-    - work-evidence-publishers
     allowClusterScoped: false
     forceConflictObjects:
     - apps/Deployment/git-workspaces/git-workspace-controller
@@ -203,18 +198,8 @@ spec:
     - governance.re8ch.com/GitWorkspace/git-workspaces/thiking-machine-maintain
     - governance.re8ch.com/GitWorkspace/git-workspaces/tool-distribution-maintain
     - governance.re8ch.com/GitWorkspace/git-workspaces/user-hub-maintain
-    - rbac.authorization.k8s.io/Role/git-workspaces/git-workspace-controller
-    - rbac.authorization.k8s.io/Role/git-workspaces/mailbox-provisioner
-    - rbac.authorization.k8s.io/Role/git-workspaces/owner-review-verifier
-    - rbac.authorization.k8s.io/Role/git-workspaces/repo-pilot-bot-governance-reader
-    - rbac.authorization.k8s.io/Role/git-workspaces/work-evidence-publisher
-    - rbac.authorization.k8s.io/RoleBinding/git-workspaces/git-workspace-controller
-    - rbac.authorization.k8s.io/RoleBinding/git-workspaces/mailbox-provisioner
-    - rbac.authorization.k8s.io/RoleBinding/git-workspaces/owner-review-verifier
-    - rbac.authorization.k8s.io/RoleBinding/git-workspaces/repo-pilot-bot-governance-reader
-    - rbac.authorization.k8s.io/RoleBinding/git-workspaces/work-evidence-publishers
   inventory:
-    digest: sha256:4776bee378ffa632e797ab82d9613e38f97053c6ca3bfdc8041104900616db31
+    digest: sha256:eeb627a5a5305aa2a7367321e035a3f43d5fa8988012eefb55ed74ef2dce1c12
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

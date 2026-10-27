@@ -28,11 +28,8 @@ spec:
     - core/Service
     - core/ServiceAccount
     - gateway.networking.k8s.io/HTTPRoute
-    - rbac.authorization.k8s.io/Role
-    - rbac.authorization.k8s.io/RoleBinding
     objectNames:
     - api-conformance-result-proxy
-    - re8ch:toolhive-platform-restart
     allowClusterScoped: false
     forceConflictObjects:
     - apps/Deployment/auth/api-conformance-result-proxy
@@ -40,10 +37,8 @@ spec:
     - core/Service/auth/api-conformance-result-proxy
     - core/ServiceAccount/auth/api-conformance-result-proxy
     - gateway.networking.k8s.io/HTTPRoute/auth/api-conformance-result-proxy
-    - rbac.authorization.k8s.io/Role/auth/re8ch:toolhive-platform-restart
-    - rbac.authorization.k8s.io/RoleBinding/auth/re8ch:toolhive-platform-restart
   inventory:
-    digest: sha256:e6f485aa23604e2a79c70d17142910841a66129e29ba717900a104fe51fdbf69
+    digest: sha256:34a8c13083d52a1fde3cd019a973fc990f5ca898f68580d95c9bdd1177678343
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

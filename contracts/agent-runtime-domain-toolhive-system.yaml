@@ -31,8 +31,6 @@ spec:
     - networking.k8s.io/Ingress
     - networking.k8s.io/NetworkPolicy
     - policy/PodDisruptionBudget
-    - rbac.authorization.k8s.io/Role
-    - rbac.authorization.k8s.io/RoleBinding
     - toolhive.stacklok.dev/MCPExternalAuthConfig
     - toolhive.stacklok.dev/MCPGroup
     - toolhive.stacklok.dev/MCPTelemetryConfig
@@ -40,10 +38,8 @@ spec:
     objectNames:
     - admin-tools-public
     - admin-tools-re8ch-com
-    - api-conformance-pull-source
     - connectool-cloud-mcp
     - connectool-tools-re8ch-com
-    - kyverno-toolhive-pull-secret-target
     - ops-admin-tools
     - ops-mcp-public
     - ops-operate-tools
@@ -60,7 +56,6 @@ spec:
     - re8ch-plugin-definitions
     - re8ch-plugin-operation-catalog
     - re8ch-plugin-runtime
-    - retire-toolhive-session-redis
     - toolhive-cloud-ui
     - toolhive-operator
     - tools-re8ch-com
@@ -93,12 +88,6 @@ spec:
     - networking.k8s.io/NetworkPolicy/toolhive-system/vmcp-internal-backends
     - policy/PodDisruptionBudget/toolhive-system/re8ch-plugin-runtime
     - policy/PodDisruptionBudget/toolhive-system/toolhive-operator
-    - rbac.authorization.k8s.io/Role/toolhive-system/api-conformance-pull-source
-    - rbac.authorization.k8s.io/Role/toolhive-system/kyverno-toolhive-pull-secret-target
-    - rbac.authorization.k8s.io/Role/toolhive-system/retire-toolhive-session-redis
-    - rbac.authorization.k8s.io/RoleBinding/toolhive-system/api-conformance-pull-source
-    - rbac.authorization.k8s.io/RoleBinding/toolhive-system/kyverno-toolhive-pull-secret-target
-    - rbac.authorization.k8s.io/RoleBinding/toolhive-system/retire-toolhive-session-redis
     - toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/vmcp-admin-backend-auth
     - toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/vmcp-observe-backend-auth
     - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-admin-public
@@ -109,7 +98,7 @@ spec:
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-operate-tools
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-public-read-tools
   inventory:
-    digest: sha256:f49b9d44825c8b2d281a95689d505f2917a373e5ff5c0578c0db5f76f9816d47
+    digest: sha256:fb660f10d738791d6bf8496b39679628bad6874db21abe621487c56a255122b0
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300
