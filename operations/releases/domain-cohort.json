@@ -5,7 +5,7 @@
     {
       "name": "agent-runtime-domain-ai-operations",
       "namespace": "ai-operations",
-      "objects": 13,
+      "objects": 15,
       "contract": "contracts/agent-runtime-domain-ai-operations.yaml"
     },
     {
@@ -41,7 +41,7 @@
     {
       "name": "agent-runtime-domain-cube-trial",
       "namespace": "cube-trial",
-      "objects": 4,
+      "objects": 5,
       "contract": "contracts/agent-runtime-domain-cube-trial.yaml"
     },
     {
@@ -65,11 +65,11 @@
     {
       "name": "agent-runtime-domain-toolhive-system",
       "namespace": "toolhive-system",
-      "objects": 33,
+      "objects": 34,
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 190,
+  "publishableObjects": 194,
   "deferred": [
     {
       "identity": "apps/Deployment/mcp-registry/mcp-registry-postgresql",
@@ -82,22 +82,6 @@
     {
       "identity": "batch/Job/flux-system/retire-toolhive-session-redis-v3",
       "reason": "one-shot-job-platform-owned"
-    },
-    {
-      "identity": "core/ConfigMap/ai-operations/ai-operations-inventory",
-      "reason": "restricted-cloud-decryption"
-    },
-    {
-      "identity": "core/ConfigMap/ai-operations/ai-operations-ssh-config",
-      "reason": "restricted-cloud-decryption"
-    },
-    {
-      "identity": "core/ConfigMap/cube-trial/cube-trial-values",
-      "reason": "restricted-cloud-decryption"
-    },
-    {
-      "identity": "core/ConfigMap/toolhive-system/ops-mcp-server-code",
-      "reason": "restricted-cloud-decryption"
     },
     {
       "identity": "core/Secret/api-conformance-system/api-conformance-github-app",
