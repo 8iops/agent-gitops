@@ -3994,8 +3994,8 @@ spec:
       containers:
       - args:
         - --provider=oidc
-        - --oidc-issuer-url=https://dex.service.re8ch.com
-        - --redirect-url=https://cube.service.re8ch.com/oauth2/callback
+        - --oidc-issuer-url=https://id.re8ch.com
+        - --redirect-url=https://cube.re8ch.com/oauth2/callback
         - --upstream=http://cube-trial-webui:12088
         - --http-address=0.0.0.0:4180
         - --email-domain=*
