@@ -1,0 +1,12 @@
+{
+  "mail-system": {
+    "previousRepository": "re8ch/identity-gitops",
+    "previousReleaseId": "identity-access-domain-mail-system",
+    "previousAcceptedDigest": "sha256:2263be4fbb13ea0c20493ff88acd91688216e432d23b566c228908f8bf02de5d",
+    "previousSourceCommit": "35eabf6a46a17f173a7fd2856cd170bb5ebeea64",
+    "fieldManager": "re8ch-release/identity-access-domain-mail-system",
+    "sourcePath": "clusters/re8ch/mail-authority-resources.yaml",
+    "sourceDigest": "sha256:3bd7841a954df5911f465ea9db449fb22e1bbf5f0e79eb5e653a84ee776cd01b",
+    "mode": "authority-only-existing-payload"
+  }
+}

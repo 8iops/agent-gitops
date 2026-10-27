@@ -775,6 +775,181 @@ subjects:
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  name: ssa-state-agent-runtime-domain-mail-system
+  namespace: mail-system
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-mail-system
+  namespace: mail-system
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  resourceNames:
+  - stalwart-webmail
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  resourceNames:
+  - stalwart-flk
+  - stalwart-idp-flk
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  resourceNames:
+  - stalwart-cloudflare-token-sync
+  - stalwart-mailbox-provisioner
+  - stalwart-tls-reloader
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - certificates
+  resourceNames:
+  - stalwart-mail-re8ch
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - ssa-state-agent-runtime-domain-mail-system
+  - stalwart-bootstrap-plan
+  - stalwart-bot-access-contract
+  - stalwart-cloudflare-token-sync
+  - stalwart-config
+  - stalwart-harry-admin-alias-v1
+  - stalwart-idp-bootstrap-plan-v6
+  - stalwart-idp-config
+  - stalwart-mailbox-provisioner
+  - stalwart-phonaid-domain-plan
+  - stalwart-unified-identity-bootstrap-plan-v2
+  - stalwart-userhub-oauth-plan-v1
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - persistentvolumeclaims
+  resourceNames:
+  - stalwart-flk-data
+  - stalwart-flk-local-data
+  - stalwart-idp-flk-data
+  - stalwart-idp-flk-local-data
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - serviceaccounts
+  resourceNames:
+  - stalwart-cloudflare-token-sync
+  - stalwart-mailbox-provisioner
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - services
+  resourceNames:
+  - stalwart
+  - stalwart-direct-mail
+  - stalwart-headless
+  - stalwart-idp
+  - stalwart-webmail
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - gateway.networking.k8s.io
+  resources:
+  - httproutes
+  resourceNames:
+  - stalwart-admin-public
+  - stalwart-admin-redirect
+  - stalwart-collaboration-public
+  - stalwart-collaboration-redirect
+  - stalwart-idp-public
+  - stalwart-idp-redirect
+  - stalwart-webmail-public
+  - stalwart-webmail-redirect
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - gateway.networking.k8s.io
+  resources:
+  - tcproutes
+  resourceNames:
+  - stalwart-imaps-public-v2
+  - stalwart-sieve-public-v2
+  - stalwart-smtp-public-v2
+  - stalwart-smtps-public-v2
+  - stalwart-submission-public-v2
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  resourceNames:
+  - stalwart-collaboration-public-dns
+  - stalwart-idp-public-dns
+  - stalwart-webmail-public
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-mail-system
+  namespace: mail-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-mail-system
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
   name: ssa-state-agent-runtime-domain-mcp-registry
   namespace: mcp-registry
   labels:

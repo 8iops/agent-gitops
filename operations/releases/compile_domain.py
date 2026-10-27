@@ -58,6 +58,13 @@ def rendered(path):
     return [d for d in yaml.safe_load_all(subprocess.check_output(['kubectl','kustomize',str(path)],cwd=ROOT,text=True)) if d]
 
 def compile_outputs():
+    transfers=json.loads((ROOT/'operations/releases/authority-transfers.json').read_text())
+    for namespace, transfer in transfers.items():
+        source=(ROOT/transfer['sourcePath']).resolve()
+        if ROOT.resolve() not in source.parents or digest(source.read_bytes()) != transfer['sourceDigest']:
+            raise ValueError('authority transfer source differs from accepted payload')
+        if any(d['metadata'].get('namespace') != namespace for d in yaml.safe_load_all(source.read_text()) if d):
+            raise ValueError('authority transfer crosses its reviewed namespace')
     reserved=set()
     for path in sorted((ROOT/'contracts').glob('*.yaml')):
         if path.stem.startswith(PREFIX):continue
@@ -86,6 +93,9 @@ def compile_outputs():
             'inventory':{'digest':digest(canonical(inventory))},
             'lifecycle':{'prune':False,'healthTimeoutSeconds':300,'protectedKinds':['Namespace','CustomResourceDefinition','PersistentVolume','PersistentVolumeClaim','StorageClass'],'deletionAllowlist':[]}}}
         body=yaml.safe_dump_all(objects,sort_keys=False,explicit_start=True)
+        if namespace in transfers:
+            contract['spec']['authorization']['fieldManager']=transfers[namespace]['fieldManager']
+            contract['spec']['authorization']['forceConflictObjects']=[]
         compile_bundle(contract,body.encode()) # use the existing validator, never a weaker parallel format
         files[package/'resources.yaml']=body
         files[package/'kustomization.yaml']=yaml.safe_dump({'apiVersion':'kustomize.config.k8s.io/v1beta1','kind':'Kustomization','resources':['resources.yaml']},sort_keys=False)
