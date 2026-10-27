@@ -23,17 +23,15 @@ spec:
   authorization:
     fieldManager: re8ch-release/agent-runtime-domain-flux-system
     resources:
-    - batch/Job
     - core/ServiceAccount
     objectNames:
     - retire-toolhive-session-redis
-    - retire-toolhive-session-redis-v3
     allowClusterScoped: false
+    requireExisting: true
     forceConflictObjects:
-    - batch/Job/flux-system/retire-toolhive-session-redis-v3
     - core/ServiceAccount/flux-system/retire-toolhive-session-redis
   inventory:
-    digest: sha256:38c4221a7b8b5c0a25516fca36ceab3d4906601883fe7f7028ee004d8cca8a8b
+    digest: sha256:ddf438dd0d37afe3812d1fccd5c3bd300ace7a402ef90bfadda173ba30e18169
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

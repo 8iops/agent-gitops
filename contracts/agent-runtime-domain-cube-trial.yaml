@@ -32,6 +32,7 @@ spec:
     - cube-public
     - oauth2-proxy-cube
     allowClusterScoped: false
+    requireExisting: true
     forceConflictObjects:
     - apps/Deployment/cube-trial/oauth2-proxy-cube
     - core/Service/cube-trial/oauth2-proxy-cube

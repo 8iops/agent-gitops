@@ -42,6 +42,7 @@ def classify(item,reserved):
     ident=object_identity(item)
     if ident in reserved:return 'existing-release-contract'
     if group(item)=='rbac.authorization.k8s.io':return 'platform-owned-rbac'
+    if item['kind']=='Job':return 'one-shot-job-platform-owned'
     if item['kind']=='Secret':return 'secret-provisioning'
     if contains_encrypted(item):return 'restricted-cloud-decryption'
     if group(item) in FLUX_GROUPS:return 'helm-render' if item['kind']=='HelmRelease' else 'retired-flux-control-resource'
@@ -75,7 +76,7 @@ def compile_outputs():
             'authorityDomain':DOMAIN,'target':{'cluster':'re8ch','namespace':namespace},
             'source':{'renderer':'kustomize','revision':'github-main-reviewed','repository':REPOSITORY,'path':'releases/'+name},
             'provenance':{'repository':REPOSITORY,'workflow':WORKFLOW,'ref':'refs/heads/main','environment':ENVIRONMENT,'audience':AUDIENCE,'signer':SIGNER,'issuer':'https://token.actions.githubusercontent.com'},
-            'authorization':{'fieldManager':'re8ch-release/'+name,'resources':sorted({group(d)+'/'+d['kind'] for d in objects}),'objectNames':sorted({d['metadata']['name'] for d in objects}),'allowClusterScoped':False,'forceConflictObjects':inventory},
+            'authorization':{'fieldManager':'re8ch-release/'+name,'resources':sorted({group(d)+'/'+d['kind'] for d in objects}),'objectNames':sorted({d['metadata']['name'] for d in objects}),'allowClusterScoped':False,'requireExisting':True,'forceConflictObjects':[object_identity(d) for d in objects if d['kind'] not in {'Namespace','CustomResourceDefinition','PersistentVolume','PersistentVolumeClaim','StorageClass'}]},
             'inventory':{'digest':digest(canonical(inventory))},
             'lifecycle':{'prune':False,'healthTimeoutSeconds':300,'protectedKinds':['Namespace','CustomResourceDefinition','PersistentVolume','PersistentVolumeClaim','StorageClass'],'deletionAllowlist':[]}}}
         body=yaml.safe_dump_all(objects,sort_keys=False,explicit_start=True)

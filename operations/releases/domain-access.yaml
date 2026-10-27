@@ -35,16 +35,6 @@ rules:
   - patch
   - update
 - apiGroups:
-  - batch
-  resources:
-  - jobs
-  resourceNames:
-  - re8ch-owner-pilot-workspace-v4
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
   - ''
   resources:
   - configmaps
@@ -560,16 +550,6 @@ metadata:
   name: agent-runtime-domain-flux-system
   namespace: flux-system
 rules:
-- apiGroups:
-  - batch
-  resources:
-  - jobs
-  resourceNames:
-  - retire-toolhive-session-redis-v3
-  verbs:
-  - get
-  - patch
-  - update
 - apiGroups:
   - ''
   resources:

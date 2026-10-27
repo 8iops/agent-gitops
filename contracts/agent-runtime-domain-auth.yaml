@@ -31,6 +31,7 @@ spec:
     objectNames:
     - api-conformance-result-proxy
     allowClusterScoped: false
+    requireExisting: true
     forceConflictObjects:
     - apps/Deployment/auth/api-conformance-result-proxy
     - cilium.io/CiliumNetworkPolicy/auth/api-conformance-result-proxy

@@ -89,6 +89,7 @@ spec:
     - tool-distribution-maintain
     - user-hub-maintain
     allowClusterScoped: false
+    requireExisting: true
     forceConflictObjects:
     - apps/Deployment/git-workspaces/git-workspace-controller
     - core/ConfigMap/git-workspaces/git-workspace-controller

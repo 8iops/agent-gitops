@@ -27,8 +27,8 @@ spec:
     objectNames:
     - codex-conversations
     allowClusterScoped: false
-    forceConflictObjects:
-    - core/PersistentVolumeClaim/codex-archive/codex-conversations
+    requireExisting: true
+    forceConflictObjects: []
   inventory:
     digest: sha256:90878c6366e0a2b1c92a318afe7ed1de6cc8ace3573dd84f890573347c06222c
   lifecycle:
