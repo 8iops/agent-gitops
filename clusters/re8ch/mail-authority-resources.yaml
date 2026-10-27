@@ -1,0 +1,1724 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: webmail
+    app.kubernetes.io/name: stalwart-webmail
+  name: stalwart-webmail
+  namespace: mail-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: stalwart-webmail
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: webmail
+        app.kubernetes.io/name: stalwart-webmail
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - env:
+        - name: HOSTNAME
+          value: 0.0.0.0
+        - name: PORT
+          value: '3000'
+        - name: JMAP_SERVER_URL
+          value: https://id.re8ch.com
+        - name: OAUTH_ENABLED
+          value: 'true'
+        - name: OAUTH_ONLY
+          value: 'true'
+        - name: OAUTH_CLIENT_ID
+          value: 705c1168-43d8-4ec3-980a-0327a59c7fc6
+        - name: OAUTH_ISSUER_URL
+          value: https://db-rw.re8ch.com/auth/v1
+        - name: APP_NAME
+          value: RE8CH Mail
+        - name: APP_SHORT_NAME
+          value: Mail
+        - name: LOGIN_COMPANY_NAME
+          value: RE8CH
+        - name: LOGIN_WEBSITE_URL
+          value: https://re8ch.com
+        - name: ALLOW_CUSTOM_JMAP_ENDPOINT
+          value: 'false'
+        - name: SETTINGS_SYNC_ENABLED
+          value: 'false'
+        - name: ADMIN_CONFIG_READONLY
+          value: 'true'
+        - name: BULWARK_TELEMETRY
+          value: 'off'
+        image: ghcr.io/bulwarkmail/webmail:1.10.0@sha256:f3b59980ccccb45e710f3e4e93cd5c1a66a6175fbf64493e0c86aa6f7fe6ac6b
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 20
+          periodSeconds: 20
+        name: webmail
+        ports:
+        - containerPort: 3000
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: '1'
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - mountPath: /app/data
+          name: data
+        - mountPath: /tmp
+          name: tmp
+      dnsConfig:
+        nameservers:
+        - 1.1.1.1
+        - 1.0.0.1
+        options:
+        - name: ndots
+          value: '1'
+      dnsPolicy: None
+      nodeSelector:
+        kubernetes.io/hostname: overseas-flk
+      securityContext:
+        fsGroup: 1001
+        runAsGroup: 1001
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      tolerations:
+      - effect: NoSchedule
+        key: dedicated
+        operator: Equal
+        value: overseas-edge
+      - effect: NoSchedule
+        key: scheduling.re8ch.com/capacity-window
+        operator: Equal
+        value: closed
+      volumes:
+      - emptyDir: {}
+        name: data
+      - emptyDir: {}
+        name: tmp
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: stalwart-flk
+  namespace: mail-system
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: stalwart
+  serviceName: stalwart-headless
+  template:
+    metadata:
+      annotations:
+        governance.re8ch.com/mail-authority: staged
+      labels:
+        app.kubernetes.io/name: stalwart
+    spec:
+      containers:
+      - args:
+        - --config
+        - /etc/stalwart/config.json
+        env:
+        - name: STALWART_PUBLIC_URL
+          value: https://id.re8ch.com
+        envFrom:
+        - secretRef:
+            name: stalwart-recovery-admin
+        image: ghcr.io/stalwartlabs/stalwart:v0.16.18@sha256:9ed1d343243b7aa72969e372a7240b7ddea07730781d4b68a0dc3d8d51c418bb
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 6
+          httpGet:
+            path: /healthz/live
+            port: management
+          initialDelaySeconds: 20
+          periodSeconds: 20
+          timeoutSeconds: 10
+        name: stalwart
+        ports:
+        - containerPort: 25
+          name: smtp
+        - containerPort: 465
+          name: smtps
+        - containerPort: 587
+          name: submission
+        - containerPort: 143
+          name: imap
+        - containerPort: 993
+          name: imaps
+        - containerPort: 110
+          name: pop3
+        - containerPort: 995
+          name: pop3s
+        - containerPort: 4190
+          name: sieve
+        - containerPort: 80
+          name: http
+        - containerPort: 443
+          name: https
+        - containerPort: 8080
+          name: management
+        readinessProbe:
+          httpGet:
+            path: /healthz/ready
+            port: management
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 10
+        resources:
+          limits:
+            cpu: '2'
+            memory: 2Gi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            add:
+            - NET_BIND_SERVICE
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        startupProbe:
+          failureThreshold: 60
+          httpGet:
+            path: /healthz/live
+            port: management
+          periodSeconds: 10
+          timeoutSeconds: 10
+        volumeMounts:
+        - mountPath: /etc/stalwart
+          name: config
+          readOnly: true
+        - mountPath: /var/lib/stalwart
+          name: data
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /var/run/stalwart-tls
+          name: mail-tls
+          readOnly: true
+        - mountPath: /var/run/stalwart-secrets/cloudflare
+          name: cloudflare-token
+          readOnly: true
+        - mountPath: /var/run/stalwart-secrets/cloudflare-re8ch
+          name: cloudflare-re8ch-token
+          readOnly: true
+        - mountPath: /var/run/stalwart-idp
+          name: oidc-keys
+          readOnly: true
+      dnsConfig:
+        nameservers:
+        - 1.1.1.1
+        - 1.0.0.1
+        options:
+        - name: ndots
+          value: '1'
+      dnsPolicy: None
+      initContainers:
+      - args:
+        - 'until [ -f /var/lib/stalwart/.r640-migration-v2-complete ]; do sleep 5;
+          done
+
+          test -f /var/lib/stalwart/CURRENT
+
+          '
+        command:
+        - /bin/sh
+        - -ceu
+        image: alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659
+        name: wait-for-migration
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - mountPath: /var/lib/stalwart
+          name: data
+          readOnly: true
+      nodeSelector:
+        kubernetes.io/hostname: overseas-flk
+      securityContext:
+        fsGroup: 2000
+        runAsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 2000
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 120
+      tolerations:
+      - effect: NoSchedule
+        key: dedicated
+        operator: Equal
+        value: overseas-edge
+      - effect: NoSchedule
+        key: scheduling.re8ch.com/capacity-window
+        operator: Equal
+        value: closed
+      volumes:
+      - configMap:
+          name: stalwart-config
+        name: config
+      - emptyDir: {}
+        name: tmp
+      - name: data
+        persistentVolumeClaim:
+          claimName: stalwart-flk-local-data
+      - name: mail-tls
+        secret:
+          secretName: stalwart-mail-re8ch-tls
+      - name: cloudflare-token
+        secret:
+          items:
+          - key: CF_API_TOKEN
+            path: token
+          optional: true
+          secretName: stalwart-cloudflare-phonaid-token
+      - name: cloudflare-re8ch-token
+        secret:
+          items:
+          - key: CF_API_TOKEN
+            path: token
+          optional: true
+          secretName: stalwart-cloudflare-dns-token
+      - name: oidc-keys
+        secret:
+          secretName: stalwart-idp-oidc-keys
+  updateStrategy:
+    type: RollingUpdate
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/component: identity-provider
+    app.kubernetes.io/name: stalwart-idp
+  name: stalwart-idp-flk
+  namespace: mail-system
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: stalwart-idp
+  serviceName: stalwart-idp
+  template:
+    metadata:
+      annotations:
+        governance.re8ch.com/identity-stage: github-kubernetes-rbac-pilot
+      labels:
+        app.kubernetes.io/component: identity-provider
+        app.kubernetes.io/name: stalwart-idp
+    spec:
+      containers:
+      - args:
+        - --config
+        - /etc/stalwart/config.json
+        env:
+        - name: STALWART_PUBLIC_URL
+          value: https://id.re8ch.com
+        envFrom:
+        - secretRef:
+            name: stalwart-idp-recovery
+        image: ghcr.io/stalwartlabs/stalwart:v0.16.18@sha256:9ed1d343243b7aa72969e372a7240b7ddea07730781d4b68a0dc3d8d51c418bb
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 6
+          httpGet:
+            path: /healthz/live
+            port: http
+          initialDelaySeconds: 20
+          periodSeconds: 20
+          timeoutSeconds: 10
+        name: stalwart-idp
+        ports:
+        - containerPort: 8080
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /healthz/ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            add:
+            - NET_BIND_SERVICE
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        startupProbe:
+          failureThreshold: 60
+          httpGet:
+            path: /healthz/live
+            port: http
+          periodSeconds: 10
+          timeoutSeconds: 10
+        volumeMounts:
+        - mountPath: /etc/stalwart
+          name: config
+          readOnly: true
+        - mountPath: /var/lib/stalwart-idp
+          name: data
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /var/run/stalwart-idp
+          name: oidc-keys
+          readOnly: true
+      initContainers:
+      - args:
+        - 'until [ -f /var/lib/stalwart-idp/.r640-migration-v2-complete ]; do sleep
+          5; done
+
+          test -f /var/lib/stalwart-idp/CURRENT
+
+          '
+        command:
+        - /bin/sh
+        - -ceu
+        image: alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659
+        name: wait-for-migration
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - mountPath: /var/lib/stalwart-idp
+          name: data
+          readOnly: true
+      nodeSelector:
+        kubernetes.io/hostname: overseas-flk
+      securityContext:
+        fsGroup: 2000
+        runAsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 2000
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 60
+      tolerations:
+      - effect: NoSchedule
+        key: dedicated
+        operator: Equal
+        value: overseas-edge
+      - effect: NoSchedule
+        key: scheduling.re8ch.com/capacity-window
+        operator: Equal
+        value: closed
+      volumes:
+      - configMap:
+          name: stalwart-idp-config
+        name: config
+      - emptyDir: {}
+        name: tmp
+      - name: data
+        persistentVolumeClaim:
+          claimName: stalwart-idp-flk-local-data
+      - name: oidc-keys
+        secret:
+          secretName: stalwart-idp-oidc-keys
+  updateStrategy:
+    type: RollingUpdate
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: stalwart-cloudflare-token-sync
+  namespace: mail-system
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          containers:
+          - command:
+            - python3
+            - /app/sync.py
+            image: docker.1ms.run/library/python@sha256:d09d15e60962ca365d1cd544a48773bac9d33f2fb1b00f2aa0deec78ade7dc31
+            name: sync
+            resources:
+              limits:
+                cpu: 100m
+                memory: 64Mi
+              requests:
+                cpu: 10m
+                memory: 32Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              readOnlyRootFilesystem: true
+            volumeMounts:
+            - mountPath: /app
+              name: app
+              readOnly: true
+          nodeSelector:
+            kubernetes.io/hostname: overseas-flk
+          restartPolicy: OnFailure
+          securityContext:
+            runAsGroup: 65532
+            runAsNonRoot: true
+            runAsUser: 65532
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: stalwart-cloudflare-token-sync
+          tolerations:
+          - effect: NoSchedule
+            key: dedicated
+            operator: Equal
+            value: overseas-edge
+          - effect: NoSchedule
+            key: scheduling.re8ch.com/capacity-window
+            operator: Equal
+            value: closed
+          volumes:
+          - configMap:
+              name: stalwart-cloudflare-token-sync
+            name: app
+      ttlSecondsAfterFinished: 604800
+  schedule: 7 * * * *
+  successfulJobsHistoryLimit: 2
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: stalwart-mailbox-provisioner
+  namespace: mail-system
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: stalwart-mailbox-provisioner
+        spec:
+          containers:
+          - command:
+            - python3
+            - /app/provision.py
+            env:
+            - name: STALWART_URL
+              value: http://stalwart.mail-system.svc.cluster.local:8080
+            - name: XDG_CACHE_HOME
+              value: /cache
+            envFrom:
+            - secretRef:
+                name: stalwart-recovery-admin
+            image: docker.1ms.run/library/python@sha256:d09d15e60962ca365d1cd544a48773bac9d33f2fb1b00f2aa0deec78ade7dc31
+            name: provision
+            resources:
+              limits:
+                cpu: 500m
+                memory: 256Mi
+              requests:
+                cpu: 25m
+                memory: 48Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              readOnlyRootFilesystem: true
+            volumeMounts:
+            - mountPath: /app
+              name: app
+              readOnly: true
+            - mountPath: /cli
+              name: cli
+              readOnly: true
+            - mountPath: /cache
+              name: cache
+          nodeSelector:
+            kubernetes.io/hostname: overseas-flk
+          restartPolicy: Never
+          securityContext:
+            runAsGroup: 65532
+            runAsNonRoot: true
+            runAsUser: 65532
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: stalwart-mailbox-provisioner
+          tolerations:
+          - effect: NoSchedule
+            key: dedicated
+            operator: Equal
+            value: overseas-edge
+          - effect: NoSchedule
+            key: scheduling.re8ch.com/capacity-window
+            operator: Equal
+            value: closed
+          volumes:
+          - configMap:
+              name: stalwart-mailbox-provisioner
+            name: app
+          - image:
+              pullPolicy: IfNotPresent
+              reference: ghcr.io/stalwartlabs/cli@sha256:fe199affac1d120a8c200ef39ae629765a2976270e0453575c1caf906ee15b52
+            name: cli
+          - emptyDir: {}
+            name: cache
+      ttlSecondsAfterFinished: 604800
+  schedule: 13 * * * *
+  successfulJobsHistoryLimit: 2
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: stalwart-tls-reloader
+  namespace: mail-system
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: stalwart-tls-reloader
+        spec:
+          automountServiceAccountToken: false
+          containers:
+          - args:
+            - 'export STALWART_URL=http://stalwart.mail-system.svc.cluster.local:8080
+
+              export STALWART_USER="${STALWART_RECOVERY_ADMIN%%:*}"
+
+              export STALWART_PASSWORD="${STALWART_RECOVERY_ADMIN#*:}"
+
+              unset STALWART_RECOVERY_ADMIN
+
+              /cli/usr/local/bin/stalwart-cli create Action/ReloadTlsCertificates
+
+              '
+            command:
+            - /bin/sh
+            - -ceu
+            env:
+            - name: XDG_CACHE_HOME
+              value: /cache
+            envFrom:
+            - secretRef:
+                name: stalwart-recovery-admin
+            image: alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659
+            name: reload
+            resources:
+              limits:
+                cpu: 250m
+                memory: 128Mi
+              requests:
+                cpu: 10m
+                memory: 32Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              readOnlyRootFilesystem: true
+            volumeMounts:
+            - mountPath: /cli
+              name: cli
+              readOnly: true
+            - mountPath: /cache
+              name: cache
+          restartPolicy: Never
+          securityContext:
+            runAsGroup: 65532
+            runAsNonRoot: true
+            runAsUser: 65532
+            seccompProfile:
+              type: RuntimeDefault
+          volumes:
+          - image:
+              pullPolicy: IfNotPresent
+              reference: ghcr.io/stalwartlabs/cli@sha256:fe199affac1d120a8c200ef39ae629765a2976270e0453575c1caf906ee15b52
+            name: cli
+          - emptyDir: {}
+            name: cache
+  schedule: 17 * * * *
+  successfulJobsHistoryLimit: 3
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: stalwart-mail-re8ch
+  namespace: mail-system
+spec:
+  dnsNames:
+  - mail.re8ch.com
+  duration: 2160h
+  issuerRef:
+    kind: ClusterIssuer
+    name: re8ch-cloudflare-dns01
+  privateKey:
+    algorithm: RSA
+    rotationPolicy: Always
+    size: 2048
+  renewBefore: 360h
+  secretName: stalwart-mail-re8ch-tls
+---
+apiVersion: v1
+data:
+  plan.ndjson: '{"@type":"upsert","object":"Domain","matchOn":["name"],"value":{"phonaid-domain":{"name":"phonaid.com","isEnabled":true,"aliases":{},"certificateManagement":{"@type":"Manual"},"dkimManagement":{"@type":"Automatic"},"dnsManagement":{"@type":"Manual"},"subAddressing":{"@type":"Enabled"}},"re8ch-domain":{"name":"re8ch.com","isEnabled":true,"aliases":{},"certificateManagement":{"@type":"Manual"},"dkimManagement":{"@type":"Automatic"},"dnsManagement":{"@type":"Manual"},"subAddressing":{"@type":"Enabled"}}}}
+
+    {"@type":"upsert","object":"Certificate","matchOn":["certificate"],"value":{"mail-re8ch-com":{"certificate":{"@type":"File","filePath":"/var/run/stalwart-tls/tls.crt"},"privateKey":{"@type":"File","filePath":"/var/run/stalwart-tls/tls.key"}}}}
+
+    {"@type":"update","object":"SystemSettings","value":{"defaultHostname":"mail.re8ch.com","defaultCertificateId":"#mail-re8ch-com","mailExchangers":{"0":{"hostname":"mail.re8ch.com","priority":10}},"services":{"caldav":{"hostname":"mail.re8ch.com","cleartext":false},"carddav":{"hostname":"mail.re8ch.com","cleartext":false},"imap":{"hostname":"mail.re8ch.com","cleartext":false},"jmap":{"hostname":"mail.re8ch.com","cleartext":false},"managesieve":{"hostname":"mail.re8ch.com","cleartext":false},"pop3":{"hostname":"mail.re8ch.com","cleartext":false},"smtp":{"hostname":"mail.re8ch.com","cleartext":false},"webdav":{"hostname":"mail.re8ch.com","cleartext":false}}}}
+
+    {"@type":"upsert","object":"NetworkListener","matchOn":["name"],"value":{"submission":{"name":"submission","protocol":"smtp","bind":{"[::]:587":true},"tlsImplicit":false},"imap":{"name":"imap","protocol":"imap","bind":{"[::]:143":true},"tlsImplicit":false}}}
+
+    {"@type":"update","object":"Sharing","value":{"allowDirectoryQueries":false,"maxShares":25}}
+
+    '
+kind: ConfigMap
+metadata:
+  name: stalwart-bootstrap-plan
+  namespace: mail-system
+---
+apiVersion: v1
+data:
+  baseUrl: https://id.re8ch.com
+  caldav: https://id.re8ch.com/dav/cal/{email-local-part}
+  carddav: https://id.re8ch.com/dav/card/{email-local-part}
+  credentialContract: Kubernetes Secret reference only; never inject a primary password
+    into an image or Git workspace.
+  jmapSession: https://id.re8ch.com/.well-known/jmap
+  managementContract: stalwart-cli remains cluster-internal and authenticates through
+    mail-system/stalwart-recovery-admin.
+  sandboxContract: Mount one revocable Stalwart application-password Secret per bot
+    and expose only the protocol endpoints listed here.
+  webdav: https://id.re8ch.com/dav/file/{email-local-part}
+kind: ConfigMap
+metadata:
+  labels:
+    governance.re8ch.com/evidence-plane: planning
+  name: stalwart-bot-access-contract
+  namespace: mail-system
+---
+apiVersion: v1
+data:
+  sync.py: "import json, os, ssl, urllib.error, urllib.request\n\nroot = \"/var/run/secrets/kubernetes.io/serviceaccount\"\
+    \nbearer = open(root + \"/token\", encoding=\"utf-8\").read().strip()\napi = \"\
+    https://%s:%s\" % (os.environ[\"KUBERNETES_SERVICE_HOST\"], os.environ[\"KUBERNETES_SERVICE_PORT_HTTPS\"\
+    ])\ncontext = ssl.create_default_context(cafile=root + \"/ca.crt\")\nheaders =\
+    \ {\"Authorization\": \"Bearer \" + bearer, \"Content-Type\": \"application/json\"\
+    }\n\ndef request(method, path, body=None):\n    payload = None if body is None\
+    \ else json.dumps(body, separators=(\",\", \":\")).encode()\n    req = urllib.request.Request(api\
+    \ + path, data=payload, headers=headers, method=method)\n    try:\n        with\
+    \ urllib.request.urlopen(req, context=context, timeout=15) as response:\n    \
+    \        return json.load(response) if response.length else {}\n    except urllib.error.HTTPError\
+    \ as error:\n        if error.code == 404:\n            return None\n        raise\n\
+    \nsource = request(\"GET\", \"/api/v1/namespaces/qianwen-ops/secrets/cloudflare-pg-dns-controller-secret\"\
+    )\nencoded = (source.get(\"data\") or {}).get(\"CF_API_TOKEN\") if source else\
+    \ None\nif not encoded:\n    raise RuntimeError(\"Cloudflare credential source\
+    \ is unavailable\")\n\ntarget_path = \"/api/v1/namespaces/mail-system/secrets/stalwart-cloudflare-dns-token\"\
+    \ncurrent = request(\"GET\", target_path)\nbody = {\n    \"apiVersion\": \"v1\"\
+    , \"kind\": \"Secret\",\n    \"metadata\": {\n        \"name\": \"stalwart-cloudflare-dns-token\"\
+    , \"namespace\": \"mail-system\",\n        \"labels\": {\"app.kubernetes.io/managed-by\"\
+    : \"stalwart-cloudflare-token-sync\"},\n    },\n    \"type\": \"Opaque\", \"data\"\
+    : {\"CF_API_TOKEN\": encoded},\n}\nif current:\n    body[\"metadata\"][\"resourceVersion\"\
+    ] = current[\"metadata\"][\"resourceVersion\"]\n    request(\"PUT\", target_path,\
+    \ body)\nelse:\n    request(\"POST\", \"/api/v1/namespaces/mail-system/secrets\"\
+    , body)\nprint(json.dumps({\"synced\": True, \"target\": \"mail-system/stalwart-cloudflare-dns-token\"\
+    }))\n"
+kind: ConfigMap
+metadata:
+  name: stalwart-cloudflare-token-sync
+  namespace: mail-system
+---
+apiVersion: v1
+data:
+  config.json: '{"@type":"RocksDb","path":"/var/lib/stalwart"}
+
+    '
+kind: ConfigMap
+metadata:
+  name: stalwart-config
+  namespace: mail-system
+---
+apiVersion: v1
+data:
+  reconcile.py: "import base64\nimport json\nimport os\nimport urllib.request\n\n\
+    endpoint = os.environ[\"STALWART_URL\"].rstrip(\"/\") + \"/jmap\"\ncredential\
+    \ = os.environ[\"STALWART_RECOVERY_ADMIN\"]\nauthorization = \"Basic \" + base64.b64encode(credential.encode()).decode()\n\
+    \ndef call(name, arguments):\n    payload = json.dumps({\n        \"using\": [\"\
+    urn:ietf:params:jmap:core\", \"urn:stalwart:jmap\"],\n        \"methodCalls\"\
+    : [[name, arguments, \"alias\"]],\n    }).encode()\n    request = urllib.request.Request(endpoint,\
+    \ payload, {\n        \"Authorization\": authorization,\n        \"Content-Type\"\
+    : \"application/json\",\n    })\n    with urllib.request.urlopen(request, timeout=20)\
+    \ as response:\n        result = json.load(response)[\"methodResponses\"][0]\n\
+    \    if result[0] != name:\n        raise RuntimeError(\"Stalwart rejected the\
+    \ account operation\")\n    return result[1]\n\ndef accounts():\n    return call(\"\
+    x:Account/get\", {\n        \"ids\": None,\n        \"properties\": [\"name\"\
+    , \"domainId\", \"emailAddress\", \"aliases\", \"permissions\"],\n    })[\"list\"\
+    ]\n\ncurrent = accounts()\nmatches = [item for item in current if item.get(\"\
+    emailAddress\") == \"harry@re8ch.com\"]\nif len(matches) != 1:\n    raise RuntimeError(\"\
+    expected exactly one Harry mailbox\")\nharry = matches[0]\ndomain_id = harry[\"\
+    domainId\"]\nfor item in current:\n    if item.get(\"emailAddress\") == \"admin@re8ch.com\"\
+    \ and item[\"id\"] != harry[\"id\"]:\n        raise RuntimeError(\"admin address\
+    \ belongs to another mailbox\")\n    for alias in (item.get(\"aliases\") or {}).values():\n\
+    \        if alias.get(\"name\") == \"admin\" and alias.get(\"domainId\") == domain_id\
+    \ and item[\"id\"] != harry[\"id\"]:\n            raise RuntimeError(\"admin alias\
+    \ belongs to another mailbox\")\n\naliases = dict(harry.get(\"aliases\") or {})\n\
+    if not any(value.get(\"name\") == \"admin\" and value.get(\"domainId\") == domain_id\
+    \ for value in aliases.values()):\n    next_id = str(max((int(key) for key in\
+    \ aliases if key.isdigit()), default=-1) + 1)\n    aliases[next_id] = {\"enabled\"\
+    : True, \"name\": \"admin\", \"domainId\": domain_id}\n\nold_permissions = harry.get(\"\
+    permissions\") or {\"@type\": \"Inherit\"}\nif old_permissions.get(\"@type\")\
+    \ not in (\"Inherit\", \"Merge\"):\n    raise RuntimeError(\"refusing to replace\
+    \ custom Harry mailbox permissions\")\nenabled = dict(old_permissions.get(\"enabledPermissions\"\
+    ) or {})\ndisabled = dict(old_permissions.get(\"disabledPermissions\") or {})\n\
+    if disabled.get(\"authenticateWithAlias\"):\n    raise RuntimeError(\"alias authentication\
+    \ is explicitly denied\")\nenabled[\"authenticateWithAlias\"] = True\npermissions\
+    \ = {\"@type\": \"Merge\", \"enabledPermissions\": enabled, \"disabledPermissions\"\
+    : disabled}\n\nif aliases != (harry.get(\"aliases\") or {}) or permissions !=\
+    \ old_permissions:\n    result = call(\"x:Account/set\", {\n        \"update\"\
+    : {harry[\"id\"]: {\"aliases\": aliases, \"permissions\": permissions}},\n   \
+    \ })\n    if harry[\"id\"] not in result.get(\"updated\", {}):\n        raise\
+    \ RuntimeError(\"Stalwart did not update Harry mailbox\")\n\nupdated = next(item\
+    \ for item in accounts() if item[\"id\"] == harry[\"id\"])\nif not any(value.get(\"\
+    enabled\") and value.get(\"name\") == \"admin\" and value.get(\"domainId\") ==\
+    \ domain_id for value in (updated.get(\"aliases\") or {}).values()):\n    raise\
+    \ RuntimeError(\"admin mailbox alias was not saved\")\nif not (updated.get(\"\
+    permissions\") or {}).get(\"enabledPermissions\", {}).get(\"authenticateWithAlias\"\
+    ):\n    raise RuntimeError(\"alias sign-in permission was not saved\")\nprint(\"\
+    harry@re8ch.com accepts admin@re8ch.com as mailbox alias\")\n"
+kind: ConfigMap
+metadata:
+  name: stalwart-harry-admin-alias-v1
+  namespace: mail-system
+---
+apiVersion: v1
+data:
+  plan.ndjson: '{"@type":"upsert","object":"Directory","matchOn":["description"],"value":{"re8ch-enterprise-sso":{"@type":"Oidc","description":"RE8CH
+    Enterprise SSO broker","issuerUrl":"https://auth.re8ch.com","requireAudience":"stalwart-webui","requireScopes":{"openid":true,"email":true,"profile":true},"claimUsername":"email","claimName":"name","claimGroups":"groups"}}}
+
+    {"@type":"update","object":"Authentication","value":{"directoryId":"#re8ch-enterprise-sso"}}
+
+    {"@type":"update","object":"OidcProvider","value":{"anonymousClientRegistration":true,"requireClientRegistration":true,"signatureAlgorithm":"es256","signatureKey":{"@type":"File","filePath":"/var/run/stalwart-idp/signing-private.pem"},"encryptionKey":{"@type":"File","filePath":"/var/run/stalwart-idp/encryption-key"},"accessTokenExpiry":900000,"idTokenExpiry":900000,"refreshTokenExpiry":28800000,"refreshTokenRenewal":3600000}}
+
+    {"@type":"upsert","object":"OAuthClient","matchOn":["clientId"],"value":{"kubectl-pilot":{"clientId":"kubectl-stalwart-pilot","description":"Kubernetes
+    RBAC Stalwart pilot","redirectUris":{"http://127.0.0.1:8000":true,"http://localhost:8000":true}}}}
+
+    {"@type":"upsert","object":"OAuthClient","matchOn":["clientId"],"value":{"headlamp":{"clientId":"headlamp","description":"Headlamp
+    Kubernetes console","redirectUris":{"https://headlamp.service.re8ch.com/oidc-callback":true}}}}
+
+    {"@type":"upsert","object":"OAuthClient","matchOn":["clientId"],"value":{"storage-collaborator":{"clientId":"storage-collaborator","description":"Storage
+    Collaborator","redirectUris":{"com.re8ch.storagecollaborator:/oauth/callback":true,"http://127.0.0.1:8765/callback":true}}}}
+
+    {"@type":"upsert","object":"OAuthClient","matchOn":["clientId"],"value":{"connectool-cloud":{"clientId":"re8ch-cloud-platform-tool","description":"ConnecTool
+    cloud platform public PKCE client","redirectUris":{"http://127.0.0.1/callback":true,"http://localhost/callback":true}}}}
+
+    {"@type":"upsert","object":"OAuthClient","matchOn":["clientId"],"value":{"connectool-admin":{"clientId":"re8ch-platform-admin","description":"ConnecTool
+    platform admin public PKCE client","redirectUris":{"http://127.0.0.1/callback":true,"http://localhost/callback":true}}}}
+
+    {"@type":"upsert","object":"OAuthClient","matchOn":["clientId"],"value":{"connectool-tenant":{"clientId":"re8ch-tenant","description":"ConnecTool
+    tenant public PKCE client","redirectUris":{"http://127.0.0.1/callback":true,"http://localhost/callback":true}}}}
+
+    '
+kind: ConfigMap
+metadata:
+  name: stalwart-idp-bootstrap-plan-v6
+  namespace: mail-system
+---
+apiVersion: v1
+data:
+  config.json: '{"@type":"RocksDb","path":"/var/lib/stalwart-idp"}
+
+    '
+kind: ConfigMap
+metadata:
+  name: stalwart-idp-config
+  namespace: mail-system
+---
+apiVersion: v1
+data:
+  provision.py: "import base64\nimport datetime\nimport json\nimport os\nimport secrets\n\
+    import ssl\nimport subprocess\nimport urllib.error\nimport urllib.request\n\n\
+    API = \"https://kubernetes.default.svc\"\nTOKEN = open(\"/var/run/secrets/kubernetes.io/serviceaccount/token\"\
+    , encoding=\"utf-8\").read().strip()\nCONTEXT = ssl.create_default_context(cafile=\"\
+    /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\")\nCLI = \"/cli/usr/local/bin/stalwart-cli\"\
+    \nACCOUNTS_PATH = \"/apis/governance.re8ch.com/v1alpha1/namespaces/git-workspaces/gitaccounts\"\
+    \nSTALWART_ADMIN_MANAGED = {\n    \"re8ch-image-admin\", \"re8ch-cloud-admin\"\
+    , \"re8ch-observability-admin\",\n    \"re8ch-ai-admin\", \"re8ch-business-admin\"\
+    ,\n}\nrecovery_user, separator, recovery_password = os.environ.pop(\"STALWART_RECOVERY_ADMIN\"\
+    ).partition(\":\")\nif separator != \":\" or not recovery_user or not recovery_password:\n\
+    \    raise RuntimeError(\"invalid recovery credential reference\")\nos.environ[\"\
+    STALWART_USER\"] = recovery_user\nos.environ[\"STALWART_PASSWORD\"] = recovery_password\n\
+    \ndef kube(method, path, body=None, content_type=\"application/json\"):\n    payload\
+    \ = None if body is None else json.dumps(body, separators=(\",\", \":\")).encode()\n\
+    \    request = urllib.request.Request(\n        API + path,\n        data=payload,\n\
+    \        method=method,\n        headers={\"Authorization\": \"Bearer \" + TOKEN,\
+    \ \"Content-Type\": content_type},\n    )\n    try:\n        with urllib.request.urlopen(request,\
+    \ context=CONTEXT, timeout=20) as response:\n            return json.load(response)\
+    \ if response.length != 0 else {}\n    except urllib.error.HTTPError as error:\n\
+    \        if error.code == 404:\n            return None\n        raise\n\ndef\
+    \ cli(*arguments, stdin=None, env=None):\n    result = subprocess.run(\n     \
+    \   [CLI, *arguments], input=stdin, text=True, capture_output=True,\n        env=env\
+    \ or os.environ, timeout=180, check=False,\n    )\n    if result.returncode:\n\
+    \        raise RuntimeError(\"stalwart-cli failed without exposing credential\
+    \ output\")\n    return result.stdout\n\ndef secret_name(account):\n    reference\
+    \ = (((account.get(\"spec\") or {}).get(\"collaboration\") or {}).get(\"credentialSecretRef\"\
+    ) or {})\n    if reference.get(\"namespace\") not in (None, \"mail-system\"):\n\
+    \        raise RuntimeError(\"credential Secret must remain in mail-system\")\n\
+    \    return reference.get(\"name\") or account[\"metadata\"][\"name\"] + \"-stalwart-credentials\"\
+    \n\ndef load_or_create_password(account, email):\n    name = secret_name(account)\n\
+    \    path = \"/api/v1/namespaces/mail-system/secrets/\" + name\n    current =\
+    \ kube(\"GET\", path)\n    if current:\n        encoded = (current.get(\"data\"\
+    ) or {}).get(\"password\")\n        if not encoded:\n            raise RuntimeError(\"\
+    credential Secret exists without password\")\n        return base64.b64decode(encoded).decode()\n\
+    \    password = secrets.token_urlsafe(32)\n    values = {\"email\": email, \"\
+    username\": email, \"password\": password}\n    kube(\"POST\", \"/api/v1/namespaces/mail-system/secrets\"\
+    , {\n        \"apiVersion\": \"v1\", \"kind\": \"Secret\",\n        \"metadata\"\
+    : {\n            \"name\": name, \"namespace\": \"mail-system\",\n           \
+    \ \"labels\": {\"app.kubernetes.io/managed-by\": \"stalwart-mailbox-provisioner\"\
+    },\n            \"annotations\": {\"governance.re8ch.com/git-account\": account[\"\
+    metadata\"][\"name\"]},\n        },\n        \"type\": \"Opaque\",\n        \"\
+    data\": {key: base64.b64encode(value.encode()).decode() for key, value in values.items()},\n\
+    \    })\n    return password\n\ndef retire_managed_password_copy(account):\n \
+    \   name = secret_name(account)\n    path = \"/api/v1/namespaces/mail-system/secrets/\"\
+    \ + name\n    current = kube(\"GET\", path)\n    if not current:\n        return\n\
+    \    metadata = current.get(\"metadata\") or {}\n    if (metadata.get(\"labels\"\
+    ) or {}).get(\"app.kubernetes.io/managed-by\") != \"stalwart-mailbox-provisioner\"\
+    \ or (metadata.get(\"annotations\") or {}).get(\"governance.re8ch.com/git-account\"\
+    ) != account[\"metadata\"][\"name\"]:\n        raise RuntimeError(\"refusing to\
+    \ delete an unmanaged mailbox Secret\")\n    kube(\"DELETE\", path)\n\ndef patch_status(account,\
+    \ phase, reason):\n    name = account[\"metadata\"][\"name\"]\n    now = datetime.datetime.now(datetime.timezone.utc).isoformat().replace(\"\
+    +00:00\", \"Z\")\n    kube(\"PATCH\", ACCOUNTS_PATH + \"/\" + name + \"/status\"\
+    , {\n        \"status\": {\"mailbox\": {\"phase\": phase, \"provider\": \"stalwart\"\
+    , \"observedAt\": now, \"reason\": reason}}\n    }, \"application/merge-patch+json\"\
+    )\n\naccounts = [\n    item for item in kube(\"GET\", ACCOUNTS_PATH)[\"items\"\
+    ]\n    if (item.get(\"spec\") or {}).get(\"mailbox\") == \"stalwart\"\n]\ngroup_projects\
+    \ = {\n    \"platform-shared\": {\n        \"advanced-fabric\", \"among-clusters\"\
+    , \"brand-assets\", \"cloud-functions\", \"cluster-website\",\n        \"codex-admin-plugins\"\
+    , \"connectool\", \"farseer\", \"headlamp-advanced-fabric\",\n        \"headlamp-birfucate\"\
+    , \"image-website\", \"mihomos-cluster\", \"observable-website\",\n        \"\
+    product-public-data\", \"re8ch-core\", \"registry-product-site\", \"service-backend\"\
+    ,\n        \"tool-distribution\",\n    },\n    \"anycam-shared\": {\"anycam\"\
+    , \"anycam-backend\", \"anycam-ios\", \"anycam-website\"},\n    \"anysiteonearth-shared\"\
+    : {\"anysiteonearth\", \"anysiteonearth-website\"},\n    \"baozou-ppt-studio-shared\"\
+    : {\"baozou-ppt-studio\", \"director-engines\"},\n    \"garageband-shared\": {\"\
+    garageband-mcp\", \"garageband-mcp-site\"},\n    \"ledger-shared\": {\"ledger\"\
+    , \"ledger-dashboard\", \"ledger-site\"},\n    \"phonaid-shared\": {\"phonaid-android\"\
+    , \"phonaid-service\", \"phonaid-website\"},\n    \"re8ch-image-admins\": {\"\
+    re8ch-image\"},\n    \"re8ch-cloud-admins\": {\"re8ch-cloud\"},\n    \"re8ch-observability-admins\"\
+    : {\"re8ch-observability\"},\n    \"re8ch-ai-admins\": {\"re8ch-ai\"},\n    \"\
+    re8ch-business-admins\": {\"re8ch-business\"},\n}\ndomain_rows = [json.loads(line)\
+    \ for line in cli(\"query\", \"Domain\", \"--fields\", \"id,name\", \"--json\"\
+    ).splitlines()]\ndomain = next((row for row in domain_rows if row.get(\"name\"\
+    ) == \"phonaid.com\"), None)\nif not domain:\n    raise RuntimeError(\"phonaid.com\
+    \ domain is not provisioned\")\n\ngroup_plan = []\nfor index, name in enumerate(group_projects):\n\
+    \    group_plan.append({\n        \"@type\": \"upsert\", \"object\": \"Account\"\
+    , \"matchOn\": [\"name\", \"domainId\"],\n        \"value\": {\"group-\" + str(index):\
+    \ {\n            \"@type\": \"Group\", \"name\": name, \"domainId\": domain[\"\
+    id\"],\n            \"description\": name.removesuffix(\"-shared\").replace(\"\
+    -\", \" \").title() + \" shared workspace\",\n            \"roles\": {\"@type\"\
+    : \"Default\"}, \"permissions\": {\"@type\": \"Inherit\"},\n            \"quotas\"\
+    : {}, \"aliases\": {},\n        }},\n    })\ncli(\"apply\", \"--stdin\", \"--json\"\
+    , stdin=\"\\n\".join(json.dumps(item) for item in group_plan) + \"\\n\")\ngroup_rows\
+    \ = [json.loads(line) for line in cli(\"query\", \"Account\", \"--fields\", \"\
+    id,name\", \"--json\").splitlines()]\ngroup_ids = {row[\"name\"]: row[\"id\"]\
+    \ for row in group_rows if row.get(\"name\") in group_projects}\nif set(group_ids)\
+    \ != set(group_projects):\n    raise RuntimeError(\"Stalwart group reconciliation\
+    \ is incomplete\")\naccount_rows = [json.loads(line) for line in cli(\"query\"\
+    , \"Account\", \"--fields\", \"id,name\", \"--json\").splitlines()]\nexisting_names\
+    \ = {row[\"name\"] for row in account_rows}\n\n# Harry is the SSO-backed mailbox\
+    \ owner and the canonical administrator.\n# Match both name and domain so a legacy\
+    \ homonym cannot gain Admin rights.\nre8ch_domain = next((row for row in domain_rows\
+    \ if row.get(\"name\") == \"re8ch.com\"), None)\nif not re8ch_domain:\n    raise\
+    \ RuntimeError(\"re8ch.com domain is not provisioned\")\nharry_rows = [json.loads(line)\
+    \ for line in cli(\n    \"query\", \"Account\", \"--fields\", \"id,name,domainId,roles,aliases\"\
+    , \"--json\"\n).splitlines() if line.strip()]\nharry = [row for row in harry_rows\
+    \ if row.get(\"name\") == \"harry\" and row.get(\"domainId\") == re8ch_domain[\"\
+    id\"]]\nif len(harry) != 1 or not any(\n    alias.get(\"name\") == \"admin\" and\
+    \ alias.get(\"domainId\") == re8ch_domain[\"id\"] and alias.get(\"enabled\")\n\
+    \    for alias in (harry[0].get(\"aliases\") or {}).values()\n):\n    raise RuntimeError(\"\
+    canonical Harry account or admin@re8ch.com alias is missing\")\nif harry[0].get(\"\
+    roles\") != {\"@type\": \"Admin\"}:\n    cli(\"update\", \"Account\", harry[0][\"\
+    id\"], \"--json\", '{\"roles\":{\"@type\":\"Admin\"}}')\n\n# The operator is harry@re8ch.com.\
+    \ admin@re8ch.com is its Stalwart alias.\n# Do not recreate the retired phonaid\
+    \ administrator on hourly runs.\nplan = []\npending = []\nmigrated = []\nfor index,\
+    \ account in enumerate(accounts):\n    try:\n        email = account[\"spec\"\
+    ][\"email\"]\n        local, separator, domain_name = email.partition(\"@\")\n\
+    \        if separator != \"@\" or domain_name != \"phonaid.com\" or not local:\n\
+    \            raise RuntimeError(\"invalid canonical mailbox address\")\n     \
+    \   if account[\"metadata\"][\"name\"] in STALWART_ADMIN_MANAGED:\n          \
+    \  previous = (account.get(\"status\") or {}).get(\"mailbox\") or {}\n       \
+    \     legacy_copy = kube(\"GET\", \"/api/v1/namespaces/mail-system/secrets/\"\
+    \ + secret_name(account))\n            if local not in existing_names or (legacy_copy\
+    \ and (previous.get(\"phase\") != \"Ready\" or previous.get(\"provider\") != \"\
+    stalwart\")):\n                patch_status(account, \"Failed\", \"StalwartAdminCredentialReviewRequired\"\
+    )\n                continue\n            # Leave the Stalwart account and its\
+    \ password untouched. Only\n            # the mail administrator may rotate its\
+    \ credential from now on.\n            migrated.append(account)\n            continue\n\
+    \        password = load_or_create_password(account, email)\n        project =\
+    \ account[\"spec\"].get(\"project\")\n        memberships = {\n            group_ids[name]:\
+    \ True for name, projects in group_projects.items() if project in projects\n \
+    \       }\n        plan.append({\n            \"@type\": \"upsert\", \"object\"\
+    : \"Account\", \"matchOn\": [\"name\", \"domainId\"],\n            \"value\":\
+    \ {\"account-\" + str(index): {\n                \"@type\": \"User\", \"name\"\
+    : local, \"domainId\": domain[\"id\"],\n                \"description\": account[\"\
+    spec\"].get(\"displayName\") or account[\"metadata\"][\"name\"],\n           \
+    \     \"credentials\": {\"0\": {\"@type\": \"Password\", \"secret\": password}},\n\
+    \                \"roles\": {\"@type\": \"User\"}, \"permissions\": {\"@type\"\
+    : \"Inherit\"},\n                \"memberGroupIds\": memberships, \"quotas\":\
+    \ {}, \"aliases\": {},\n                \"encryptionAtRest\": {\"@type\": \"Disabled\"\
+    },\n            }},\n        })\n        pending.append(account)\n    except Exception:\n\
+    \        patch_status(account, \"Failed\", \"CredentialProvisioningFailed\")\n\
+    \nlist_plan = []\nfor index, (group_name, projects) in enumerate(group_projects.items()):\n\
+    \    list_name = group_name.removesuffix(\"-shared\") if group_name.endswith(\"\
+    -shared\") else group_name + \"-mailing-list\"\n    recipients = {\n        account[\"\
+    spec\"][\"email\"]: True for account in accounts\n        if account[\"spec\"\
+    ].get(\"project\") in projects\n    }\n    list_plan.append({\n        \"@type\"\
+    : \"upsert\", \"object\": \"MailingList\", \"matchOn\": [\"name\", \"domainId\"\
+    ],\n        \"value\": {\"list-\" + str(index): {\n            \"name\": list_name,\
+    \ \"domainId\": domain[\"id\"],\n            \"description\": list_name.replace(\"\
+    -\", \" \").title() + \" maintainers\",\n            \"recipients\": recipients,\
+    \ \"aliases\": {},\n        }},\n    })\nlist_plan.append({\n    \"@type\": \"\
+    upsert\", \"object\": \"MailingList\", \"matchOn\": [\"name\", \"domainId\"],\n\
+    \    \"value\": {\"list-all\": {\n        \"name\": \"maintainers\", \"domainId\"\
+    : domain[\"id\"],\n        \"description\": \"All repository maintainers\",\n\
+    \        \"recipients\": {account[\"spec\"][\"email\"]: True for account in accounts},\
+    \ \"aliases\": {},\n    }},\n})\nplan.extend(list_plan)\nif plan:\n    try:\n\
+    \        cli(\"apply\", \"--stdin\", \"--json\", stdin=\"\\n\".join(json.dumps(item)\
+    \ for item in plan) + \"\\n\")\n        cli(\"create\", \"Action\", \"--json\"\
+    , '{\"@type\":\"InvalidateCaches\"}')\n    except Exception:\n        for account\
+    \ in pending:\n            patch_status(account, \"Failed\", \"StalwartApplyFailed\"\
+    )\n        raise\n    for account in pending:\n        patch_status(account, \"\
+    Ready\", \"PrincipalAndPasswordReady\")\nfor account in migrated:\n    try:\n\
+    \        retire_managed_password_copy(account)\n        patch_status(account,\
+    \ \"Ready\", \"StalwartAdminManaged\")\n    except Exception:\n        patch_status(account,\
+    \ \"Failed\", \"CredentialCopyRetirementFailed\")\n        raise\nprint(json.dumps({\"\
+    accounts\": len(accounts), \"ready\": len(pending) + len(migrated), \"stalwartManaged\"\
+    : len(migrated)}))\n"
+kind: ConfigMap
+metadata:
+  name: stalwart-mailbox-provisioner
+  namespace: mail-system
+---
+apiVersion: v1
+data:
+  accountSource: git-workspaces/GitAccount
+  authority: staged
+  cutoverRequirements: monitoring,deploying,planning,inbound,outbound,dkim,spf,dmarc,mta-sts,rollback
+  dnsMutationAllowed: 'false'
+  domainSemantics: independent-mail-domains
+  domains: phonaid.com,re8ch.com
+  phonaidCurrentMX: mx1.feishu.cn,mx2.feishu.cn,mx3.feishu.cn
+  re8chDnsState: preserve-existing-authority
+kind: ConfigMap
+metadata:
+  labels:
+    governance.re8ch.com/evidence-plane: planning
+  name: stalwart-phonaid-domain-plan
+  namespace: mail-system
+---
+apiVersion: v1
+data:
+  plan.ndjson: '{"@type":"upsert","object":"Directory","matchOn":["description"],"value":{"re8ch-enterprise-sso":{"@type":"Oidc","description":"RE8CH
+    Enterprise SSO broker","issuerUrl":"https://db-rw.re8ch.com/auth/v1","requireAudience":"authenticated","requireScopes":{"openid":true,"email":true,"profile":true},"claimUsername":"email","claimName":"name","claimGroups":"groups"}}}
+
+    {"@type":"update","object":"Authentication","value":{"directoryId":"#re8ch-enterprise-sso"}}
+
+    {"@type":"update","object":"Http","value":{"usePermissiveCors":true}}
+
+    {"@type":"update","object":"OidcProvider","value":{"anonymousClientRegistration":true,"requireClientRegistration":true,"signatureAlgorithm":"es256","signatureKey":{"@type":"File","filePath":"/var/run/stalwart-idp/signing-private.pem"},"encryptionKey":{"@type":"File","filePath":"/var/run/stalwart-idp/encryption-key"},"accessTokenExpiry":900000,"idTokenExpiry":900000,"refreshTokenExpiry":28800000,"refreshTokenRenewal":3600000}}
+
+    {"@type":"upsert","object":"OAuthClient","matchOn":["clientId"],"value":{"kubectl-pilot":{"clientId":"kubectl-stalwart-pilot","description":"Kubernetes
+    RBAC Stalwart pilot","redirectUris":{"http://127.0.0.1:8000":true,"http://localhost:8000":true}}}}
+
+    {"@type":"upsert","object":"OAuthClient","matchOn":["clientId"],"value":{"headlamp":{"clientId":"headlamp","description":"Headlamp
+    Kubernetes console","redirectUris":{"https://headlamp.service.re8ch.com/oidc-callback":true}}}}
+
+    {"@type":"upsert","object":"OAuthClient","matchOn":["clientId"],"value":{"storage-collaborator":{"clientId":"storage-collaborator","description":"Storage
+    Collaborator","redirectUris":{"com.re8ch.storagecollaborator:/oauth/callback":true,"http://127.0.0.1:8765/callback":true}}}}
+
+    {"@type":"upsert","object":"OAuthClient","matchOn":["clientId"],"value":{"connectool-cloud":{"clientId":"re8ch-cloud-platform-tool","description":"ConnecTool
+    cloud platform public PKCE client","redirectUris":{"http://127.0.0.1/callback":true,"http://localhost/callback":true}}}}
+
+    {"@type":"upsert","object":"OAuthClient","matchOn":["clientId"],"value":{"connectool-admin":{"clientId":"re8ch-platform-admin","description":"ConnecTool
+    platform admin public PKCE client","redirectUris":{"http://127.0.0.1/callback":true,"http://localhost/callback":true}}}}
+
+    {"@type":"upsert","object":"OAuthClient","matchOn":["clientId"],"value":{"connectool-tenant":{"clientId":"re8ch-tenant","description":"ConnecTool
+    tenant public PKCE client","redirectUris":{"http://127.0.0.1/callback":true,"http://localhost/callback":true}}}}
+
+    {"@type":"upsert","object":"OAuthClient","matchOn":["clientId"],"value":{"webmail":{"clientId":"bulwark-webmail","description":"RE8CH
+    Mail web client","redirectUris":{"https://mail.re8ch.com/ar/auth/callback":true,"https://mail.re8ch.com/ca/auth/callback":true,"https://mail.re8ch.com/cs/auth/callback":true,"https://mail.re8ch.com/da/auth/callback":true,"https://mail.re8ch.com/de/auth/callback":true,"https://mail.re8ch.com/en/auth/callback":true,"https://mail.re8ch.com/es/auth/callback":true,"https://mail.re8ch.com/fa/auth/callback":true,"https://mail.re8ch.com/fr/auth/callback":true,"https://mail.re8ch.com/he/auth/callback":true,"https://mail.re8ch.com/hu/auth/callback":true,"https://mail.re8ch.com/it/auth/callback":true,"https://mail.re8ch.com/ja/auth/callback":true,"https://mail.re8ch.com/ko/auth/callback":true,"https://mail.re8ch.com/lv/auth/callback":true,"https://mail.re8ch.com/mn/auth/callback":true,"https://mail.re8ch.com/nb/auth/callback":true,"https://mail.re8ch.com/nl/auth/callback":true,"https://mail.re8ch.com/pl/auth/callback":true,"https://mail.re8ch.com/pt/auth/callback":true,"https://mail.re8ch.com/ro/auth/callback":true,"https://mail.re8ch.com/ru/auth/callback":true,"https://mail.re8ch.com/sk/auth/callback":true,"https://mail.re8ch.com/tr/auth/callback":true,"https://mail.re8ch.com/uk/auth/callback":true,"https://mail.re8ch.com/zh/auth/callback":true,"https://mail.re8ch.com/zh-TW/auth/callback":true}}}}
+
+    '
+kind: ConfigMap
+metadata:
+  name: stalwart-unified-identity-bootstrap-plan-v2
+  namespace: mail-system
+---
+apiVersion: v1
+data:
+  plan.ndjson: '{"@type":"upsert","object":"Directory","matchOn":["description"],"value":{"re8ch-enterprise-sso":{"@type":"Oidc","description":"RE8CH
+    Enterprise SSO broker","issuerUrl":"https://db-rw.re8ch.com/auth/v1","requireAudience":"authenticated","requireScopes":{"openid":true,"email":true,"profile":true},"claimUsername":"email","claimName":"name","claimGroups":"groups"}}}
+
+    {"@type":"update","object":"Authentication","value":{"directoryId":"#re8ch-enterprise-sso"}}
+
+    '
+kind: ConfigMap
+metadata:
+  name: stalwart-userhub-oauth-plan-v1
+  namespace: mail-system
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: stalwart-flk-data
+  namespace: mail-system
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: rbd-r640
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: stalwart-flk-local-data
+  namespace: mail-system
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: local-path
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: stalwart-idp-flk-data
+  namespace: mail-system
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: rbd-r640
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: stalwart-idp-flk-local-data
+  namespace: mail-system
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: local-path
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    governance.re8ch.com/exposure: collaboration-https-public-management-internal
+  name: stalwart
+  namespace: mail-system
+spec:
+  ports:
+  - name: smtp
+    port: 25
+    targetPort: smtp
+  - name: smtps
+    port: 465
+    targetPort: smtps
+  - name: submission
+    port: 587
+    targetPort: submission
+  - name: imap
+    port: 143
+    targetPort: imap
+  - name: imaps
+    port: 993
+    targetPort: imaps
+  - name: pop3
+    port: 110
+    targetPort: pop3
+  - name: pop3s
+    port: 995
+    targetPort: pop3s
+  - name: sieve
+    port: 4190
+    targetPort: sieve
+  - name: http
+    port: 80
+    targetPort: http
+  - name: https
+    port: 443
+    targetPort: https
+  - name: management
+    port: 8080
+    targetPort: management
+  selector:
+    app.kubernetes.io/name: stalwart
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    governance.re8ch.com/exposure: overseas-flk-public-mail-only
+  name: stalwart-direct-mail
+  namespace: mail-system
+spec:
+  externalIPs:
+  - 2.28.106.230
+  ports:
+  - name: smtp
+    port: 25
+    targetPort: smtp
+  - name: smtps
+    port: 465
+    targetPort: smtps
+  - name: submission
+    port: 587
+    targetPort: submission
+  - name: imaps
+    port: 993
+    targetPort: imaps
+  - name: sieve
+    port: 4190
+    targetPort: sieve
+  selector:
+    app.kubernetes.io/name: stalwart
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stalwart-headless
+  namespace: mail-system
+spec:
+  clusterIP: None
+  ports:
+  - name: management
+    port: 8080
+    targetPort: management
+  publishNotReadyAddresses: false
+  selector:
+    app.kubernetes.io/name: stalwart
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    governance.re8ch.com/exposure: oidc-pilot-only
+  name: stalwart-idp
+  namespace: mail-system
+spec:
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http
+  selector:
+    app.kubernetes.io/name: stalwart-idp
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stalwart-webmail
+  namespace: mail-system
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  selector:
+    app.kubernetes.io/name: stalwart-webmail
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: stalwart-cloudflare-token-sync
+  namespace: mail-system
+---
+apiVersion: v1
+automountServiceAccountToken: true
+kind: ServiceAccount
+metadata:
+  name: stalwart-mailbox-provisioner
+  namespace: mail-system
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    governance.re8ch.com/exposure: stalwart-admin-authentication-required
+  name: stalwart-admin-public
+  namespace: mail-system
+spec:
+  hostnames:
+  - stalwart-admin.service.re8ch.com
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: service-wildcard-https
+  rules:
+  - filters:
+    - requestRedirect:
+        path:
+          replaceFullPath: /admin
+          type: ReplaceFullPath
+        statusCode: 302
+      type: RequestRedirect
+    matches:
+    - path:
+        type: Exact
+        value: /
+  - backendRefs:
+    - name: stalwart
+      port: 8080
+    matches:
+    - path:
+        type: PathPrefix
+        value: /admin
+    - path:
+        type: PathPrefix
+        value: /api
+    - path:
+        type: PathPrefix
+        value: /jmap
+    - path:
+        type: Exact
+        value: /login
+    - path:
+        type: PathPrefix
+        value: /auth
+    - path:
+        type: PathPrefix
+        value: /.well-known
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: stalwart-admin-redirect
+  namespace: mail-system
+spec:
+  hostnames:
+  - stalwart-admin.service.re8ch.com
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: http
+  rules:
+  - filters:
+    - requestRedirect:
+        scheme: https
+        statusCode: 308
+      type: RequestRedirect
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
+    external-dns.alpha.kubernetes.io/hostname: collab.tools.re8ch.com
+    external-dns.alpha.kubernetes.io/ttl: '60'
+    governance.re8ch.com/exposure: authenticated-collaboration-only
+  labels:
+    public.re8ch.com/external-dns: enabled
+  name: stalwart-collaboration-public
+  namespace: mail-system
+spec:
+  hostnames:
+  - collab.tools.re8ch.com
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: tools-wildcard-https
+  rules:
+  - filters:
+    - requestRedirect:
+        path:
+          replaceFullPath: /account
+          type: ReplaceFullPath
+        statusCode: 302
+      type: RequestRedirect
+    matches:
+    - path:
+        type: Exact
+        value: /
+  - backendRefs:
+    - name: stalwart
+      port: 8080
+    matches:
+    - path:
+        type: PathPrefix
+        value: /jmap
+    - path:
+        type: PathPrefix
+        value: /dav
+    - path:
+        type: PathPrefix
+        value: /.well-known
+    - path:
+        type: PathPrefix
+        value: /account
+    - path:
+        type: PathPrefix
+        value: /auth
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: stalwart-collaboration-redirect
+  namespace: mail-system
+spec:
+  hostnames:
+  - collab.tools.re8ch.com
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: http
+  rules:
+  - filters:
+    - requestRedirect:
+        scheme: https
+        statusCode: 308
+      type: RequestRedirect
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
+    external-dns.alpha.kubernetes.io/hostname: id.re8ch.com
+    external-dns.alpha.kubernetes.io/ttl: '60'
+    governance.re8ch.com/exposure: oidc-pilot-only
+  labels:
+    public.re8ch.com/external-dns: enabled
+  name: stalwart-idp-public
+  namespace: mail-system
+spec:
+  hostnames:
+  - id.re8ch.com
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: id-https
+  rules:
+  - filters:
+    - requestRedirect:
+        path:
+          replaceFullPath: /account
+          type: ReplaceFullPath
+        statusCode: 302
+      type: RequestRedirect
+    matches:
+    - path:
+        type: Exact
+        value: /
+  - backendRefs:
+    - name: stalwart
+      port: 8080
+    matches:
+    - path:
+        type: PathPrefix
+        value: /.well-known
+    - path:
+        type: PathPrefix
+        value: /auth
+    - path:
+        type: Exact
+        value: /login
+    - path:
+        type: PathPrefix
+        value: /account
+    - path:
+        type: PathPrefix
+        value: /jmap
+    - path:
+        type: PathPrefix
+        value: /dav
+    - path:
+        type: PathPrefix
+        value: /api/auth
+    - path:
+        type: PathPrefix
+        value: /api/discover
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: stalwart-idp-redirect
+  namespace: mail-system
+spec:
+  hostnames:
+  - id.re8ch.com
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: http
+  rules:
+  - filters:
+    - requestRedirect:
+        scheme: https
+        statusCode: 308
+      type: RequestRedirect
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
+    external-dns.alpha.kubernetes.io/hostname: mail.re8ch.com
+    external-dns.alpha.kubernetes.io/ttl: '60'
+    governance.re8ch.com/exposure: authenticated-webmail
+  labels:
+    public.re8ch.com/external-dns: enabled
+  name: stalwart-webmail-public
+  namespace: mail-system
+spec:
+  hostnames:
+  - mail.re8ch.com
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: mail-https
+  rules:
+  - backendRefs:
+    - name: stalwart-webmail
+      port: 80
+    filters:
+    - responseHeaderModifier:
+        set:
+        - name: Cache-Control
+          value: no-store
+      type: ResponseHeaderModifier
+    matches:
+    - path:
+        type: Exact
+        value: /api/auth/oauth/metadata
+  - backendRefs:
+    - name: stalwart-webmail
+      port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: stalwart-webmail-redirect
+  namespace: mail-system
+spec:
+  hostnames:
+  - mail.re8ch.com
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: http
+  rules:
+  - filters:
+    - requestRedirect:
+        scheme: https
+        statusCode: 308
+      type: RequestRedirect
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: TCPRoute
+metadata:
+  name: stalwart-imaps-public-v2
+  namespace: mail-system
+spec:
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: mail-imaps
+  rules:
+  - backendRefs:
+    - name: stalwart
+      port: 993
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: TCPRoute
+metadata:
+  name: stalwart-sieve-public-v2
+  namespace: mail-system
+spec:
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: mail-sieve
+  rules:
+  - backendRefs:
+    - name: stalwart
+      port: 4190
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: TCPRoute
+metadata:
+  name: stalwart-smtp-public-v2
+  namespace: mail-system
+spec:
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: mail-smtp
+  rules:
+  - backendRefs:
+    - name: stalwart
+      port: 25
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: TCPRoute
+metadata:
+  name: stalwart-smtps-public-v2
+  namespace: mail-system
+spec:
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: mail-smtps
+  rules:
+  - backendRefs:
+    - name: stalwart
+      port: 465
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: TCPRoute
+metadata:
+  name: stalwart-submission-public-v2
+  namespace: mail-system
+spec:
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: mail-submission
+  rules:
+  - backendRefs:
+    - name: stalwart
+      port: 587
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
+    external-dns.alpha.kubernetes.io/hostname: collab.tools.re8ch.com
+    external-dns.alpha.kubernetes.io/target: 223.159.210.222
+    external-dns.alpha.kubernetes.io/ttl: '60'
+    networking.re8ch.com/provider: public-edge-manager
+  labels:
+    networking.re8ch.com/dns-authority: public-edge
+  name: stalwart-collaboration-public-dns
+  namespace: mail-system
+spec:
+  ingressClassName: external-dns-only
+  rules:
+  - host: collab.tools.re8ch.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: stalwart
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
+    external-dns.alpha.kubernetes.io/hostname: id.re8ch.com
+    external-dns.alpha.kubernetes.io/target: 223.159.210.222
+    external-dns.alpha.kubernetes.io/ttl: '60'
+    networking.re8ch.com/provider: public-edge-manager
+  labels:
+    networking.re8ch.com/dns-authority: public-edge
+  name: stalwart-idp-public-dns
+  namespace: mail-system
+spec:
+  ingressClassName: external-dns-only
+  rules:
+  - host: id.re8ch.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: stalwart
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
+    external-dns.alpha.kubernetes.io/hostname: mail.re8ch.com
+    external-dns.alpha.kubernetes.io/target: 2.28.106.230
+    external-dns.alpha.kubernetes.io/ttl: '60'
+    networking.re8ch.com/dns-authority: public-edge
+  labels:
+    networking.re8ch.com/dns-authority: public-edge
+    public.re8ch.com/external-dns: enabled
+  name: stalwart-webmail-public
+  namespace: mail-system
+spec:
+  ingressClassName: external-dns-only
+  rules:
+  - host: mail.re8ch.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: stalwart-webmail
+            port:
+              number: 80
+        path: /
+        pathType: Prefix

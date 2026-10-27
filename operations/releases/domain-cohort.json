@@ -1,6 +1,6 @@
 {
   "domain": "agent-runtime",
-  "sourceObjects": 255,
+  "sourceObjects": 300,
   "releases": [
     {
       "name": "agent-runtime-domain-ai-operations",
@@ -57,6 +57,12 @@
       "contract": "contracts/agent-runtime-domain-git-workspaces.yaml"
     },
     {
+      "name": "agent-runtime-domain-mail-system",
+      "namespace": "mail-system",
+      "objects": 45,
+      "contract": "contracts/agent-runtime-domain-mail-system.yaml"
+    },
+    {
       "name": "agent-runtime-domain-mcp-registry",
       "namespace": "mcp-registry",
       "objects": 8,
@@ -69,7 +75,7 @@
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 194,
+  "publishableObjects": 239,
   "deferred": [
     {
       "identity": "apps/Deployment/mcp-registry/mcp-registry-postgresql",

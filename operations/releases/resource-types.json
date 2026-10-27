@@ -1,5 +1,7 @@
 {
+  "cert-manager.io/Certificate": "certificates",
   "conformance.re8ch.com/APIConformanceTarget": "apiconformancetargets",
+  "gateway.networking.k8s.io/TCPRoute": "tcproutes",
   "governance.re8ch.com/GitAccount": "gitaccounts",
   "governance.re8ch.com/GitWorkspace": "gitworkspaces",
   "toolhive.stacklok.dev/MCPExternalAuthConfig": "mcpexternalauthconfigs",

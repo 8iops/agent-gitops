@@ -1,0 +1,91 @@
+apiVersion: delivery.re8ch.com/v1alpha1
+kind: ReleaseContract
+metadata:
+  name: agent-runtime-domain-mail-system
+spec:
+  authorityDomain: agent-runtime
+  target:
+    cluster: re8ch
+    namespace: mail-system
+  source:
+    renderer: kustomize
+    revision: github-main-reviewed
+    repository: 8iops/agent-gitops
+    path: releases/agent-runtime-domain-mail-system
+  provenance:
+    repository: 8iops/agent-gitops
+    workflow: .github/workflows/static-release.yml
+    ref: refs/heads/main
+    environment: release-executor-agent-runtime
+    audience: https://kube-api.re8ch.com/release-executor-agent-runtime
+    signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
+    issuer: https://token.actions.githubusercontent.com
+  authorization:
+    fieldManager: re8ch-release/identity-access-domain-mail-system
+    resources:
+    - apps/Deployment
+    - apps/StatefulSet
+    - batch/CronJob
+    - cert-manager.io/Certificate
+    - core/ConfigMap
+    - core/PersistentVolumeClaim
+    - core/Service
+    - core/ServiceAccount
+    - gateway.networking.k8s.io/HTTPRoute
+    - gateway.networking.k8s.io/TCPRoute
+    - networking.k8s.io/Ingress
+    objectNames:
+    - stalwart
+    - stalwart-admin-public
+    - stalwart-admin-redirect
+    - stalwart-bootstrap-plan
+    - stalwart-bot-access-contract
+    - stalwart-cloudflare-token-sync
+    - stalwart-collaboration-public
+    - stalwart-collaboration-public-dns
+    - stalwart-collaboration-redirect
+    - stalwart-config
+    - stalwart-direct-mail
+    - stalwart-flk
+    - stalwart-flk-data
+    - stalwart-flk-local-data
+    - stalwart-harry-admin-alias-v1
+    - stalwart-headless
+    - stalwart-idp
+    - stalwart-idp-bootstrap-plan-v6
+    - stalwart-idp-config
+    - stalwart-idp-flk
+    - stalwart-idp-flk-data
+    - stalwart-idp-flk-local-data
+    - stalwart-idp-public
+    - stalwart-idp-public-dns
+    - stalwart-idp-redirect
+    - stalwart-imaps-public-v2
+    - stalwart-mail-re8ch
+    - stalwart-mailbox-provisioner
+    - stalwart-phonaid-domain-plan
+    - stalwart-sieve-public-v2
+    - stalwart-smtp-public-v2
+    - stalwart-smtps-public-v2
+    - stalwart-submission-public-v2
+    - stalwart-tls-reloader
+    - stalwart-unified-identity-bootstrap-plan-v2
+    - stalwart-userhub-oauth-plan-v1
+    - stalwart-webmail
+    - stalwart-webmail-public
+    - stalwart-webmail-redirect
+    allowClusterScoped: false
+    requireExisting: true
+    forceConflictObjects: []
+  inventory:
+    digest: sha256:0ab9d21b1a88399364341e1e5ea585f36aebe8f71adb0d71808b8349bbf5e237
+  lifecycle:
+    prune: false
+    healthTimeoutSeconds: 300
+    protectedKinds:
+    - Namespace
+    - CustomResourceDefinition
+    - PersistentVolume
+    - PersistentVolumeClaim
+    - StorageClass
+    deletionAllowlist: []
