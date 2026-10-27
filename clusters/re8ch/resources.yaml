@@ -6649,7 +6649,7 @@ metadata:
     external-dns.alpha.kubernetes.io/ttl: '60'
     networking.re8ch.com/provider: public-edge-manager
   labels:
-    networking.re8ch.com/dns-authority: migrated-to-service-zone
+    networking.re8ch.com/dns-authority: public-edge
   name: cube-dns-authority
   namespace: cube-trial
 spec:
