@@ -16,6 +16,10 @@ on:
         description: Reuse a signed digest from this exact release repository after a rejected first attempt
         type: string
         default: ''
+      reuse_source_commit:
+        description: Exact certified build commit for reuse_digest; current flat source must be identical
+        type: string
+        default: ''
       dry_run:
         description: Prove exact OIDC authorization and server-side dry-run without applying
         type: boolean
@@ -83,7 +87,7 @@ jobs:
       - run: python -m pip install --disable-pip-version-check 'PyYAML>=6.0.2' 'jsonschema>=4.23'
       - id: publish
         name: Publish or reuse signed bundle
-        env: {CONTRACT: '${{ inputs.contract }}', REUSE_DIGEST: '${{ inputs.reuse_digest }}'}
+        env: {CONTRACT: '${{ inputs.contract }}', REUSE_DIGEST: '${{ inputs.reuse_digest }}', REUSE_SOURCE_COMMIT: '${{ inputs.reuse_source_commit }}'}
         run: |
           set -euo pipefail
           case "$CONTRACT" in contracts/*.yaml) ;; *) exit 1;; esac
@@ -99,8 +103,11 @@ jobs:
           [[ "${fields[5]}" == '${{ needs.validate.outputs.domain }}' ]]
           [[ "${fields[6]}" == '${{ needs.validate.outputs.signer }}' ]]
           reference="oci://ghcr.io/8iops/agent-gitops-release/${fields[2]}"
+          verify_args=()
           if [[ -n "$REUSE_DIGEST" ]]; then
             [[ "$REUSE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]] || exit 1
+            python operations/releases/verify_reuse_source.py --commit "$REUSE_SOURCE_COMMIT" --contract "$CONTRACT"
+            verify_args+=(--certificate-github-workflow-sha "$REUSE_SOURCE_COMMIT")
             oci_digest="$REUSE_DIGEST"
           else
             kubectl kustomize "${fields[1]}" > "$RUNNER_TEMP/rendered.yaml"
@@ -119,7 +126,7 @@ jobs:
           fi
           immutable="${reference#oci://}@${oci_digest}"
           cosign verify --certificate-identity '${{ needs.validate.outputs.signer }}' \
-            --certificate-oidc-issuer https://token.actions.githubusercontent.com "$immutable" >/dev/null
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com "${verify_args[@]}" "$immutable" >/dev/null
           {
             echo "digest=$oci_digest"
             echo "reference=$reference"
