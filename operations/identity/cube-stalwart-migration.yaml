@@ -21,7 +21,10 @@ client:
     https://cube.re8ch.com/oauth2/callback: true
   # Identity scopes openid/profile/email are requested by the proxy.
   # Do not grant Stalwart mail, contacts, calendars or files data access.
+  # Installed OAuthClient schema has no scopes or firstParty fields.
+  # Omit unsupported fields rather than granting provider data permissions.
   newClientScopes: {}
+  installedSchemaUnsupportedFields: [scopes, firstParty]
 execution:
   - Read the existing unified provider session and instance schema.
   - Query the existing client ID resolved from the current Cube Secret.

@@ -30,7 +30,7 @@ def test_cube_registration_is_confidential_minimal_and_redirects_stay_internal()
     payload=module.registration('existing-client','fixture-not-a-real-secret')
     assert payload['clientId']=='existing-client' and payload['secret']=='fixture-not-a-real-secret'
     assert payload['redirectUris']=={'https://cube.re8ch.com/oauth2/callback':True}
-    assert payload['scopes']=={} and 'firstParty' not in payload and 'memberTenantId' not in payload
+    assert 'scopes' not in payload and 'firstParty' not in payload and 'memberTenantId' not in payload
     assert module.internal_api_url({'apiUrl':'https://id.re8ch.com/jmap/'},'http://127.0.0.1:8080')=='http://127.0.0.1:8080/jmap/'
     with pytest.raises(ValueError):module.internal_api_url({'apiUrl':'https://other.invalid/steal'},'http://127.0.0.1:8080')
     assert module.plan_hash(payload,'state-1')!=module.plan_hash(payload,'state-2')
