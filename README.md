@@ -44,3 +44,5 @@ cloud adoption still requires the platform access seed and a successful release
 run; generated bundles alone do not establish runtime ownership.
 
 Role and RoleBinding desired objects remain platform-owned until admission can enforce their exact reviewed contents. Runtime groups receive no RBAC writes, bind, escalate or impersonate permission. Exact role names alone are not an escalation boundary.
+
+Adoption contracts set `authorization.requireExisting=true`: the executor verifies the artifact, reads each exact object's resourceVersion and sends it as the SSA precondition. Missing objects and concurrent changes fail closed; adoption never silently recreates a deleted object. Ordinary release contracts without this flag retain creation behavior. One-shot Jobs are platform-owned and excluded from replay, and protected storage objects are excluded from force-conflict requests.

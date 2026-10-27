@@ -36,10 +36,9 @@ spec:
     - postgresql-ingress
     - postgresql-toolhive-registry-ingress
     allowClusterScoped: false
+    requireExisting: true
     forceConflictObjects:
     - apps/Deployment/mcp-registry/mcp-registry
-    - core/PersistentVolumeClaim/mcp-registry/mcp-registry-postgresql-ab
-    - core/PersistentVolumeClaim/mcp-registry/mcp-registry-postgresql-r640
     - core/Service/mcp-registry/mcp-registry
     - core/Service/mcp-registry/postgresql
     - networking.k8s.io/NetworkPolicy/mcp-registry/postgresql-ingress

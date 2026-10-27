@@ -39,6 +39,7 @@ spec:
     - identity-public-denial-contract
     - payment-public-contract
     allowClusterScoped: false
+    requireExisting: true
     forceConflictObjects:
     - apps/Deployment/api-conformance-system/api-conformance-controller
     - cilium.io/CiliumNetworkPolicy/api-conformance-system/api-conformance-controller

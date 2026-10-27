@@ -30,6 +30,7 @@ spec:
     - cosyvoice
     - cosyvoice-voice-profiles
     allowClusterScoped: false
+    requireExisting: true
     forceConflictObjects:
     - apps/Deployment/cosyvoice/cosyvoice
     - core/ConfigMap/cosyvoice/cosyvoice-voice-profiles

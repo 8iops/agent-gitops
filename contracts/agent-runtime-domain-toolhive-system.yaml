@@ -63,6 +63,7 @@ spec:
     - vmcp-internal-backends
     - vmcp-observe-backend-auth
     allowClusterScoped: false
+    requireExisting: true
     forceConflictObjects:
     - apps/Deployment/toolhive-system/re8ch-plugin-runtime
     - apps/Deployment/toolhive-system/toolhive-cloud-ui

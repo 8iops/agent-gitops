@@ -5,7 +5,7 @@
     {
       "name": "agent-runtime-domain-ai-operations",
       "namespace": "ai-operations",
-      "objects": 14,
+      "objects": 13,
       "contract": "contracts/agent-runtime-domain-ai-operations.yaml"
     },
     {
@@ -47,7 +47,7 @@
     {
       "name": "agent-runtime-domain-flux-system",
       "namespace": "flux-system",
-      "objects": 2,
+      "objects": 1,
       "contract": "contracts/agent-runtime-domain-flux-system.yaml"
     },
     {
@@ -69,11 +69,19 @@
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 192,
+  "publishableObjects": 190,
   "deferred": [
     {
       "identity": "apps/Deployment/mcp-registry/mcp-registry-postgresql",
       "reason": "image-digest-required"
+    },
+    {
+      "identity": "batch/Job/ai-operations/re8ch-owner-pilot-workspace-v4",
+      "reason": "one-shot-job-platform-owned"
+    },
+    {
+      "identity": "batch/Job/flux-system/retire-toolhive-session-redis-v3",
+      "reason": "one-shot-job-platform-owned"
     },
     {
       "identity": "core/ConfigMap/ai-operations/ai-operations-inventory",

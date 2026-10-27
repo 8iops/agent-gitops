@@ -25,7 +25,6 @@ spec:
     resources:
     - apps/Deployment
     - batch/CronJob
-    - batch/Job
     - core/ConfigMap
     - core/PersistentVolumeClaim
     - core/Service
@@ -39,29 +38,24 @@ spec:
     - infra-device-registry
     - ops-capsule-policy
     - orchestra-device-registry
-    - re8ch-owner-pilot-workspace-v4
     - stagehand-service
     - workspace-agent-artifacts
     - workspace-controller
     - workspace-mirror-sync
     allowClusterScoped: false
+    requireExisting: true
     forceConflictObjects:
     - apps/Deployment/ai-operations/stagehand-service
     - batch/CronJob/ai-operations/workspace-mirror-sync
-    - batch/Job/ai-operations/re8ch-owner-pilot-workspace-v4
     - core/ConfigMap/ai-operations/controlled-cluster-kubeconfigs
     - core/ConfigMap/ai-operations/harbor-tenant-catalog
     - core/ConfigMap/ai-operations/ops-capsule-policy
-    - core/PersistentVolumeClaim/ai-operations/cloud-device-registry
-    - core/PersistentVolumeClaim/ai-operations/infra-device-registry
-    - core/PersistentVolumeClaim/ai-operations/orchestra-device-registry
-    - core/PersistentVolumeClaim/ai-operations/workspace-agent-artifacts
     - core/Service/ai-operations/stagehand-service
     - core/ServiceAccount/ai-operations/ai-operations
     - core/ServiceAccount/ai-operations/workspace-controller
     - networking.k8s.io/NetworkPolicy/ai-operations/stagehand-service
   inventory:
-    digest: sha256:099118ca1f4924eb55d64337c694fb935ab64cfbb9d72778d4fb367f9f71ff5a
+    digest: sha256:b9ac567e700cc6dc3e718b3e5db3f18040a22f7483708e8a22489d6ec43aff27
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

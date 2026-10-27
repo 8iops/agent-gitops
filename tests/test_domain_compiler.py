@@ -15,6 +15,7 @@ def obj(kind='ConfigMap',api='v1',namespace='demo',name='demo',**extra):
 @pytest.mark.parametrize('item,reason',[
     (obj('Role','rbac.authorization.k8s.io/v1'),'platform-owned-rbac'),
     (obj('RoleBinding','rbac.authorization.k8s.io/v1'),'platform-owned-rbac'),
+    (obj('Job','batch/v1'),'one-shot-job-platform-owned'),
     (obj('Secret',data={'token':'not-a-real-credential'}),'secret-provisioning'),
     (obj(data={'config':'ENC[AES256_GCM,data:opaque]'}),'restricted-cloud-decryption'),
     (obj('HelmRelease','helm.toolkit.fluxcd.io/v2'),'helm-render'),
