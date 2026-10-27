@@ -42,3 +42,5 @@ Pruning is disabled during this first adoption; no migration deletes resources.
 CI verifies deterministic outputs and compiles every generated contract. Actual
 cloud adoption still requires the platform access seed and a successful release
 run; generated bundles alone do not establish runtime ownership.
+
+Role and RoleBinding desired objects remain platform-owned until admission can enforce their exact reviewed contents. Runtime groups receive no RBAC writes, bind, escalate or impersonate permission. Exact role names alone are not an escalation boundary.

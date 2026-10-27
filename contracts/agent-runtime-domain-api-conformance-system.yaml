@@ -28,14 +28,10 @@ spec:
     - conformance.re8ch.com/APIConformanceTarget
     - core/ConfigMap
     - core/ServiceAccount
-    - rbac.authorization.k8s.io/Role
-    - rbac.authorization.k8s.io/RoleBinding
     objectNames:
     - api-conformance-code-b85hdm9t6c
     - api-conformance-controller
     - api-conformance-default-deny
-    - api-conformance-pull-target
-    - api-conformance-result-proxy
     - cloud-functions-commerce
     - cloud-functions-identity
     - cloud-functions-payment-credits
@@ -55,14 +51,8 @@ spec:
     - conformance.re8ch.com/APIConformanceTarget/api-conformance-system/payment-public-contract
     - core/ConfigMap/api-conformance-system/api-conformance-code-b85hdm9t6c
     - core/ServiceAccount/api-conformance-system/api-conformance-controller
-    - rbac.authorization.k8s.io/Role/api-conformance-system/api-conformance-controller
-    - rbac.authorization.k8s.io/Role/api-conformance-system/api-conformance-pull-target
-    - rbac.authorization.k8s.io/Role/api-conformance-system/api-conformance-result-proxy
-    - rbac.authorization.k8s.io/RoleBinding/api-conformance-system/api-conformance-controller
-    - rbac.authorization.k8s.io/RoleBinding/api-conformance-system/api-conformance-pull-target
-    - rbac.authorization.k8s.io/RoleBinding/api-conformance-system/api-conformance-result-proxy
   inventory:
-    digest: sha256:17723c9e08d1b93ae2646fd4b0fc130c5eb13cc94d61eb4e61466208d4f779f3
+    digest: sha256:8920ccaa6fe7978f2861bcce277b58af5b28e21b3a50e1088715b60d9014f7ca
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300
