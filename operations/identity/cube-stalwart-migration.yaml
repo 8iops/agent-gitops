@@ -1,0 +1,41 @@
+# Platform execution plan; not a Kubernetes object or an executable CLI payload.
+# Resolve credential references only inside the approved platform boundary.
+application:
+  namespace: cube-trial
+  deployment: oauth2-proxy-cube
+  publicOrigin: https://cube.re8ch.com
+provider:
+  issuer: https://id.re8ch.com
+  service: {namespace: mail-system, name: stalwart, port: 8080}
+  administrativeCredential:
+    namespace: mail-system
+    secret: stalwart-recovery-admin
+    key: STALWART_RECOVERY_ADMIN
+client:
+  identityFrom: {namespace: cube-trial, secret: oauth2-proxy-cube, key: OAUTH2_PROXY_CLIENT_ID}
+  secretFrom: {namespace: cube-trial, secret: oauth2-proxy-cube, key: OAUTH2_PROXY_CLIENT_SECRET}
+  object: OAuthClient
+  matchOn: [clientId]
+  description: Cube sandbox
+  redirectUris:
+    https://cube.re8ch.com/oauth2/callback: true
+  # Identity scopes openid/profile/email are requested by the proxy.
+  # Do not grant Stalwart mail, contacts, calendars or files data access.
+  newClientScopes: {}
+execution:
+  - Read the existing unified provider session and instance schema.
+  - Query the existing client ID resolved from the current Cube Secret.
+  - Reject ambiguous matches; preserve any existing client tenant and access policy.
+  - Use the existing OAuthClient API to create or update only this client and exact callback.
+  - Resolve the confidential client secret from the same Cube Secret inside the platform.
+  - Preserve all three Cube Secret values, including the cookie secret; no credential rotation is required.
+  - Read back non-secret registration metadata and prove the exact callback is accepted before deployment.
+  - Publish a new signed Cube bundle, because issuer and callback content have changed.
+constraints:
+  restoreDex: false
+  createTenant: false
+  changeNamespaceOrRBAC: false
+  markFirstParty: false
+  exportCredentials: false
+  preserveProxyEmailPolicy: '*'
+  preserveProxyScopes: openid profile email
