@@ -1,0 +1,75 @@
+apiVersion: delivery.re8ch.com/v1alpha1
+kind: ReleaseContract
+metadata:
+  name: agent-runtime-domain-api-conformance-system
+spec:
+  authorityDomain: agent-runtime
+  target:
+    cluster: re8ch
+    namespace: api-conformance-system
+  source:
+    renderer: kustomize
+    revision: github-main-reviewed
+    repository: 8iops/agent-gitops
+    path: releases/agent-runtime-domain-api-conformance-system
+  provenance:
+    repository: 8iops/agent-gitops
+    workflow: .github/workflows/static-release.yml
+    ref: refs/heads/main
+    environment: release-executor-agent-runtime
+    audience: https://kube-api.re8ch.com/release-executor-agent-runtime
+    signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
+    issuer: https://token.actions.githubusercontent.com
+  authorization:
+    fieldManager: re8ch-release/agent-runtime-domain-api-conformance-system
+    resources:
+    - apps/Deployment
+    - cilium.io/CiliumNetworkPolicy
+    - conformance.re8ch.com/APIConformanceTarget
+    - core/ConfigMap
+    - core/ServiceAccount
+    - rbac.authorization.k8s.io/Role
+    - rbac.authorization.k8s.io/RoleBinding
+    objectNames:
+    - api-conformance-code-b85hdm9t6c
+    - api-conformance-controller
+    - api-conformance-default-deny
+    - api-conformance-pull-target
+    - api-conformance-result-proxy
+    - cloud-functions-commerce
+    - cloud-functions-identity
+    - cloud-functions-payment-credits
+    - commerce-public-contract
+    - identity-public-denial-contract
+    - payment-public-contract
+    allowClusterScoped: false
+    forceConflictObjects:
+    - apps/Deployment/api-conformance-system/api-conformance-controller
+    - cilium.io/CiliumNetworkPolicy/api-conformance-system/api-conformance-controller
+    - cilium.io/CiliumNetworkPolicy/api-conformance-system/api-conformance-default-deny
+    - conformance.re8ch.com/APIConformanceTarget/api-conformance-system/cloud-functions-commerce
+    - conformance.re8ch.com/APIConformanceTarget/api-conformance-system/cloud-functions-identity
+    - conformance.re8ch.com/APIConformanceTarget/api-conformance-system/cloud-functions-payment-credits
+    - conformance.re8ch.com/APIConformanceTarget/api-conformance-system/commerce-public-contract
+    - conformance.re8ch.com/APIConformanceTarget/api-conformance-system/identity-public-denial-contract
+    - conformance.re8ch.com/APIConformanceTarget/api-conformance-system/payment-public-contract
+    - core/ConfigMap/api-conformance-system/api-conformance-code-b85hdm9t6c
+    - core/ServiceAccount/api-conformance-system/api-conformance-controller
+    - rbac.authorization.k8s.io/Role/api-conformance-system/api-conformance-controller
+    - rbac.authorization.k8s.io/Role/api-conformance-system/api-conformance-pull-target
+    - rbac.authorization.k8s.io/Role/api-conformance-system/api-conformance-result-proxy
+    - rbac.authorization.k8s.io/RoleBinding/api-conformance-system/api-conformance-controller
+    - rbac.authorization.k8s.io/RoleBinding/api-conformance-system/api-conformance-pull-target
+    - rbac.authorization.k8s.io/RoleBinding/api-conformance-system/api-conformance-result-proxy
+  inventory:
+    digest: sha256:17723c9e08d1b93ae2646fd4b0fc130c5eb13cc94d61eb4e61466208d4f779f3
+  lifecycle:
+    prune: false
+    healthTimeoutSeconds: 300
+    protectedKinds:
+    - Namespace
+    - CustomResourceDefinition
+    - PersistentVolume
+    - PersistentVolumeClaim
+    - StorageClass
+    deletionAllowlist: []

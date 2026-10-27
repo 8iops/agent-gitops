@@ -1,0 +1,51 @@
+apiVersion: delivery.re8ch.com/v1alpha1
+kind: ReleaseContract
+metadata:
+  name: agent-runtime-domain-cube-trial
+spec:
+  authorityDomain: agent-runtime
+  target:
+    cluster: re8ch
+    namespace: cube-trial
+  source:
+    renderer: kustomize
+    revision: github-main-reviewed
+    repository: 8iops/agent-gitops
+    path: releases/agent-runtime-domain-cube-trial
+  provenance:
+    repository: 8iops/agent-gitops
+    workflow: .github/workflows/static-release.yml
+    ref: refs/heads/main
+    environment: release-executor-agent-runtime
+    audience: https://kube-api.re8ch.com/release-executor-agent-runtime
+    signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
+    issuer: https://token.actions.githubusercontent.com
+  authorization:
+    fieldManager: re8ch-release/agent-runtime-domain-cube-trial
+    resources:
+    - apps/Deployment
+    - core/Service
+    - gateway.networking.k8s.io/HTTPRoute
+    - networking.k8s.io/Ingress
+    objectNames:
+    - cube-dns-authority
+    - cube-public
+    - oauth2-proxy-cube
+    allowClusterScoped: false
+    forceConflictObjects:
+    - apps/Deployment/cube-trial/oauth2-proxy-cube
+    - core/Service/cube-trial/oauth2-proxy-cube
+    - gateway.networking.k8s.io/HTTPRoute/cube-trial/cube-public
+    - networking.k8s.io/Ingress/cube-trial/cube-dns-authority
+  inventory:
+    digest: sha256:54b343ec6ecfefbe97f6d7c8f8b40e17ec7a75b3d6af93193a20c720dffe844b
+  lifecycle:
+    prune: false
+    healthTimeoutSeconds: 300
+    protectedKinds:
+    - Namespace
+    - CustomResourceDefinition
+    - PersistentVolume
+    - PersistentVolumeClaim
+    - StorageClass
+    deletionAllowlist: []

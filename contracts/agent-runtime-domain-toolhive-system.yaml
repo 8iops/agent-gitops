@@ -1,0 +1,122 @@
+apiVersion: delivery.re8ch.com/v1alpha1
+kind: ReleaseContract
+metadata:
+  name: agent-runtime-domain-toolhive-system
+spec:
+  authorityDomain: agent-runtime
+  target:
+    cluster: re8ch
+    namespace: toolhive-system
+  source:
+    renderer: kustomize
+    revision: github-main-reviewed
+    repository: 8iops/agent-gitops
+    path: releases/agent-runtime-domain-toolhive-system
+  provenance:
+    repository: 8iops/agent-gitops
+    workflow: .github/workflows/static-release.yml
+    ref: refs/heads/main
+    environment: release-executor-agent-runtime
+    audience: https://kube-api.re8ch.com/release-executor-agent-runtime
+    signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
+    issuer: https://token.actions.githubusercontent.com
+  authorization:
+    fieldManager: re8ch-release/agent-runtime-domain-toolhive-system
+    resources:
+    - apps/Deployment
+    - core/ConfigMap
+    - core/Service
+    - core/ServiceAccount
+    - gateway.networking.k8s.io/HTTPRoute
+    - networking.k8s.io/Ingress
+    - networking.k8s.io/NetworkPolicy
+    - policy/PodDisruptionBudget
+    - rbac.authorization.k8s.io/Role
+    - rbac.authorization.k8s.io/RoleBinding
+    - toolhive.stacklok.dev/MCPExternalAuthConfig
+    - toolhive.stacklok.dev/MCPGroup
+    - toolhive.stacklok.dev/MCPTelemetryConfig
+    - toolhive.stacklok.dev/MCPToolConfig
+    objectNames:
+    - admin-tools-public
+    - admin-tools-re8ch-com
+    - api-conformance-pull-source
+    - connectool-cloud-mcp
+    - connectool-tools-re8ch-com
+    - kyverno-toolhive-pull-secret-target
+    - ops-admin-tools
+    - ops-mcp-public
+    - ops-operate-tools
+    - ops-public-read-tools
+    - platform-admin-public
+    - platform-operate-public
+    - platform-tools-public
+    - platform-tools-telemetry
+    - plugin-advanced-fabrics
+    - plugin-cilium
+    - plugin-mihomos-cluster
+    - plugin-public-edge
+    - plugin-rook-ceph
+    - re8ch-plugin-definitions
+    - re8ch-plugin-operation-catalog
+    - re8ch-plugin-runtime
+    - retire-toolhive-session-redis
+    - toolhive-cloud-ui
+    - toolhive-operator
+    - tools-re8ch-com
+    - vmcp-admin-backend-auth
+    - vmcp-internal-backends
+    - vmcp-observe-backend-auth
+    allowClusterScoped: false
+    forceConflictObjects:
+    - apps/Deployment/toolhive-system/re8ch-plugin-runtime
+    - apps/Deployment/toolhive-system/toolhive-cloud-ui
+    - core/ConfigMap/toolhive-system/re8ch-plugin-definitions
+    - core/ConfigMap/toolhive-system/re8ch-plugin-operation-catalog
+    - core/Service/toolhive-system/re8ch-plugin-runtime
+    - core/Service/toolhive-system/toolhive-cloud-ui
+    - core/ServiceAccount/toolhive-system/ops-mcp-public
+    - core/ServiceAccount/toolhive-system/plugin-advanced-fabrics
+    - core/ServiceAccount/toolhive-system/plugin-cilium
+    - core/ServiceAccount/toolhive-system/plugin-mihomos-cluster
+    - core/ServiceAccount/toolhive-system/plugin-public-edge
+    - core/ServiceAccount/toolhive-system/plugin-rook-ceph
+    - core/ServiceAccount/toolhive-system/re8ch-plugin-runtime
+    - gateway.networking.k8s.io/HTTPRoute/toolhive-system/admin-tools-public
+    - gateway.networking.k8s.io/HTTPRoute/toolhive-system/connectool-cloud-mcp
+    - gateway.networking.k8s.io/HTTPRoute/toolhive-system/toolhive-cloud-ui
+    - networking.k8s.io/Ingress/toolhive-system/admin-tools-re8ch-com
+    - networking.k8s.io/Ingress/toolhive-system/connectool-tools-re8ch-com
+    - networking.k8s.io/Ingress/toolhive-system/toolhive-cloud-ui
+    - networking.k8s.io/Ingress/toolhive-system/tools-re8ch-com
+    - networking.k8s.io/NetworkPolicy/toolhive-system/re8ch-plugin-runtime
+    - networking.k8s.io/NetworkPolicy/toolhive-system/vmcp-internal-backends
+    - policy/PodDisruptionBudget/toolhive-system/re8ch-plugin-runtime
+    - policy/PodDisruptionBudget/toolhive-system/toolhive-operator
+    - rbac.authorization.k8s.io/Role/toolhive-system/api-conformance-pull-source
+    - rbac.authorization.k8s.io/Role/toolhive-system/kyverno-toolhive-pull-secret-target
+    - rbac.authorization.k8s.io/Role/toolhive-system/retire-toolhive-session-redis
+    - rbac.authorization.k8s.io/RoleBinding/toolhive-system/api-conformance-pull-source
+    - rbac.authorization.k8s.io/RoleBinding/toolhive-system/kyverno-toolhive-pull-secret-target
+    - rbac.authorization.k8s.io/RoleBinding/toolhive-system/retire-toolhive-session-redis
+    - toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/vmcp-admin-backend-auth
+    - toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/vmcp-observe-backend-auth
+    - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-admin-public
+    - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-operate-public
+    - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-tools-public
+    - toolhive.stacklok.dev/MCPTelemetryConfig/toolhive-system/platform-tools-telemetry
+    - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-admin-tools
+    - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-operate-tools
+    - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-public-read-tools
+  inventory:
+    digest: sha256:f49b9d44825c8b2d281a95689d505f2917a373e5ff5c0578c0db5f76f9816d47
+  lifecycle:
+    prune: false
+    healthTimeoutSeconds: 300
+    protectedKinds:
+    - Namespace
+    - CustomResourceDefinition
+    - PersistentVolume
+    - PersistentVolumeClaim
+    - StorageClass
+    deletionAllowlist: []

@@ -1,0 +1,1343 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-conformance-controller
+  namespace: api-conformance-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api-conformance-controller
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: api-conformance-controller
+    spec:
+      containers:
+      - command:
+        - python
+        - /app/controller.py
+        env:
+        - name: CODE_CONFIG_MAP
+          value: api-conformance-code-b85hdm9t6c
+        - name: GITHUB_REPOSITORY_INSTALLATIONS
+          value: '{"re8ch/cloud-functions":"171153917"}'
+        - name: DISCOVERY_ENABLED
+          value: 'false'
+        - name: RUNNER_PULL_SECRET
+          value: harbor-functions-shared-pull
+        - name: RUNNER_NAMESPACE
+          value: api-conformance-runners
+        - name: RUNNER_IMAGE
+          value: registry.re8ch.com/functions-shared/api-conformance-runner@sha256:f91f4d46e1eff19bcd68917e683fb8a43565c4aa403af0309453ec8ca7a9c418
+        - name: HOST_IDENTITY_EGRESS_IPS
+          value: '["223.159.210.222"]'
+        - name: RESULT_DELIVERY_MODE
+          value: oidc
+        - name: HTTPS_PROXY
+          value: http://10.43.179.196:17893
+        - name: NO_PROXY
+          value: localhost,127.0.0.1,::1,.svc,.cluster.local,10.0.0.0/8,100.64.0.0/10
+        - name: RESULT_REPOSITORY_BINDINGS
+          value: '{"re8ch/cloud-functions":{"repositoryId":"1248776882","ownerId":"283958313"}}'
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: GITHUB_APP_ID
+          valueFrom:
+            secretKeyRef:
+              key: app-id
+              name: api-conformance-github-app
+              optional: true
+        image: python:3.13-alpine@sha256:540c7d91f98ff6880174c40e99067bf5941eb54d818a7a5e094d188b196a934d
+        name: controller
+        resources:
+          limits:
+            cpu: 300m
+            memory: 192Mi
+          requests:
+            cpu: 25m
+            memory: 48Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /app
+          name: code
+          readOnly: true
+        - mountPath: /github-app
+          name: github-app
+          readOnly: true
+      securityContext:
+        fsGroup: 65532
+        runAsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: api-conformance-controller
+      volumes:
+      - configMap:
+          name: api-conformance-code-b85hdm9t6c
+        name: code
+      - name: github-app
+        secret:
+          items:
+          - key: private-key.pem
+            path: private-key.pem
+          optional: true
+          secretName: api-conformance-github-app
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: api-conformance-controller
+  namespace: api-conformance-system
+spec:
+  egress:
+  - toEntities:
+    - kube-apiserver
+  - toEndpoints:
+    - matchLabels:
+        k8s:app.kubernetes.io/name: advanced-fabric-doh
+        k8s:io.kubernetes.pod.namespace: kube-system
+    toPorts:
+    - ports:
+      - port: '53'
+        protocol: UDP
+      - port: '53'
+        protocol: TCP
+      rules:
+        dns:
+        - matchPattern: '*'
+  - toFQDNs:
+    - matchName: api.github.com
+    toPorts:
+    - ports:
+      - port: '443'
+        protocol: TCP
+  - toEntities:
+    - host
+    toPorts:
+    - ports:
+      - port: '17893'
+        protocol: TCP
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: api-conformance-controller
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: api-conformance-default-deny
+  namespace: api-conformance-system
+spec:
+  egress: []
+  endpointSelector: {}
+  ingress: []
+---
+apiVersion: conformance.re8ch.com/v1alpha1
+kind: APIConformanceTarget
+metadata:
+  annotations:
+    conformance.re8ch.com/activation-blockers: short-lived-credentials,oidc-result-proxy
+  name: cloud-functions-commerce
+  namespace: api-conformance-system
+spec:
+  baseUrl: https://api.re8ch.com/commerce
+  branch: master
+  commit: 81a757cdb10784d69957c7a4e7aee8568d36a295
+  github:
+    installationId: '171153917'
+  imageDigest: sha256:cc16ca8150d4140e988dbdfdfc8653f15472be1ff15ee3aefe59b243c52d0e4c
+  limits:
+    maxExamples: 25
+    maxRequests: 500
+    ratePerSecond: 1
+    timeoutSeconds: 600
+  network:
+    allowedHosts:
+    - api.re8ch.com
+  operations:
+    allowGeneratedMutations: false
+    mutationOperationIds: []
+    readOperationIds:
+    - commerceHealth
+    - commerceReady
+    - listCommerceCatalog
+    - getCommerceWallet
+    - listCommerceOrders
+    - getCommerceOrder
+  repository: re8ch/cloud-functions
+  schedule:
+    readSeconds: 21600
+  schema:
+    sha256: 9d4084209c3d6e30dff411ba7a36859af3a94524c373727eb7140034a2f10d00
+    url: https://api.re8ch.com/commerce/v1/openapi.yaml
+  serviceRef: commerce.re8ch.v1
+  suspend: true
+---
+apiVersion: conformance.re8ch.com/v1alpha1
+kind: APIConformanceTarget
+metadata:
+  annotations:
+    conformance.re8ch.com/activation-blockers: short-lived-credentials,reviewed-cleanup-fixture,oidc-result-proxy
+  name: cloud-functions-identity
+  namespace: api-conformance-system
+spec:
+  baseUrl: https://api.re8ch.com/auth
+  branch: master
+  canary:
+    tenantRef: schemathesis-canary-identity
+  commit: 81a757cdb10784d69957c7a4e7aee8568d36a295
+  github:
+    installationId: '171153917'
+  imageDigest: sha256:d83d0a9278d686c74022b203f26420433deeebf0ab83efc23b0312565e82205e
+  limits:
+    maxExamples: 25
+    maxRequests: 500
+    ratePerSecond: 1
+    timeoutSeconds: 600
+  network:
+    allowedHosts:
+    - api.re8ch.com
+  operations:
+    allowGeneratedMutations: false
+    mutationOperationIds:
+    - createUser
+    - updateUser
+    - deleteUser
+    - createOrganization
+    - renameOrganization
+    - addOrganizationMember
+    - updateOrganizationMember
+    - removeOrganizationMember
+    - archiveOrganization
+    readOperationIds:
+    - listUsers
+    - getUser
+    - listOrganizations
+    - getOrganization
+    - listOrganizationMembers
+  repository: re8ch/cloud-functions
+  schedule:
+    mutationSeconds: 86400
+    readSeconds: 21600
+  schema:
+    sha256: 61426b8acbde14744fda187c805b79b298f25ec2823c7c9735d35548c71e2742
+    url: https://api.re8ch.com/auth/v2/openapi.yaml
+  serviceRef: identity.re8ch.v2
+  suspend: true
+---
+apiVersion: conformance.re8ch.com/v1alpha1
+kind: APIConformanceTarget
+metadata:
+  annotations:
+    conformance.re8ch.com/activation-blockers: isolated-credits-fixture,immutable-reversal-contract,oidc-result-proxy
+  name: cloud-functions-payment-credits
+  namespace: api-conformance-system
+spec:
+  baseUrl: https://api.re8ch.com/payment
+  branch: master
+  canary:
+    tenantRef: schemathesis-canary-payment
+  commit: 91cfaedabf4978019c6b8a292454653390ef9acc
+  github:
+    installationId: '171153917'
+  imageDigest: sha256:03bd6e17e917e6eb06211b11a9d9325b5980ebe82eec7fa4d43ac6f03f2b7153
+  limits:
+    maxExamples: 25
+    maxRequests: 500
+    ratePerSecond: 1
+    timeoutSeconds: 600
+  network:
+    allowedHosts:
+    - api.re8ch.com
+  operations:
+    allowGeneratedMutations: false
+    mutationOperationIds:
+    - registerCreditService
+    - updateCreditService
+    - publishCreditServicePrice
+    - reportCreditServiceHealth
+    - createCreditWallet
+    - createCreditServiceQuote
+    readOperationIds:
+    - paymentHealth
+    - paymentReady
+    - listPayments
+    - getPayment
+    - listCreditServices
+    - getCreditWallet
+  repository: re8ch/cloud-functions
+  schedule:
+    mutationSeconds: 86400
+    readSeconds: 21600
+  schema:
+    sha256: c34795591a3b92c1de661489eac380af6bab94d5734dc17017611f1067d43b74
+    url: https://api.re8ch.com/payment/v1/openapi.yaml
+  serviceRef: payment.credits.v1
+  suspend: true
+---
+apiVersion: conformance.re8ch.com/v1alpha1
+kind: APIConformanceTarget
+metadata:
+  name: commerce-public-contract
+  namespace: api-conformance-system
+spec:
+  baseUrl: https://api.re8ch.com/commerce
+  branch: master
+  checks:
+    exclude:
+    - unsupported_method
+    rationale: Envoy returns 400 for HTTP/1.1 QUERY before app routing; HTTP/2 returns
+      405, so this single transport probe cannot be enforced at the application API.
+  commit: 81a757cdb10784d69957c7a4e7aee8568d36a295
+  github:
+    installationId: '171153917'
+  imageDigest: sha256:cc16ca8150d4140e988dbdfdfc8653f15472be1ff15ee3aefe59b243c52d0e4c
+  limits:
+    maxExamples: 5
+    maxRequests: 100
+    ratePerSecond: 1
+    timeoutSeconds: 180
+  network:
+    allowedHosts:
+    - api.re8ch.com
+    pinnedEgressEntity: host
+    pinnedEgressIPs:
+      api.re8ch.com: 223.159.210.222
+  operations:
+    allowGeneratedMutations: false
+    mutationOperationIds: []
+    readOperationIds:
+    - commerceHealth
+    - listCommerceOrders
+  repository: re8ch/cloud-functions
+  schedule:
+    readSeconds: 21600
+  schema:
+    sha256: 9d4084209c3d6e30dff411ba7a36859af3a94524c373727eb7140034a2f10d00
+    url: https://api.re8ch.com/commerce/v1/openapi.yaml
+  serviceRef: commerce.re8ch.v1
+  suspend: false
+---
+apiVersion: conformance.re8ch.com/v1alpha1
+kind: APIConformanceTarget
+metadata:
+  name: identity-public-denial-contract
+  namespace: api-conformance-system
+spec:
+  baseUrl: https://api.re8ch.com/auth
+  branch: master
+  checks:
+    exclude:
+    - unsupported_method
+    rationale: Envoy returns 400 for HTTP/1.1 QUERY before app routing; HTTP/2 returns
+      405, so this single transport probe cannot be enforced at the application API.
+  commit: 81a757cdb10784d69957c7a4e7aee8568d36a295
+  github:
+    installationId: '171153917'
+  imageDigest: sha256:d83d0a9278d686c74022b203f26420433deeebf0ab83efc23b0312565e82205e
+  limits:
+    maxExamples: 3
+    maxRequests: 200
+    ratePerSecond: 1
+    timeoutSeconds: 240
+  network:
+    allowedHosts:
+    - api.re8ch.com
+    pinnedEgressEntity: host
+    pinnedEgressIPs:
+      api.re8ch.com: 223.159.210.222
+  operations:
+    allowGeneratedMutations: false
+    mutationOperationIds: []
+    readOperationIds:
+    - listUsers
+    - listOrganizations
+  repository: re8ch/cloud-functions
+  schedule:
+    readSeconds: 21600
+  schema:
+    sha256: 61426b8acbde14744fda187c805b79b298f25ec2823c7c9735d35548c71e2742
+    url: https://api.re8ch.com/auth/v2/openapi.yaml
+  serviceRef: identity.re8ch.v2
+  suspend: false
+---
+apiVersion: conformance.re8ch.com/v1alpha1
+kind: APIConformanceTarget
+metadata:
+  name: payment-public-contract
+  namespace: api-conformance-system
+spec:
+  baseUrl: https://api.re8ch.com/payment
+  branch: master
+  checks:
+    exclude:
+    - unsupported_method
+    rationale: Envoy returns 400 for HTTP/1.1 QUERY before app routing; HTTP/2 returns
+      405, so this single transport probe cannot be enforced at the application API.
+  commit: 91cfaedabf4978019c6b8a292454653390ef9acc
+  github:
+    installationId: '171153917'
+  imageDigest: sha256:03bd6e17e917e6eb06211b11a9d9325b5980ebe82eec7fa4d43ac6f03f2b7153
+  limits:
+    maxExamples: 3
+    maxRequests: 100
+    ratePerSecond: 1
+    timeoutSeconds: 180
+  network:
+    allowedHosts:
+    - api.re8ch.com
+    pinnedEgressEntity: host
+    pinnedEgressIPs:
+      api.re8ch.com: 223.159.210.222
+  operations:
+    allowGeneratedMutations: false
+    mutationOperationIds: []
+    readOperationIds:
+    - paymentHealth
+    - paymentReady
+    - listPayments
+  repository: re8ch/cloud-functions
+  schedule:
+    readSeconds: 21600
+  schema:
+    sha256: c34795591a3b92c1de661489eac380af6bab94d5734dc17017611f1067d43b74
+    url: https://api.re8ch.com/payment/v1/openapi.yaml
+  serviceRef: payment.credits.v1
+  suspend: false
+---
+apiVersion: v1
+data:
+  budget_hooks.py: "\"\"\"Schemathesis 4.29.1 transport guard, loaded before any remote\
+    \ request.\"\"\"\nimport os\n\nfrom request_budget import take\n\n\ndef install():\n\
+    \    import requests.adapters\n    import schemathesis.transport.requests as transport\n\
+    \n    path = os.environ[\"RE8CH_REQUEST_BUDGET\"]\n    original = requests.adapters.HTTPAdapter.send\n\
+    \n    def bounded_send(self, request, **kwargs):\n        take(path)\n       \
+    \ return original(self, request, **kwargs)\n\n    requests.adapters.HTTPAdapter.send\
+    \ = bounded_send\n    # 4.29.1 retries dropped connections once even with --request-retries=0.\n\
+    \    # An unknown write outcome must not silently be replayed.\n    transport._request_resending_on_dropped_connection\
+    \ = lambda session, data: session.request(**data)\n\n\ninstall()\n"
+  contract.py: "#!/usr/bin/env python3\n\"\"\"Pure validation and redaction helpers\
+    \ for API conformance runs.\"\"\"\n\nfrom __future__ import annotations\n\nimport\
+    \ hashlib\nimport ipaddress\nimport json\nimport re\nfrom urllib.parse import\
+    \ urlparse\n\nSAFE_METHODS = frozenset({\"get\", \"head\", \"options\"})\nMUTATION_METHODS\
+    \ = frozenset({\"post\", \"put\", \"patch\", \"delete\"})\nSECRET_KEYS = (\"authorization\"\
+    , \"cookie\", \"token\", \"secret\", \"password\", \"private\", \"credential\"\
+    )\nMAX_REPORT_BYTES = 60 * 1024\n\n\nclass ContractError(ValueError):\n    pass\n\
+    \n\ndef _require(value: bool, message: str) -> None:\n    if not value:\n    \
+    \    raise ContractError(message)\n\n\ndef validate_target(spec: dict) -> dict:\n\
+    \    \"\"\"Validate a target without resolving credentials or making requests.\"\
+    \"\"\n    repository = spec.get(\"repository\", \"\")\n    _require(bool(re.fullmatch(r\"\
+    [A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\", repository)), \"invalid repository\")\n   \
+    \ base = urlparse(spec.get(\"baseUrl\", \"\"))\n    schema = urlparse(spec.get(\"\
+    schema\", {}).get(\"url\", \"\"))\n    _require(base.scheme == \"https\" and bool(base.hostname),\
+    \ \"baseUrl must be HTTPS\")\n    _require(schema.scheme == \"https\" and bool(schema.hostname),\
+    \ \"schema URL must be HTTPS\")\n    allowed = set(spec.get(\"network\", {}).get(\"\
+    allowedHosts\", []))\n    _require(bool(allowed) and base.hostname in allowed\
+    \ and schema.hostname in allowed, \"host is not allowlisted\")\n    for host,\
+    \ address in spec.get(\"network\", {}).get(\"pinnedEgressIPs\", {}).items():\n\
+    \        _require(host in allowed, \"pinned egress host is not allowlisted\")\n\
+    \        try:\n            ip = ipaddress.ip_address(address)\n        except\
+    \ ValueError as exc:\n            raise ContractError(\"invalid pinned egress\
+    \ IP\") from exc\n        _require(ip.version == 4 and ip.is_global, \"pinned\
+    \ egress IP must be public IPv4\")\n    entity = spec.get(\"network\", {}).get(\"\
+    pinnedEgressEntity\")\n    _require(entity in (None, \"host\"), \"invalid pinned\
+    \ egress entity\")\n    if entity == \"host\":\n        _require(set(spec[\"network\"\
+    ].get(\"pinnedEgressIPs\", {})) == allowed,\n                 \"host identity\
+    \ egress requires every allowed host to be pinned\")\n    digest = spec.get(\"\
+    schema\", {}).get(\"sha256\", \"\")\n    _require(bool(re.fullmatch(r\"[a-f0-9]{64}\"\
+    , digest)), \"schema digest must be sha256\")\n    limits = spec.get(\"limits\"\
+    , {})\n    _require(1 <= int(limits.get(\"maxExamples\", 25)) <= 100, \"maxExamples\
+    \ out of range\")\n    _require(1 <= int(limits.get(\"maxRequests\", 500)) <=\
+    \ 2000, \"maxRequests out of range\")\n    _require(1 <= int(limits.get(\"ratePerSecond\"\
+    , 1)) <= 5, \"ratePerSecond out of range\")\n    _require(60 <= int(limits.get(\"\
+    timeoutSeconds\", 600)) <= 900, \"timeoutSeconds out of range\")\n    checks =\
+    \ spec.get(\"checks\", {})\n    excluded = checks.get(\"exclude\", [])\n    _require(isinstance(excluded,\
+    \ list) and excluded in ([], [\"unsupported_method\"]),\n             \"only the\
+    \ reviewed unsupported_method exception is allowed\")\n    if excluded:\n    \
+    \    _require(isinstance(checks.get(\"rationale\"), str) and len(checks[\"rationale\"\
+    ].strip()) >= 40,\n                 \"excluded check requires a documented rationale\"\
+    )\n    mutations = spec.get(\"operations\", {}).get(\"mutationOperationIds\",\
+    \ [])\n    if mutations:\n        _require(spec.get(\"canary\", {}).get(\"tenantRef\"\
+    , \"\").startswith(\"schemathesis-canary\"),\n                 \"mutations require\
+    \ a dedicated canary tenant\")\n        _require(bool(spec.get(\"lifecycle\",\
+    \ {}).get(\"cleanup\")), \"mutations require cleanup steps\")\n        _require(bool(spec.get(\"\
+    operations\", {}).get(\"allowGeneratedMutations\") is True),\n               \
+    \  \"generated mutations require an explicit opt-in\")\n    return spec\n\n\n\
+    def validate_document(document: dict, target: dict) -> dict[str, tuple[str, str]]:\n\
+    \    \"\"\"Reject remote references and return operationId -> (method, path).\"\
+    \"\"\n    _require(isinstance(document, dict) and isinstance(document.get(\"paths\"\
+    ), dict), \"invalid OpenAPI document\")\n    encoded = json.dumps(document, separators=(\"\
+    ,\", \":\"), sort_keys=True)\n    for match in re.finditer(r'\"\\$ref\":\"([^\"\
+    ]+)\"', encoded):\n        _require(match.group(1).startswith(\"#/\"), \"only\
+    \ document-local OpenAPI references are allowed\")\n    operations: dict[str,\
+    \ tuple[str, str]] = {}\n    for path, item in document[\"paths\"].items():\n\
+    \        if not isinstance(item, dict):\n            continue\n        for method,\
+    \ operation in item.items():\n            if method.lower() not in SAFE_METHODS\
+    \ | MUTATION_METHODS or not isinstance(operation, dict):\n                continue\n\
+    \            operation_id = operation.get(\"operationId\")\n            _require(isinstance(operation_id,\
+    \ str) and operation_id, f\"missing operationId: {method} {path}\")\n        \
+    \    _require(operation_id not in operations, f\"duplicate operationId: {operation_id}\"\
+    )\n            operations[operation_id] = (method.lower(), path)\n    configured\
+    \ = target.get(\"operations\", {})\n    for operation_id in configured.get(\"\
+    readOperationIds\", []) + configured.get(\"mutationOperationIds\", []):\n    \
+    \    _require(operation_id in operations, f\"unknown operationId: {operation_id}\"\
+    )\n    for operation_id in configured.get(\"readOperationIds\", []):\n       \
+    \ _require(operations[operation_id][0] in SAFE_METHODS, f\"read operation is mutating:\
+    \ {operation_id}\")\n    for operation_id in configured.get(\"mutationOperationIds\"\
+    , []):\n        _require(operations[operation_id][0] in MUTATION_METHODS, f\"\
+    mutation operation is not mutating: {operation_id}\")\n    for steps in target.get(\"\
+    lifecycle\", {}).values():\n        for step in steps:\n            operation_id\
+    \ = step.get(\"operationId\")\n            _require(operation_id in operations,\
+    \ \"lifecycle requires a schema operationId\")\n            method, path = operations[operation_id]\n\
+    \            allowlist = configured.get(\"readOperationIds\", []) if method in\
+    \ SAFE_METHODS else configured.get(\"mutationOperationIds\", [])\n           \
+    \ _require(operation_id in allowlist, \"lifecycle operation is not allowlisted\"\
+    )\n            _require(step.get(\"method\", \"\").lower() == method, \"lifecycle\
+    \ method differs from schema\")\n            pattern = re.escape(path)\n     \
+    \       pattern = re.sub(r\"\\\\\\{[^{}]+\\\\\\}\", r\"[^/]+\", pattern)\n   \
+    \         _require(re.fullmatch(pattern, step.get(\"path\", \"\").split(\"?\"\
+    , 1)[0]) is not None,\n                     \"lifecycle path differs from schema\"\
+    )\n    return operations\n\n\ndef schema_digest(raw: bytes) -> str:\n    return\
+    \ hashlib.sha256(raw).hexdigest()\n\n\ndef failure_fingerprint(value: object)\
+    \ -> str:\n    raw = json.dumps(value, sort_keys=True, separators=(\",\", \":\"\
+    ), default=str).encode()\n    return hashlib.sha256(raw).hexdigest()[:20]\n\n\n\
+    def sanitized_summary(*, target: str, run_id: str, mode: str, seed: int, schema_sha256:\
+    \ str,\n                      exit_code: int, report: dict | None, lifecycle:\
+    \ dict, audit_refs: list[str]) -> dict:\n    \"\"\"Project a potentially sensitive\
+    \ Schemathesis report into a bounded result.\"\"\"\n    report = report if isinstance(report,\
+    \ dict) else {}\n    cases = report.get(\"test_cases\", {}) if isinstance(report.get(\"\
+    test_cases\"), dict) else {}\n    operations = report.get(\"operations\", {})\
+    \ if isinstance(report.get(\"operations\"), dict) else {}\n    failures = report.get(\"\
+    failures\", []) if isinstance(report.get(\"failures\"), list) else []\n    errors\
+    \ = report.get(\"errors\", []) if isinstance(report.get(\"errors\"), list) else\
+    \ []\n    # These are the actual 4.29.1 JSON report fields, not the legacy statistics\n\
+    \    # structure. A successful process alone cannot prove that tests ran.\n  \
+    \  counts = {\n        \"generated\": int(cases.get(\"generated\", 0) or 0),\n\
+    \        \"withFailures\": int(cases.get(\"with_failures\", 0) or 0),\n      \
+    \  \"withoutChecks\": int(cases.get(\"without_checks\", 0) or 0),\n        \"\
+    uniqueFailures\": int(cases.get(\"unique_failures\", 0) or 0),\n        **{\"\
+    operations\" + key.title(): int(operations.get(key, 0) or 0)\n           for key\
+    \ in (\"total\", \"selected\", \"tested\", \"errored\", \"skipped\")},\n    }\n\
+    \    _require(all(0 <= value <= 1000000 for value in counts.values()), \"invalid\
+    \ report counts\")\n    passed = (exit_code == 0 and report.get(\"exit_code\"\
+    ) == 0\n              and report.get(\"complete\") is True and report.get(\"stop_reason\"\
+    ) == \"completed\"\n              and report.get(\"schemathesis_version\") ==\
+    \ \"4.29.1\"\n              and counts[\"generated\"] > counts[\"withoutChecks\"\
+    ]\n              and counts[\"operationsTested\"] == counts[\"operationsSelected\"\
+    ] > 0\n              and counts[\"operationsSkipped\"] == 0 and counts[\"withFailures\"\
+    ] == 0\n              and counts[\"operationsErrored\"] == 0 and not failures\
+    \ and not errors\n              and lifecycle.get(\"cleanup\") != \"failed\" and\
+    \ lifecycle.get(\"reversal\") != \"failed\")\n    # Counts, titles, bodies, random\
+    \ examples and exception text are not stable\n    # regression identities. Hash\
+    \ only the check type and operation templates.\n    fingerprints = {failure_fingerprint({\"\
+    type\": item.get(\"type\"), \"operations\": item.get(\"operations\", [])})\n \
+    \                   for item in failures if isinstance(item, dict)}\n    result\
+    \ = {\n        \"version\": 1,\n        \"target\": target,\n        \"runId\"\
+    : run_id,\n        \"mode\": mode,\n        \"engine\": \"schemathesis\",\n  \
+    \      \"engineVersion\": \"4.29.1\",\n        \"seed\": seed,\n        \"schemaSha256\"\
+    : schema_sha256,\n        \"status\": \"passed\" if passed else \"failed\",\n\
+    \        \"exitCode\": exit_code,\n        \"counts\": counts,\n        \"failureFingerprints\"\
+    : sorted(fingerprints)[:50],\n        \"lifecycle\": {\n            \"setup\"\
+    : lifecycle.get(\"setup\", \"not_run\"),\n            \"test\": lifecycle.get(\"\
+    test\", \"not_run\"),\n            \"cleanup\": lifecycle.get(\"cleanup\", \"\
+    not_run\"),\n            \"reversal\": lifecycle.get(\"reversal\", \"not_run\"\
+    ),\n        },\n        \"auditRefs\": [ref for ref in audit_refs if re.fullmatch(r\"\
+    audit://[A-Za-z0-9_./-]+\", ref)][:20],\n    }\n    raw = json.dumps(result, separators=(\"\
+    ,\", \":\"), sort_keys=True).encode()\n    _require(len(raw) <= MAX_REPORT_BYTES,\
+    \ \"sanitized report exceeds GitHub dispatch limit\")\n    _require(not any(secret\
+    \ in raw.decode().lower() for secret in SECRET_KEYS), \"sensitive key leaked into\
+    \ report\")\n    return result\n"
+  controller.py: "#!/usr/bin/env python3\n\"\"\"GitOps target scheduler, discovery\
+    \ notifier, and repository result publisher.\"\"\"\n\nfrom __future__ import annotations\n\
+    \nimport base64\nimport hashlib\nimport json\nimport os\nimport re\nimport ssl\n\
+    import time\nimport urllib.error\nimport urllib.parse\nimport urllib.request\n\
+    from datetime import datetime, timezone, timedelta\nfrom pathlib import Path\n\
+    \nfrom contract import ContractError, validate_target\nfrom delivery import authority,\
+    \ publication_target, project_report, failed_report, delivery_record\n\nGROUP\
+    \ = \"conformance.re8ch.com\"\nVERSION = \"v1alpha1\"\nNAMESPACE = os.getenv(\"\
+    POD_NAMESPACE\", \"api-conformance-system\")\nRUNNER_NAMESPACE = os.getenv(\"\
+    RUNNER_NAMESPACE\", NAMESPACE)\nCODE_CONFIG_MAP = os.getenv(\"CODE_CONFIG_MAP\"\
+    , \"api-conformance-code\")\nRUNNER_IMAGE = os.getenv(\"RUNNER_IMAGE\", \"schemathesis/schemathesis:4.29.1@sha256:e276982651536cb60c316f805a822b469bbf0d27544794fbeed42eeb957278e0\"\
+    )\nAPP_ID = os.getenv(\"GITHUB_APP_ID\", \"\")\nPRIVATE_KEY = Path(os.getenv(\"\
+    GITHUB_PRIVATE_KEY_PATH\", \"/github-app/private-key.pem\"))\nREPOSITORY_INSTALLATIONS\
+    \ = json.loads(os.getenv(\"GITHUB_REPOSITORY_INSTALLATIONS\", \"{}\"))\nRESULT_BINDINGS\
+    \ = json.loads(os.getenv(\"RESULT_REPOSITORY_BINDINGS\", \"{}\"))\nHOST_IDENTITY_EGRESS_IPS\
+    \ = set(json.loads(os.getenv(\"HOST_IDENTITY_EGRESS_IPS\", \"[]\")))\nAPP_PERMISSIONS\
+    \ = {\"actions\": \"write\", \"checks\": \"write\", \"contents\": \"read\", \"\
+    issues\": \"write\", \"metadata\": \"read\"}\nDISCOVERY_PATHS = (\"/openapi.json\"\
+    , \"/swagger.json\", \"/openapi.yaml\")\n_last_discovery = 0.0\n\n\ndef now()\
+    \ -> datetime:\n    return datetime.now(timezone.utc)\n\n\ndef timestamp(value:\
+    \ datetime | None = None) -> str:\n    return (value or now()).isoformat().replace(\"\
+    +00:00\", \"Z\")\n\n\ndef b64url(raw: bytes) -> str:\n    return base64.urlsafe_b64encode(raw).decode().rstrip(\"\
+    =\")\n\n\ndef _tlv(data: bytes, offset: int = 0):\n    tag, length, used = data[offset],\
+    \ data[offset + 1], 2\n    if length & 0x80:\n        count = length & 0x7F\n\
+    \        length = int.from_bytes(data[offset + 2:offset + 2 + count], \"big\"\
+    )\n        used += count\n    start = offset + used\n    return tag, data[start:start\
+    \ + length], start + length\n\n\ndef _children(sequence: bytes):\n    result,\
+    \ offset = [], 0\n    while offset < len(sequence):\n        tag, value, offset\
+    \ = _tlv(sequence, offset)\n        result.append((tag, value))\n    return result\n\
+    \n\ndef rsa_private_numbers(pem: bytes):\n    body = b\"\".join(line.strip() for\
+    \ line in pem.splitlines() if not line.startswith(b\"---\"))\n    tag, sequence,\
+    \ _ = _tlv(base64.b64decode(body))\n    if tag != 0x30:\n        raise ValueError(\"\
+    invalid RSA key\")\n    items = _children(sequence)\n    if len(items) >= 3 and\
+    \ items[1][0] == 0x30 and items[2][0] == 0x04:\n        tag, sequence, _ = _tlv(items[2][1])\n\
+    \        items = _children(sequence)\n    return int.from_bytes(items[1][1], \"\
+    big\"), int.from_bytes(items[3][1], \"big\")\n\n\ndef github_jwt():\n    issued\
+    \ = int(time.time())\n    header = b64url(b'{\"alg\":\"RS256\",\"typ\":\"JWT\"\
+    }')\n    payload = b64url(json.dumps({\"iat\": issued - 30, \"exp\": issued +\
+    \ 540, \"iss\": APP_ID}, separators=(\",\", \":\")).encode())\n    signing = f\"\
+    {header}.{payload}\".encode()\n    digest = bytes.fromhex(\"3031300d060960864801650304020105000420\"\
+    ) + hashlib.sha256(signing).digest()\n    modulus, private_exponent = rsa_private_numbers(PRIVATE_KEY.read_bytes())\n\
+    \    size = (modulus.bit_length() + 7) // 8\n    encoded = b\"\\x00\\x01\" + b\"\
+    \\xff\" * (size - len(digest) - 3) + b\"\\x00\" + digest\n    signature = pow(int.from_bytes(encoded,\
+    \ \"big\"), private_exponent, modulus).to_bytes(size, \"big\")\n    return f\"\
+    {header}.{payload}.{b64url(signature)}\"\n\n\nclass NoGitHubRedirect(urllib.request.HTTPRedirectHandler):\n\
+    \    def redirect_request(self, *args, **kwargs):\n        raise ContractError(\"\
+    GitHub redirects are forbidden\")\n\n\ndef http_json(url: str, token: str, method:\
+    \ str = \"GET\", body: dict | None = None):\n    parsed = urllib.parse.urlsplit(url)\n\
+    \    if parsed.scheme != \"https\" or parsed.netloc != \"api.github.com\" or parsed.fragment:\n\
+    \        raise ContractError(\"unexpected GitHub API origin\")\n    raw = json.dumps(body).encode()\
+    \ if body is not None else None\n    request = urllib.request.Request(url, data=raw,\
+    \ method=method, headers={\n        \"Accept\": \"application/vnd.github+json\"\
+    , \"Authorization\": f\"Bearer {token}\",\n        \"Content-Type\": \"application/json\"\
+    , \"User-Agent\": \"re8ch-api-conformance\",\n        \"X-GitHub-Api-Version\"\
+    : \"2026-03-10\",\n    })\n    with urllib.request.build_opener(NoGitHubRedirect()).open(request,\
+    \ timeout=20) as response:\n        return json.load(response) if response.length\
+    \ != 0 else {}\n\n\ndef installation_token(installation_id: str, repository: str)\
+    \ -> str:\n    if not re.fullmatch(r\"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\", repository):\n\
+    \        raise ContractError(\"invalid repository\")\n    if not installation_id.isdecimal()\
+    \ or REPOSITORY_INSTALLATIONS.get(repository) != installation_id:\n        raise\
+    \ ContractError(\"unreviewed repository installation\")\n    if not APP_ID or\
+    \ not installation_id or not PRIVATE_KEY.is_file():\n        raise ContractError(\"\
+    GitHub App is not configured\")\n    jwt = github_jwt()\n    installation = http_json(f\"\
+    https://api.github.com/repos/{repository}/installation\", jwt)\n    if str(installation.get(\"\
+    id\")) != installation_id or str(installation.get(\"app_id\")) != APP_ID:\n  \
+    \      raise ContractError(\"repository installation mismatch\")\n    result =\
+    \ http_json(f\"https://api.github.com/app/installations/{installation_id}/access_tokens\"\
+    , jwt, \"POST\",\n                       {\"repositories\": [repository.split(\"\
+    /\")[1]], \"permissions\": APP_PERMISSIONS})\n    return result[\"token\"]\n\n\
+    \ndef kube_request(method: str, path: str, body: dict | None = None, content_type:\
+    \ str = \"application/json\"):\n    host, port = os.environ[\"KUBERNETES_SERVICE_HOST\"\
+    ], os.environ[\"KUBERNETES_SERVICE_PORT_HTTPS\"]\n    token = Path(\"/var/run/secrets/kubernetes.io/serviceaccount/token\"\
+    ).read_text().strip()\n    raw = json.dumps(body).encode() if body is not None\
+    \ else None\n    request = urllib.request.Request(f\"https://{host}:{port}{path}\"\
+    , data=raw, method=method,\n                                     headers={\"Authorization\"\
+    : f\"Bearer {token}\", \"Content-Type\": content_type})\n    context = ssl.create_default_context(cafile=\"\
+    /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\")\n    # Kubernetes traffic\
+    \ must stay on the cluster path even when GitHub API\n    # traffic uses HTTPS_PROXY.\
+    \ urllib does not interpret NO_PROXY CIDRs.\n    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}),\
+    \ urllib.request.HTTPSHandler(context=context))\n    with opener.open(request,\
+    \ timeout=15) as response:\n        return json.load(response) if response.length\
+    \ != 0 else {}\n\n\ndef list_resource(plural: str):\n    return kube_request(\"\
+    GET\", f\"/apis/{GROUP}/{VERSION}/namespaces/{NAMESPACE}/{plural}\").get(\"items\"\
+    , [])\n\n\ndef patch_status(plural: str, name: str, status: dict):\n    return\
+    \ kube_request(\"PATCH\", f\"/apis/{GROUP}/{VERSION}/namespaces/{NAMESPACE}/{plural}/{name}/status\"\
+    ,\n                        {\"status\": status}, \"application/merge-patch+json\"\
+    )\n\n\ndef due(status: dict, key: str, seconds: int) -> bool:\n    value = status.get(key)\n\
+    \    if not value:\n        return True\n    try:\n        return (now() - datetime.fromisoformat(value.replace(\"\
+    Z\", \"+00:00\"))).total_seconds() >= seconds\n    except ValueError:\n      \
+    \  return True\n\n\ndef active_runs():\n    return [item for item in list_resource(\"\
+    apiconformanceruns\")\n            if item.get(\"status\", {}).get(\"phase\",\
+    \ \"Pending\") in {\"Pending\", \"Starting\", \"Running\"}]\n\n\ndef create_run(target:\
+    \ dict, mode: str, trigger: str, run_name: str | None = None) -> None:\n    validate_target(target[\"\
+    spec\"])\n    network = target[\"spec\"].get(\"network\", {})\n    if network.get(\"\
+    pinnedEgressEntity\") == \"host\":\n        if not set(network[\"pinnedEgressIPs\"\
+    ].values()).issubset(HOST_IDENTITY_EGRESS_IPS):\n            raise ContractError(\"\
+    host identity egress IP is not approved by the cluster\")\n    if RUNNER_NAMESPACE\
+    \ != NAMESPACE and target[\"spec\"].get(\"authSecretRef\"):\n        raise ContractError(\"\
+    isolated runners require the credential broker, not static auth Secrets\")\n \
+    \   if mode not in {\"read\", \"mutation\"}:\n        raise ContractError(\"invalid\
+    \ run mode\")\n    target_name = target[\"metadata\"][\"name\"]\n    if run_name\
+    \ is None:\n        run_name = f\"{target_name}-{mode}-{int(time.time())}\"\n\
+    \        run = {\n            \"apiVersion\": f\"{GROUP}/{VERSION}\", \"kind\"\
+    : \"APIConformanceRun\",\n            \"metadata\": {\"name\": run_name, \"namespace\"\
+    : NAMESPACE, \"labels\": {\"conformance.re8ch.com/target\": target_name}},\n \
+    \           \"spec\": {\"targetRef\": target_name, \"mode\": mode, \"trigger\"\
+    : trigger,\n                     \"commit\": target[\"spec\"].get(\"commit\",\
+    \ \"\"), \"imageDigest\": target[\"spec\"].get(\"imageDigest\", \"\"),\n     \
+    \                \"publication\": authority(target)},\n        }\n        kube_request(\"\
+    POST\", f\"/apis/{GROUP}/{VERSION}/namespaces/{NAMESPACE}/apiconformanceruns\"\
+    , run)\n    # Persist the lock before submitting a Job. Lost responses and restarts\
+    \ must\n    # never schedule a second mutation for an already-created Run.\n \
+    \   patch_status(\"apiconformanceruns\", run_name, {\"phase\": \"Starting\", \"\
+    startedAt\": timestamp()})\n    target_json = json.dumps(target[\"spec\"], separators=(\"\
+    ,\", \":\"), sort_keys=True)\n    env = [\n        {\"name\": \"TARGET_NAME\"\
+    , \"value\": target_name}, {\"name\": \"RUN_ID\", \"value\": run_name},\n    \
+    \    {\"name\": \"RUN_MODE\", \"value\": mode}, {\"name\": \"TARGET_JSON\", \"\
+    value\": target_json},\n    ]\n    auth = target[\"spec\"].get(\"authSecretRef\"\
+    )\n    if auth:\n        env.append({\"name\": \"AUTHORIZATION\", \"valueFrom\"\
+    : {\"secretKeyRef\": {\"name\": auth[\"name\"], \"key\": auth.get(\"key\", \"\
+    authorization\")}}})\n    allowed_hosts = target[\"spec\"].get(\"network\", {}).get(\"\
+    allowedHosts\", [])\n    pinned_ips = target[\"spec\"].get(\"network\", {}).get(\"\
+    pinnedEgressIPs\", {})\n    job = {\n        \"apiVersion\": \"batch/v1\", \"\
+    kind\": \"Job\",\n        \"metadata\": {\"name\": run_name, \"namespace\": RUNNER_NAMESPACE,\n\
+    \                     \"labels\": {\"app.kubernetes.io/name\": \"api-conformance-runner\"\
+    , \"conformance.re8ch.com/run\": run_name}},\n        \"spec\": {\"suspend\":\
+    \ True, \"backoffLimit\": 0, \"activeDeadlineSeconds\": min(930, int(target[\"\
+    spec\"].get(\"limits\", {}).get(\"timeoutSeconds\", 600)) + 60),\n           \
+    \      \"ttlSecondsAfterFinished\": 604800,\n                 \"template\": {\"\
+    metadata\": {\"labels\": {\"app.kubernetes.io/name\": \"api-conformance-runner\"\
+    , \"conformance.re8ch.com/run\": run_name}},\n                              \"\
+    spec\": {\"automountServiceAccountToken\": False, \"restartPolicy\": \"Never\"\
+    ,\n                                       \"securityContext\": {\"runAsNonRoot\"\
+    : True, \"runAsUser\": 65532, \"runAsGroup\": 65532, \"seccompProfile\": {\"type\"\
+    : \"RuntimeDefault\"}},\n                                       \"containers\"\
+    : [{\"name\": \"runner\", \"image\": RUNNER_IMAGE, \"command\": [\"python\", \"\
+    /app/runner.py\"],\n                                                       \"\
+    env\": env, \"resources\": {\"requests\": {\"cpu\": \"50m\", \"memory\": \"128Mi\"\
+    }, \"limits\": {\"cpu\": \"500m\", \"memory\": \"512Mi\"}},\n                \
+    \                                       \"securityContext\": {\"allowPrivilegeEscalation\"\
+    : False, \"readOnlyRootFilesystem\": True, \"capabilities\": {\"drop\": [\"ALL\"\
+    ]}},\n                                                       \"volumeMounts\"\
+    : [{\"name\": \"code\", \"mountPath\": \"/app\", \"readOnly\": True}, {\"name\"\
+    : \"tmp\", \"mountPath\": \"/tmp\"}]}],\n                                    \
+    \   \"volumes\": [{\"name\": \"code\", \"configMap\": {\"name\": CODE_CONFIG_MAP}},\
+    \ {\"name\": \"tmp\", \"emptyDir\": {\"sizeLimit\": \"64Mi\"}}]}}},\n    }\n \
+    \   if pull_secret := os.getenv(\"RUNNER_PULL_SECRET\"):\n        job[\"spec\"\
+    ][\"template\"][\"spec\"][\"imagePullSecrets\"] = [{\"name\": pull_secret}]\n\
+    \    if pinned_ips:\n        # /etc/hosts resolves the reviewed address before\
+    \ DNS. A pinned run\n        # cannot silently follow an unrelated public DNS\
+    \ answer.\n        by_address: dict[str, list[str]] = {}\n        for host, address\
+    \ in pinned_ips.items():\n            by_address.setdefault(address, []).append(host)\n\
+    \        job[\"spec\"][\"template\"][\"spec\"][\"hostAliases\"] = [\n        \
+    \    {\"ip\": address, \"hostnames\": sorted(hosts)} for address, hosts in sorted(by_address.items())\n\
+    \        ]\n    # Isolated runners execute the code baked into the signed image,\
+    \ not a\n    # cross-namespace ConfigMap or a volume from the App key namespace.\n\
+    \    if RUNNER_NAMESPACE != NAMESPACE:\n        job_spec = job[\"spec\"][\"template\"\
+    ][\"spec\"]\n        job_spec[\"volumes\"] = [v for v in job_spec[\"volumes\"\
+    ] if v[\"name\"] != \"code\"]\n        job_spec[\"containers\"][0][\"volumeMounts\"\
+    ] = [v for v in job_spec[\"containers\"][0][\"volumeMounts\"] if v[\"name\"] !=\
+    \ \"code\"]\n    created = kube_request(\"POST\", f\"/apis/batch/v1/namespaces/{RUNNER_NAMESPACE}/jobs\"\
+    , job)\n    unpinned_hosts = [host for host in allowed_hosts if host not in pinned_ips]\n\
+    \    egress = []\n    if unpinned_hosts:\n        egress.extend([\n          \
+    \  {\"toEndpoints\": [{\"matchLabels\": {\"k8s:io.kubernetes.pod.namespace\":\
+    \ \"kube-system\", \"k8s:app.kubernetes.io/name\": \"advanced-fabric-doh\"}}],\n\
+    \             \"toPorts\": [{\"ports\": [{\"port\": \"53\", \"protocol\": \"UDP\"\
+    }, {\"port\": \"53\", \"protocol\": \"TCP\"}],\n                          \"rules\"\
+    : {\"dns\": [{\"matchPattern\": \"*\"}]}}]},\n            {\"toFQDNs\": [{\"matchName\"\
+    : host} for host in unpinned_hosts],\n             \"toPorts\": [{\"ports\": [{\"\
+    port\": \"443\", \"protocol\": \"TCP\"}]}]},\n        ])\n    if pinned_ips:\n\
+    \        peer = ({\"toEntities\": [\"host\"]} if target[\"spec\"][\"network\"\
+    ].get(\"pinnedEgressEntity\") == \"host\"\n                else {\"toCIDR\": [f\"\
+    {address}/32\" for address in sorted(set(pinned_ips.values()))]})\n        egress.append({**peer,\
+    \ \"toPorts\": [{\"ports\": [{\"port\": \"443\", \"protocol\": \"TCP\"}]}]})\n\
+    \    policy = {\n        \"apiVersion\": \"cilium.io/v2\", \"kind\": \"CiliumNetworkPolicy\"\
+    ,\n        \"metadata\": {\"name\": run_name, \"namespace\": RUNNER_NAMESPACE,\n\
+    \                     \"ownerReferences\": [{\"apiVersion\": \"batch/v1\", \"\
+    kind\": \"Job\", \"name\": run_name,\n                                       \
+    \    \"uid\": created[\"metadata\"][\"uid\"], \"controller\": True, \"blockOwnerDeletion\"\
+    : True}]},\n        \"spec\": {\"endpointSelector\": {\"matchLabels\": {\"conformance.re8ch.com/run\"\
+    : run_name}},\n                 \"egress\": egress},\n    }\n    kube_request(\"\
+    POST\", f\"/apis/cilium.io/v2/namespaces/{RUNNER_NAMESPACE}/ciliumnetworkpolicies\"\
+    , policy)\n    # The Job must not start before its per-run deny-by-default policy\
+    \ exists.\n    # If either write fails, it stays suspended and the persisted Run\
+    \ lock\n    # prevents a duplicate or an unconfined retry.\n    kube_request(\"\
+    PATCH\", f\"/apis/batch/v1/namespaces/{RUNNER_NAMESPACE}/jobs/{run_name}\",\n\
+    \                 {\"spec\": {\"suspend\": False}}, \"application/merge-patch+json\"\
+    )\n    patch_status(\"apiconformanceruns\", run_name, {\"phase\": \"Running\"\
+    , \"startedAt\": timestamp(), \"jobRef\": run_name})\n\n\ndef pod_log(run_name:\
+    \ str) -> str:\n    query = urllib.parse.urlencode({\"labelSelector\": f\"conformance.re8ch.com/run={run_name}\"\
+    })\n    pods = kube_request(\"GET\", f\"/api/v1/namespaces/{RUNNER_NAMESPACE}/pods?{query}\"\
+    ).get(\"items\", [])\n    if not pods:\n        return \"\"\n    name = pods[0][\"\
+    metadata\"][\"name\"]\n    host, port = os.environ[\"KUBERNETES_SERVICE_HOST\"\
+    ], os.environ[\"KUBERNETES_SERVICE_PORT_HTTPS\"]\n    token = Path(\"/var/run/secrets/kubernetes.io/serviceaccount/token\"\
+    ).read_text().strip()\n    request = urllib.request.Request(f\"https://{host}:{port}/api/v1/namespaces/{RUNNER_NAMESPACE}/pods/{name}/log?container=runner&tailLines=2\"\
+    ,\n                                     headers={\"Authorization\": f\"Bearer\
+    \ {token}\"})\n    context = ssl.create_default_context(cafile=\"/var/run/secrets/kubernetes.io/serviceaccount/ca.crt\"\
+    )\n    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), urllib.request.HTTPSHandler(context=context))\n\
+    \    with opener.open(request, timeout=15) as response:\n        return response.read(65536).decode(\"\
+    utf-8\", \"replace\")\n\n\ndef publish(target: dict, report: dict, streak: int)\
+    \ -> None:\n    github = target[\"spec\"].get(\"github\", {})\n    repository,\
+    \ sha, name = target[\"spec\"][\"repository\"], target[\"spec\"][\"commit\"],\
+    \ target[\"metadata\"][\"name\"]\n    if not re.fullmatch(r\"[0-9a-f]{40}\", sha):\n\
+    \        raise ContractError(\"full commit SHA required\")\n    token = installation_token(str(github.get(\"\
+    installationId\", \"\")), repository)\n    commit = http_json(f\"https://api.github.com/repos/{repository}/commits/{sha}\"\
+    , token)\n    if commit.get(\"sha\") != sha:\n        raise ContractError(\"repository\
+    \ commit mismatch\")\n    conclusion = \"success\" if report.get(\"status\") ==\
+    \ \"passed\" else \"failure\"\n    if os.getenv(\"RESULT_DELIVERY_MODE\", \"dispatch\"\
+    ) != \"oidc\":\n        http_json(f\"https://api.github.com/repos/{repository}/check-runs\"\
+    , token, \"POST\", {\n            \"name\": f\"re8ch/schemathesis/{name}\", \"\
+    head_sha\": sha, \"status\": \"completed\", \"conclusion\": conclusion,\n    \
+    \        \"output\": {\"title\": f\"Schemathesis {conclusion}\", \"summary\":\
+    \ json.dumps(report, indent=2)[:60000]},\n        })\n    if os.getenv(\"RESULT_DELIVERY_MODE\"\
+    , \"dispatch\") == \"oidc\":\n        inputs = {\"run_id\": report[\"runId\"]}\n\
+    \    else:\n        encoded = base64.b64encode(json.dumps(report, separators=(\"\
+    ,\", \":\"), sort_keys=True).encode()).decode()\n        inputs = {\"report\"\
+    : encoded, \"run_id\": report[\"runId\"]}\n    http_json(f\"https://api.github.com/repos/{repository}/actions/workflows/re8ch-schemathesis-result.yml/dispatches\"\
+    , token, \"POST\",\n              {\"ref\": target[\"spec\"].get(\"branch\", \"\
+    main\"), \"inputs\": inputs})\n    marker = f\"[Schemathesis] regression: {name}\"\
+    \n    issues = http_json(f\"https://api.github.com/repos/{repository}/issues?state=all&per_page=100\"\
+    , token)\n    issue = next((item for item in issues if item.get(\"title\") ==\
+    \ marker and \"pull_request\" not in item), None)\n    if conclusion == \"failure\"\
+    :\n        uncertain = (report.get(\"mode\") == \"mutation\" or report.get(\"\
+    lifecycle\", {}).get(\"cleanup\") == \"failed\"\n                     or report.get(\"\
+    lifecycle\", {}).get(\"reversal\") == \"failed\")\n        priority = \"**Priority:\
+    \ high \u2014 mutation testing is blocked until cleanup/reversal is reviewed.**\\\
+    n\\n\" if uncertain else \"\"\n        body = \"Automated production-canary API\
+    \ conformance regression.\\n\\n\" + priority + \"```json\\n\" + json.dumps(report,\
+    \ indent=2) + \"\\n```\\n\"\n        if issue:\n            http_json(f\"https://api.github.com/repos/{repository}/issues/{issue['number']}\"\
+    , token, \"PATCH\", {\"state\": \"open\", \"body\": body})\n        else:\n  \
+    \          http_json(f\"https://api.github.com/repos/{repository}/issues\", token,\
+    \ \"POST\", {\"title\": marker, \"body\": body})\n    elif issue and issue.get(\"\
+    state\") == \"open\" and streak >= 3:\n        http_json(f\"https://api.github.com/repos/{repository}/issues/{issue['number']}\"\
+    , token, \"PATCH\",\n                  {\"state\": \"closed\", \"state_reason\"\
+    : \"completed\", \"body\": \"Recovered after three consecutive passing runs.\"\
+    })\n\n\ndef collect_runs(targets: dict[str, dict]) -> None:\n    jobs = {item[\"\
+    metadata\"][\"name\"]: item for item in kube_request(\"GET\", f\"/apis/batch/v1/namespaces/{RUNNER_NAMESPACE}/jobs\"\
+    ).get(\"items\", [])}\n    for run in list_resource(\"apiconformanceruns\"):\n\
+    \        phase = run.get(\"status\", {}).get(\"phase\", \"Pending\")\n       \
+    \ if phase not in {\"Starting\", \"Running\", \"Pending\"} or (phase == \"Pending\"\
+    \ and run[\"spec\"].get(\"trigger\") == \"manual\"):\n            continue\n \
+    \       job = jobs.get(run[\"metadata\"][\"name\"])\n        if not job or not\
+    \ (job.get(\"status\", {}).get(\"succeeded\") or job.get(\"status\", {}).get(\"\
+    failed\")):\n            continue\n        text = pod_log(run[\"metadata\"][\"\
+    name\"])\n        try:\n            report = project_report(json.loads(next(line\
+    \ for line in reversed(text.splitlines()) if line.startswith(\"{\"))), run)\n\
+    \        except Exception:\n            report = failed_report(run)\n        target\
+    \ = targets.get(run[\"spec\"][\"targetRef\"])\n        previous = int(target.get(\"\
+    status\", {}).get(\"consecutivePasses\", 0)) if target else 0\n        streak\
+    \ = previous + 1 if report.get(\"status\") == \"passed\" else 0\n        completion\
+    \ = {\"phase\": \"Succeeded\" if report.get(\"status\") == \"passed\" else \"\
+    Failed\",\n                      \"finishedAt\": timestamp(), \"result\": report}\n\
+    \        if os.getenv(\"RESULT_DELIVERY_MODE\", \"dispatch\") == \"oidc\":\n \
+    \           try:\n                repository = publication_target(run)[\"spec\"\
+    ][\"repository\"]\n                completion[\"delivery\"] = delivery_record(run,\
+    \ report, RESULT_BINDINGS.get(repository), timestamp(now() + timedelta(hours=1)))\n\
+    \            except Exception:\n                completion[\"publication\"] =\
+    \ \"blocked\"\n        patch_status(\"apiconformanceruns\", run[\"metadata\"][\"\
+    name\"], completion)\n        if target:\n            mode = run[\"spec\"][\"\
+    mode\"]\n            status = {**target.get(\"status\", {}), \"consecutivePasses\"\
+    : streak, \"lastResult\": report.get(\"status\"),\n                      \"lastRunRef\"\
+    : run[\"metadata\"][\"name\"], \"lastReadAt\" if mode == \"read\" else \"lastMutationAt\"\
+    : timestamp()}\n            # Missing/truncated logs, timeout, a lost write response\
+    \ or failed\n            # compensation all require review. Cleanup success alone\
+    \ does not\n            # prove that an unknown write was reversed.\n        \
+    \    if mode == \"mutation\" and report.get(\"status\") != \"passed\":\n     \
+    \           status[\"mutationBlocked\"] = True\n                status[\"mutationBlockedReason\"\
+    ] = \"mutation_run_failed_requires_review\"\n            try:\n              \
+    \  if completion.get(\"publication\") == \"blocked\":\n                    raise\
+    \ ContractError(\"delivery initialization blocked\")\n                publish(publication_target(run),\
+    \ report, streak)\n                status[\"publication\"] = \"published\"\n \
+    \               patch_status(\"apiconformanceruns\", run[\"metadata\"][\"name\"\
+    ], {\"publication\": \"published\"})\n            except Exception as exc:\n \
+    \               status[\"publication\"] = \"blocked\"\n                status[\"\
+    publicationReason\"] = type(exc).__name__\n                patch_status(\"apiconformanceruns\"\
+    , run[\"metadata\"][\"name\"], {\"publication\": \"blocked\", \"publicationReason\"\
+    : type(exc).__name__})\n            patch_status(\"apiconformancetargets\", target[\"\
+    metadata\"][\"name\"], status)\n\n\ndef discovery_sources() -> list[dict]:\n \
+    \   sources = []\n    paths = (\n        \"/apis/gateway.networking.k8s.io/v1/httproutes\"\
+    ,\n        \"/apis/networking.k8s.io/v1/ingresses\",\n        \"/api/v1/services\"\
+    ,\n    )\n    for path in paths:\n        try:\n            sources.extend(kube_request(\"\
+    GET\", path).get(\"items\", []))\n        except urllib.error.HTTPError as exc:\n\
+    \            if exc.code not in (403, 404):\n                raise\n    return\
+    \ sources\n\n\ndef source_candidate(item: dict) -> tuple[str, str, str] | None:\n\
+    \    metadata = item.get(\"metadata\", {})\n    annotations = metadata.get(\"\
+    annotations\", {}) or {}\n    repository = annotations.get(\"conformance.re8ch.com/repository\"\
+    , \"\")\n    installation_id = annotations.get(\"conformance.re8ch.com/github-installation-id\"\
+    , \"\")\n    if not repository or not installation_id:\n        return None\n\
+    \    if base := annotations.get(\"conformance.re8ch.com/base-url\"):\n       \
+    \ return base.rstrip(\"/\"), repository, installation_id\n    kind = item.get(\"\
+    kind\")\n    if kind == \"HTTPRoute\":\n        hosts = item.get(\"spec\", {}).get(\"\
+    hostnames\", [])\n    elif kind == \"Ingress\":\n        hosts = [rule.get(\"\
+    host\") for rule in item.get(\"spec\", {}).get(\"rules\", [])]\n    else:\n  \
+    \      hosts = []\n    host = next((value for value in hosts if value and \"*\"\
+    \ not in value), None)\n    return (f\"https://{host}\", repository, installation_id)\
+    \ if host else None\n\n\ndef discover_schema(base_url: str) -> tuple[str, str]\
+    \ | None:\n    for path in DISCOVERY_PATHS:\n        try:\n            request\
+    \ = urllib.request.Request(base_url + path, headers={\"Accept\": \"application/json,\
+    \ application/yaml\"})\n            with urllib.request.urlopen(request, timeout=8)\
+    \ as response:\n                if response.status != 200:\n                 \
+    \   continue\n                raw = response.read(4 * 1024 * 1024 + 1)\n     \
+    \           if len(raw) > 4 * 1024 * 1024:\n                    continue\n   \
+    \             return base_url + path, hashlib.sha256(raw).hexdigest()\n      \
+    \  except Exception:\n            continue\n    return None\n\n\ndef onboarding_issue(repository:\
+    \ str, installation_id: str, base_url: str, schema_url: str, digest: str) -> None:\n\
+    \    token = installation_token(installation_id, repository)\n    host = urllib.parse.urlparse(base_url).hostname\n\
+    \    title = f\"[Schemathesis] onboarding: {host}\"\n    issues = http_json(f\"\
+    https://api.github.com/repos/{repository}/issues?state=all&per_page=100\", token)\n\
+    \    if any(item.get(\"title\") == title for item in issues if \"pull_request\"\
+    \ not in item):\n        return\n    suggested = {\n        \"version\": 1, \"\
+    baseUrl\": base_url, \"schema\": {\"url\": schema_url, \"sha256\": digest},\n\
+    \        \"network\": {\"allowedHosts\": sorted({host})}, \"operations\": {\"\
+    readOperationIds\": [], \"mutationOperationIds\": []},\n        \"limits\": {\"\
+    maxExamples\": 25, \"maxRequests\": 500, \"ratePerSecond\": 1, \"timeoutSeconds\"\
+    : 600},\n    }\n    body = (\"A managed route exposes an OpenAPI document but\
+    \ has no reviewed APIConformanceTarget. \"\n            \"Discovery did not execute\
+    \ any API operation. Review operation ownership, authentication, and cleanup before\
+    \ enabling it.\\n\\n\"\n            \"Suggested `.re8ch/api-conformance.yaml`:\\\
+    n```json\\n\" + json.dumps(suggested, indent=2) + \"\\n```\\n\")\n    http_json(f\"\
+    https://api.github.com/repos/{repository}/issues\", token, \"POST\", {\"title\"\
+    : title, \"body\": body})\n\n\ndef discover(targets: dict[str, dict]) -> None:\n\
+    \    global _last_discovery\n    if os.getenv(\"DISCOVERY_ENABLED\", \"false\"\
+    ) != \"true\":\n        return\n    if time.monotonic() - _last_discovery < 86400:\n\
+    \        return\n    _last_discovery = time.monotonic()\n    configured = {urllib.parse.urlparse(item[\"\
+    spec\"][\"baseUrl\"]).hostname for item in targets.values()}\n    seen = set()\n\
+    \    for item in discovery_sources():\n        candidate = source_candidate(item)\n\
+    \        if not candidate:\n            continue\n        base_url, repository,\
+    \ installation_id = candidate\n        host = urllib.parse.urlparse(base_url).hostname\n\
+    \        if not host or host in configured or (repository, host) in seen:\n  \
+    \          continue\n        seen.add((repository, host))\n        if found :=\
+    \ discover_schema(base_url):\n            try:\n                onboarding_issue(repository,\
+    \ installation_id, base_url, found[0], found[1])\n            except Exception\
+    \ as exc:\n                print(json.dumps({\"level\": \"warning\", \"event\"\
+    : \"discovery-publication-blocked\", \"error\": type(exc).__name__}), flush=True)\n\
+    \n\ndef reconcile() -> None:\n    targets = {item[\"metadata\"][\"name\"]: item\
+    \ for item in list_resource(\"apiconformancetargets\")}\n    collect_runs(targets)\n\
+    \    discover(targets)\n    active = active_runs()\n    running = [item for item\
+    \ in active if item.get(\"status\", {}).get(\"phase\") in {\"Starting\", \"Running\"\
+    }\n               or (item.get(\"status\", {}).get(\"phase\", \"Pending\") ==\
+    \ \"Pending\" and item[\"spec\"].get(\"trigger\") != \"manual\")]\n    running_targets\
+    \ = {item[\"spec\"][\"targetRef\"] for item in running}\n    for run in active:\n\
+    \        phase = run.get(\"status\", {}).get(\"phase\", \"Pending\")\n       \
+    \ if phase != \"Pending\" or run.get(\"spec\", {}).get(\"trigger\") != \"manual\"\
+    :\n            continue\n        target = targets.get(run.get(\"spec\", {}).get(\"\
+    targetRef\"))\n        mode = run.get(\"spec\", {}).get(\"mode\")\n        valid\
+    \ = (target and not target[\"spec\"].get(\"suspend\", False) and\n           \
+    \      run[\"spec\"].get(\"commit\") == target[\"spec\"].get(\"commit\") and\n\
+    \                 run[\"spec\"].get(\"imageDigest\") == target[\"spec\"].get(\"\
+    imageDigest\") and\n                 run[\"spec\"].get(\"publication\") == authority(target)\
+    \ and\n                 (mode == \"read\" or (mode == \"mutation\" and not target.get(\"\
+    status\", {}).get(\"mutationBlocked\") and\n                                 \
+    \     bool(target[\"spec\"].get(\"operations\", {}).get(\"mutationOperationIds\"\
+    )))))\n        if not valid:\n            patch_status(\"apiconformanceruns\"\
+    , run[\"metadata\"][\"name\"],\n                         {\"phase\": \"Failed\"\
+    , \"finishedAt\": timestamp(), \"reason\": \"invalid_manual_request\"})\n    \
+    \        continue\n        if len(running) < 2 and target[\"metadata\"][\"name\"\
+    ] not in running_targets:\n            create_run(target, mode, \"manual\", run[\"\
+    metadata\"][\"name\"])\n            return\n    if len(running) >= 2:\n      \
+    \  return\n    active_targets = running_targets\n    for name, target in targets.items():\n\
+    \        if name in active_targets or target[\"spec\"].get(\"suspend\", False):\n\
+    \            continue\n        try:\n            validate_target(target[\"spec\"\
+    ])\n        except ContractError as exc:\n            patch_status(\"apiconformancetargets\"\
+    , name, {\"ready\": False, \"reason\": str(exc)})\n            continue\n    \
+    \    status = target.get(\"status\", {})\n        if due(status, \"lastReadAt\"\
+    , int(target[\"spec\"].get(\"schedule\", {}).get(\"readSeconds\", 21600))):\n\
+    \            create_run(target, \"read\", \"schedule\")\n            return\n\
+    \        if (not status.get(\"mutationBlocked\") and target[\"spec\"].get(\"operations\"\
+    , {}).get(\"mutationOperationIds\") and\n                due(status, \"lastMutationAt\"\
+    , int(target[\"spec\"].get(\"schedule\", {}).get(\"mutationSeconds\", 86400)))):\n\
+    \            create_run(target, \"mutation\", \"schedule\")\n            return\n\
+    \n\nif __name__ == \"__main__\":\n    while True:\n        started = time.monotonic()\n\
+    \        try:\n            reconcile()\n        except Exception as exc:\n   \
+    \         print(json.dumps({\"level\": \"error\", \"event\": \"reconcile-failed\"\
+    , \"error\": type(exc).__name__}), flush=True)\n        time.sleep(max(5, 60 -\
+    \ (time.monotonic() - started)))\n"
+  delivery.py: "\"\"\"Immutable publication authority and strict, non-textual report\
+    \ projection.\"\"\"\nimport json\nimport re\nfrom contract import ContractError\n\
+    \nCOUNTS = (\"generated\", \"withFailures\", \"withoutChecks\", \"uniqueFailures\"\
+    , \"operationsTotal\",\n          \"operationsSelected\", \"operationsTested\"\
+    , \"operationsErrored\", \"operationsSkipped\")\nSTATES = {\"not_run\", \"passed\"\
+    , \"failed\", \"skipped\"}\n\n\ndef authority(target):\n    spec = target[\"spec\"\
+    ]\n    value = {\"repository\": spec[\"repository\"], \"commit\": spec[\"commit\"\
+    ], \"branch\": spec[\"branch\"],\n             \"imageDigest\": spec.get(\"imageDigest\"\
+    , \"\"), \"schemaSha256\": spec[\"schema\"][\"sha256\"],\n             \"installationId\"\
+    : str(spec.get(\"github\", {}).get(\"installationId\", \"\"))}\n    patterns =\
+    \ {\"repository\": r\"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\", \"commit\": r\"[a-f0-9]{40}\"\
+    ,\n                \"branch\": r\"[A-Za-z0-9_./-]+\", \"imageDigest\": r\"sha256:[a-f0-9]{64}\"\
+    ,\n                \"schemaSha256\": r\"[a-f0-9]{64}\", \"installationId\": r\"\
+    [0-9]+\"}\n    if any(not re.fullmatch(pattern, value[key]) for key, pattern in\
+    \ patterns.items()):\n        raise ContractError(\"invalid publication authority\"\
+    )\n    return value\n\n\ndef publication_target(run):\n    a = run[\"spec\"].get(\"\
+    publication\")\n    if not isinstance(a, dict):\n        raise ContractError(\"\
+    run has no immutable publication authority\")\n    target = {\"metadata\": {\"\
+    name\": run[\"spec\"][\"targetRef\"]}, \"spec\": {\n        **a, \"schema\": {\"\
+    sha256\": a.get(\"schemaSha256\")},\n        \"github\": {\"installationId\":\
+    \ a.get(\"installationId\")}}}\n    if authority(target) != a or a[\"commit\"\
+    ] != run[\"spec\"].get(\"commit\") or a[\"imageDigest\"] != run[\"spec\"].get(\"\
+    imageDigest\"):\n        raise ContractError(\"run publication authority mismatch\"\
+    )\n    return target\n\n\ndef project_report(raw, run):\n    \"\"\"Never trust\
+    \ arbitrary runner log JSON, even if it calls itself sanitized.\"\"\"\n    a =\
+    \ publication_target(run)[\"spec\"]\n    expected = {\"target\": run[\"spec\"\
+    ][\"targetRef\"], \"runId\": run[\"metadata\"][\"name\"],\n                \"\
+    mode\": run[\"spec\"][\"mode\"], \"schemaSha256\": a[\"schemaSha256\"]}\n    if\
+    \ any(raw.get(k) != v for k, v in expected.items()):\n        raise ContractError(\"\
+    report identity mismatch\")\n    if raw.get(\"version\") != 1 or raw.get(\"engine\"\
+    ) != \"schemathesis\" or raw.get(\"engineVersion\") != \"4.29.1\" or raw.get(\"\
+    status\") not in {\"passed\", \"failed\"}:\n        raise ContractError(\"invalid\
+    \ report engine or status\")\n    counts = {key: raw.get(\"counts\", {}).get(key)\
+    \ for key in COUNTS}\n    if any(type(v) is not int or not 0 <= v <= 1000000 for\
+    \ v in counts.values()):\n        raise ContractError(\"invalid report counts\"\
+    )\n    lifecycle = {key: raw.get(\"lifecycle\", {}).get(key) for key in (\"setup\"\
+    , \"test\", \"cleanup\", \"reversal\")}\n    if any(v not in STATES for v in lifecycle.values()):\n\
+    \        raise ContractError(\"invalid lifecycle state\")\n    seed, code = raw.get(\"\
+    seed\"), raw.get(\"exitCode\")\n    if type(seed) is not int or not 0 <= seed\
+    \ < 2**64 or type(code) is not int or not -255 <= code <= 255:\n        raise\
+    \ ContractError(\"invalid report numeric fields\")\n    fingerprints = raw.get(\"\
+    failureFingerprints\", [])\n    if not isinstance(fingerprints, list) or len(fingerprints)\
+    \ > 50 or any(not isinstance(x, str) or not re.fullmatch(r\"[a-f0-9]{20}\", x)\
+    \ for x in fingerprints):\n        raise ContractError(\"invalid fingerprints\"\
+    )\n    refs = raw.get(\"auditRefs\", [])\n    if not isinstance(refs, list) or\
+    \ len(refs) > 20 or any(not isinstance(x, str) or not re.fullmatch(r\"audit://[A-Za-z0-9_./-]{1,200}\"\
+    , x) for x in refs):\n        raise ContractError(\"invalid audit references\"\
+    )\n    if raw[\"status\"] == \"passed\" and (code != 0 or counts[\"operationsTested\"\
+    ] != counts[\"operationsSelected\"] or counts[\"operationsSelected\"] == 0 or\
+    \ counts[\"generated\"] <= counts[\"withoutChecks\"] or any(counts[k] for k in\
+    \ (\"withFailures\", \"uniqueFailures\", \"operationsErrored\", \"operationsSkipped\"\
+    )) or fingerprints or \"failed\" in lifecycle.values()):\n        raise ContractError(\"\
+    inconsistent passing report\")\n    return {**expected, \"version\": 1, \"engine\"\
+    : \"schemathesis\", \"engineVersion\": \"4.29.1\",\n            \"status\": raw[\"\
+    status\"], \"seed\": seed, \"exitCode\": code, \"counts\": counts,\n         \
+    \   \"failureFingerprints\": fingerprints, \"lifecycle\": lifecycle, \"auditRefs\"\
+    : refs}\n\n\ndef failed_report(run):\n    return {\"version\": 1, \"target\":\
+    \ run[\"spec\"][\"targetRef\"], \"runId\": run[\"metadata\"][\"name\"],\n    \
+    \        \"mode\": run[\"spec\"][\"mode\"], \"engine\": \"schemathesis\", \"engineVersion\"\
+    : \"4.29.1\",\n            \"schemaSha256\": run[\"spec\"].get(\"publication\"\
+    , {}).get(\"schemaSha256\", \"0\" * 64),\n            \"status\": \"failed\",\
+    \ \"seed\": 0, \"exitCode\": 1, \"counts\": dict.fromkeys(COUNTS, 0),\n      \
+    \      \"failureFingerprints\": [], \"lifecycle\": dict.fromkeys((\"setup\", \"\
+    test\", \"cleanup\", \"reversal\"), \"failed\"), \"auditRefs\": []}\n\n\ndef delivery_record(run,\
+    \ report, binding, expires):\n    a = publication_target(run)[\"spec\"]\n    if\
+    \ not binding or any(not str(binding.get(k, \"\")).isdecimal() for k in (\"repositoryId\"\
+    , \"ownerId\")):\n        raise ContractError(\"unreviewed delivery repository\"\
+    )\n    clean = project_report(report, run)\n    return {\"repositoryId\": str(binding[\"\
+    repositoryId\"]), \"ownerId\": str(binding[\"ownerId\"]),\n            \"expiresAt\"\
+    : expires, \"claimed\": False,\n            \"report\": {\"runId\": clean[\"runId\"\
+    ], \"target\": clean[\"target\"], \"repository\": a[\"repository\"],\n       \
+    \                \"commit\": a[\"commit\"], \"imageDigest\": a[\"imageDigest\"\
+    ], \"schemaSha256\": clean[\"schemaSha256\"],\n                       \"passed\"\
+    : clean[\"status\"] == \"passed\", \"operations\": clean[\"counts\"][\"operationsTested\"\
+    ],\n                       \"summary\": clean}}\n"
+  request_budget.py: "\"\"\"Cross-process attempt budget. State contains counters\
+    \ only, never HTTP data.\"\"\"\nimport fcntl\nimport json\nimport time\nfrom pathlib\
+    \ import Path\n\n\nclass BudgetExceeded(RuntimeError):\n    pass\n\n\ndef initialize(path,\
+    \ maximum, reserved=0, rate=1):\n    if not 1 <= maximum <= 2000 or not 0 <= reserved\
+    \ < maximum or not 1 <= rate <= 5:\n        raise ValueError(\"invalid request\
+    \ budget\")\n    with Path(path).open(\"x\") as handle:\n        json.dump({\"\
+    maximum\": maximum, \"reserved\": reserved, \"rate\": rate, \"used\": 0, \"next\"\
+    : 0}, handle)\n\n\ndef take(path, *, compensation=False):\n    # Hold the lock\
+    \ through pacing so concurrent processes cannot burst.\n    with Path(path).open(\"\
+    r+\") as handle:\n        fcntl.flock(handle, fcntl.LOCK_EX)\n        state =\
+    \ json.load(handle)\n        limit = state[\"maximum\"] if compensation else state[\"\
+    maximum\"] - state[\"reserved\"]\n        if state[\"used\"] >= limit:\n     \
+    \       raise BudgetExceeded(\"request budget exhausted\")\n        wait = state[\"\
+    next\"] - time.monotonic()\n        if wait > 0:\n            time.sleep(wait)\n\
+    \        state[\"used\"] += 1  # Consume before sending, including lost responses.\n\
+    \        state[\"next\"] = time.monotonic() + 1 / state[\"rate\"]\n        handle.seek(0)\n\
+    \        json.dump(state, handle)\n        handle.truncate()\n        handle.flush()\n\
+    \        return state[\"used\"]\n"
+  runner.py: "#!/usr/bin/env python3\n\"\"\"Bounded Schemathesis runner. Stdout contains\
+    \ one sanitized JSON object only.\"\"\"\n\nfrom __future__ import annotations\n\
+    \nimport json\nimport os\nimport re\nimport subprocess\nimport tempfile\nimport\
+    \ time\nimport urllib.error\nimport urllib.request\nfrom contextlib import contextmanager\n\
+    from urllib.parse import unquote, urlsplit\nfrom pathlib import Path\n\nimport\
+    \ yaml\n\nfrom contract import ContractError, sanitized_summary, schema_digest,\
+    \ validate_document, validate_target\nfrom request_budget import initialize as\
+    \ initialize_budget, take as take_budget\n\nMAX_SCHEMA_BYTES = 4 * 1024 * 1024\n\
+    \n\n@contextmanager\ndef scoped_budget_environment():\n    previous = os.environ.get(\"\
+    RE8CH_REQUEST_BUDGET\")\n    try:\n        yield\n    finally:\n        if previous\
+    \ is None:\n            os.environ.pop(\"RE8CH_REQUEST_BUDGET\", None)\n     \
+    \   else:\n            os.environ[\"RE8CH_REQUEST_BUDGET\"] = previous\n\n\nclass\
+    \ NoRedirect(urllib.request.HTTPRedirectHandler):\n    def redirect_request(self,\
+    \ req, fp, code, msg, headers, newurl):\n        raise ContractError(\"schema\
+    \ redirects are disabled\")\n\n\nclass UncertainMutation(ContractError):\n   \
+    \ \"\"\"The request may have reached the server but no response was received.\"\
+    \"\"\n\n\ndef fetch_schema(target: dict) -> bytes:\n    request = urllib.request.Request(target[\"\
+    schema\"][\"url\"], headers={\"Accept\": \"application/json, application/yaml\"\
+    })\n    opener = urllib.request.build_opener(NoRedirect())\n    with opener.open(request,\
+    \ timeout=20) as response:\n        length = int(response.headers.get(\"Content-Length\"\
+    , 0) or 0)\n        if length > MAX_SCHEMA_BYTES:\n            raise ContractError(\"\
+    schema is too large\")\n        raw = response.read(MAX_SCHEMA_BYTES + 1)\n  \
+    \      if len(raw) > MAX_SCHEMA_BYTES:\n            raise ContractError(\"schema\
+    \ is too large\")\n        return raw\n\n\ndef template(value, variables: dict[str,\
+    \ str]):\n    if isinstance(value, str):\n        for key, replacement in variables.items():\n\
+    \            value = value.replace(\"${\" + key + \"}\", replacement)\n      \
+    \  return value\n    if isinstance(value, list):\n        return [template(item,\
+    \ variables) for item in value]\n    if isinstance(value, dict):\n        return\
+    \ {key: template(item, variables) for key, item in value.items()}\n    return\
+    \ value\n\n\ndef extract(body: object, path: str):\n    current = body\n    for\
+    \ part in path.removeprefix(\"$.\").split(\".\"):\n        if not isinstance(current,\
+    \ dict) or part not in current:\n            raise ContractError(\"lifecycle capture\
+    \ path did not resolve\")\n        current = current[part]\n    if not isinstance(current,\
+    \ (str, int, float, bool)):\n        raise ContractError(\"captured lifecycle\
+    \ value must be scalar\")\n    return str(current)\n\n\ndef lifecycle_request(target:\
+    \ dict, step: dict, variables: dict[str, str], *, compensation=False) -> None:\n\
+    \    method = step[\"method\"].upper()\n    if method not in {\"GET\", \"POST\"\
+    , \"PUT\", \"PATCH\", \"DELETE\"}:\n        raise ContractError(\"invalid lifecycle\
+    \ method\")\n    path = template(step[\"path\"], variables)\n    parsed = urlsplit(path)\n\
+    \    if (not path.startswith(\"/\") or path.startswith(\"//\") or parsed.scheme\n\
+    \            or parsed.netloc or parsed.fragment or \"\\\\\" in unquote(path)\n\
+    \            or any(part in {\".\", \"..\"} for part in unquote(parsed.path).split(\"\
+    /\"))):\n        raise ContractError(\"invalid lifecycle path\")\n    operations\
+    \ = target.get(\"operations\", {})\n    allowed = operations.get(\"readOperationIds\"\
+    , []) if method in {\"GET\", \"HEAD\", \"OPTIONS\"} else operations.get(\"mutationOperationIds\"\
+    , [])\n    if step.get(\"operationId\") not in allowed:\n        raise ContractError(\"\
+    lifecycle operation is not allowlisted\")\n    url = target[\"baseUrl\"].rstrip(\"\
+    /\") + path\n    body = template(step.get(\"body\"), variables)\n    raw = None\
+    \ if body is None else json.dumps(body, separators=(\",\", \":\")).encode()\n\
+    \    headers = {\"Accept\": \"application/json\", \"X-RE8CH-Synthetic\": \"true\"\
+    , \"X-RE8CH-Run-ID\": variables[\"RUN_ID\"]}\n    if raw is not None:\n      \
+    \  headers[\"Content-Type\"] = \"application/json\"\n    if authorization := os.getenv(\"\
+    AUTHORIZATION\"):\n        headers[\"Authorization\"] = authorization\n    request\
+    \ = urllib.request.Request(url, data=raw, method=method, headers=headers)\n  \
+    \  if budget := os.getenv(\"RE8CH_REQUEST_BUDGET\"):\n        take_budget(budget,\
+    \ compensation=compensation)\n    try:\n        response = urllib.request.build_opener(NoRedirect()).open(request,\
+    \ timeout=20)\n    except urllib.error.HTTPError as exc:\n        response = exc\n\
+    \    except (urllib.error.URLError, TimeoutError) as exc:\n        if method in\
+    \ {\"POST\", \"PUT\", \"PATCH\", \"DELETE\"}:\n            raise UncertainMutation(\"\
+    mutation response was not observed\") from exc\n        raise\n    payload = response.read(1024\
+    \ * 1024)\n    if response.status not in step.get(\"expectedStatuses\", [200]):\n\
+    \        raise ContractError(f\"lifecycle step returned unexpected status {response.status}\"\
+    )\n    if step.get(\"capture\"):\n        parsed = json.loads(payload or b\"{}\"\
+    )\n        for name, path in step[\"capture\"].items():\n            variables[name]\
+    \ = extract(parsed, path)\n\n\ndef run_steps(target: dict, key: str, variables:\
+    \ dict[str, str]) -> str:\n    steps = target.get(\"lifecycle\", {}).get(key,\
+    \ [])\n    if not steps:\n        return \"not_run\"\n    for step in steps:\n\
+    \        lifecycle_request(target, step, variables, compensation=key in {\"cleanup\"\
+    , \"reversal\"})\n    return \"passed\"\n\n\ndef parse_document(raw: bytes) ->\
+    \ dict:\n    try:\n        return json.loads(raw)\n    except json.JSONDecodeError:\n\
+    \        try:\n            document = yaml.safe_load(raw)\n        except yaml.YAMLError\
+    \ as exc:\n            raise ContractError(\"invalid OpenAPI document\") from\
+    \ exc\n        if not isinstance(document, dict):\n            raise ContractError(\"\
+    invalid OpenAPI document\")\n        return document\n\n\ndef main() -> int:\n\
+    \    target_name = os.environ[\"TARGET_NAME\"]\n    run_id = os.environ[\"RUN_ID\"\
+    ]\n    mode = os.getenv(\"RUN_MODE\", \"read\")\n    seed = int(os.getenv(\"SEED\"\
+    , str(int(time.time()))))\n    target = validate_target(json.loads(os.environ[\"\
+    TARGET_JSON\"]))\n    raw = fetch_schema(target)\n    digest = schema_digest(raw)\n\
+    \    if digest != target[\"schema\"][\"sha256\"]:\n        raise ContractError(\"\
+    schema digest drift\")\n    document = parse_document(raw)\n    validate_document(document,\
+    \ target)\n    configured = target[\"operations\"]\n    operation_ids = configured.get(\"\
+    readOperationIds\", []) if mode == \"read\" else configured.get(\"mutationOperationIds\"\
+    , [])\n    if mode == \"mutation\" and not operation_ids:\n        raise ContractError(\"\
+    mutation run has no allowlisted operations\")\n    if not operation_ids:\n   \
+    \     raise ContractError(\"run has no allowlisted operations\")\n    lifecycle\
+    \ = {\"setup\": \"not_run\", \"test\": \"not_run\", \"cleanup\": \"not_run\",\
+    \ \"reversal\": \"not_run\"}\n    variables = {\"RUN_ID\": run_id, \"TARGET\"\
+    : target_name}\n    report = None\n    exit_code = 1\n    audit_refs: list[str]\
+    \ = []\n    with scoped_budget_environment(), tempfile.TemporaryDirectory(prefix=\"\
+    re8ch-schemathesis-\") as directory:\n        limits = target.get(\"limits\",\
+    \ {})\n        reserved = sum(len(target.get(\"lifecycle\", {}).get(key, []))\
+    \ for key in (\"cleanup\", \"reversal\")) if mode == \"mutation\" else 0\n   \
+    \     budget_path = Path(directory) / \"request-budget.json\"\n        initialize_budget(budget_path,\
+    \ int(limits.get(\"maxRequests\", 500)), reserved,\n                         \
+    \ int(limits.get(\"ratePerSecond\", 1)))\n        take_budget(budget_path)  #\
+    \ Account for the already completed schema GET.\n        os.environ[\"RE8CH_REQUEST_BUDGET\"\
+    ] = str(budget_path)\n        schema_path = Path(directory) / \"openapi.json\"\
+    \n        report_path = Path(directory) / \"report.json\"\n        config_path\
+    \ = Path(directory) / \"schemathesis.toml\"\n        # Generation DB=none does\
+    \ not disable Schemathesis' separate crash\n        # cache. Never persist request/response\
+    \ examples or replay commands.\n        config_path.write_text(\"[cache]\\nenabled\
+    \ = false\\n\")\n        # Schemathesis selects its parser from the .json extension.\
+    \ The pinned\n        # source digest is over raw bytes, but the engine receives\
+    \ the already\n        # validated OpenAPI document as JSON so YAML sources load\
+    \ correctly.\n        schema_path.write_text(json.dumps(document, separators=(\"\
+    ,\", \":\"), sort_keys=True))\n        try:\n            if mode == \"mutation\"\
+    :\n                lifecycle[\"setup\"] = \"running\"\n                lifecycle[\"\
+    setup\"] = run_steps(target, \"setup\", variables)\n            pattern = \"^(?:\"\
+    \ + \"|\".join(re.escape(item) for item in operation_ids) + \")$\"\n         \
+    \   limits = target.get(\"limits\", {})\n            rate = int(limits.get(\"\
+    ratePerSecond\", 1))\n            request_budget = int(limits.get(\"maxRequests\"\
+    , 500))\n            # Keep one finite generation cycle. In 4.29.1 --max-time\
+    \ repeats\n            # fuzzing until time runs out, even after max-examples\
+    \ is reached.\n            # A separate shared transport counter enforces the\
+    \ request budget.\n            effective_timeout = min(int(limits.get(\"timeoutSeconds\"\
+    , 600)), max(1, request_budget // rate))\n            command = [\n          \
+    \      \"schemathesis\", \"--config-file\", str(config_path), \"run\", str(schema_path),\
+    \ \"--url\", target[\"baseUrl\"],\n                \"--include-operation-id-regex\"\
+    , pattern,\n                \"--checks\", \"all\", \"--workers\", \"1\", \"--max-examples\"\
+    , str(limits.get(\"maxExamples\", 25)),\n                \"--max-failures\", \"\
+    20\",\n                \"--rate-limit\", f\"{rate}/s\", \"--max-redirects\", \"\
+    0\",\n                \"--request-timeout\", \"15\", \"--request-retries\", \"\
+    0\", \"--seed\", str(seed),\n                \"--generation-database\", \"none\"\
+    , \"--output-sanitize\", \"true\", \"--output-truncate\", \"true\",\n        \
+    \        \"--report\", \"json\", \"--report-json-path\", str(report_path), \"\
+    --no-color\",\n            ]\n            command += [\"--phases\", \"examples,coverage,fuzzing,stateful\"\
+    \ if mode == \"mutation\" else \"coverage,fuzzing\"]\n            if excluded_checks\
+    \ := target.get(\"checks\", {}).get(\"exclude\", []):\n                command\
+    \ += [\"--exclude-checks\", \",\".join(excluded_checks)]\n            if authorization\
+    \ := os.getenv(\"AUTHORIZATION\"):\n                command += [\"--header\",\
+    \ \"Authorization:\" + authorization]\n            completed = subprocess.run(command,\
+    \ stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,\n                    \
+    \                   timeout=effective_timeout, check=False,\n                \
+    \                       env={**os.environ, \"SCHEMATHESIS_HOOKS\": \"budget_hooks\"\
+    ,\n                                            \"PYTHONPATH\": str(Path(__file__).parent)})\n\
+    \            exit_code = completed.returncode\n            if report_path.exists():\n\
+    \                report = json.loads(report_path.read_text())\n            lifecycle[\"\
+    test\"] = \"passed\" if exit_code == 0 else \"failed\"\n        except Exception:\n\
+    \            # A write may already have succeeded. Preserve compensation status\n\
+    \            # even when setup, the subprocess, or report parsing fails. Never\n\
+    \            # print exception text, request data, or the command containing auth.\n\
+    \            if lifecycle[\"setup\"] == \"running\":\n                lifecycle[\"\
+    setup\"] = \"failed\"\n            lifecycle[\"test\"] = \"failed\"\n        \
+    \    exit_code = 1\n        finally:\n            if mode == \"mutation\":\n \
+    \               try:\n                    lifecycle[\"reversal\"] = run_steps(target,\
+    \ \"reversal\", variables)\n                except Exception:\n              \
+    \      lifecycle[\"reversal\"] = \"failed\"\n                    exit_code = 1\n\
+    \                try:\n                    lifecycle[\"cleanup\"] = run_steps(target,\
+    \ \"cleanup\", variables)\n                except Exception:\n               \
+    \     lifecycle[\"cleanup\"] = \"failed\"\n                    exit_code = 1\n\
+    \    print(json.dumps(sanitized_summary(target=target_name, run_id=run_id, mode=mode,\
+    \ seed=seed,\n                                       schema_sha256=digest, exit_code=exit_code,\
+    \ report=report,\n                                       lifecycle=lifecycle,\
+    \ audit_refs=audit_refs), separators=(\",\", \":\"), sort_keys=True))\n    return\
+    \ exit_code\n\n\nif __name__ == \"__main__\":\n    try:\n        raise SystemExit(main())\n\
+    \    except Exception as exc:\n        # Error classes are safe; exception messages\
+    \ may contain remote material and are never emitted.\n        print(json.dumps({\"\
+    version\": 1, \"status\": \"failed\", \"reason\": type(exc).__name__}, separators=(\"\
+    ,\", \":\")))\n        raise SystemExit(1)\n"
+kind: ConfigMap
+metadata:
+  name: api-conformance-code-b85hdm9t6c
+  namespace: api-conformance-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: api-conformance-controller
+  namespace: api-conformance-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: api-conformance-controller
+  namespace: api-conformance-system
+rules:
+- apiGroups:
+  - conformance.re8ch.com
+  resources:
+  - apiconformancetargets
+  - apiconformanceruns
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - patch
+- apiGroups:
+  - conformance.re8ch.com
+  resources:
+  - apiconformancetargets/status
+  - apiconformanceruns/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - pods/log
+  verbs:
+  - get
+- apiGroups:
+  - cilium.io
+  resources:
+  - ciliumnetworkpolicies
+  verbs:
+  - get
+  - list
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: api-conformance-pull-target
+  namespace: api-conformance-system
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - secrets
+  verbs:
+  - create
+- apiGroups:
+  - ''
+  resourceNames:
+  - harbor-functions-shared-pull
+  resources:
+  - secrets
+  verbs:
+  - get
+  - update
+  - patch
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: api-conformance-result-proxy
+  namespace: api-conformance-system
+rules:
+- apiGroups:
+  - conformance.re8ch.com
+  resources:
+  - apiconformanceruns
+  verbs:
+  - get
+- apiGroups:
+  - conformance.re8ch.com
+  resources:
+  - apiconformanceruns/status
+  verbs:
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: api-conformance-controller
+  namespace: api-conformance-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: api-conformance-controller
+subjects:
+- kind: ServiceAccount
+  name: api-conformance-controller
+  namespace: api-conformance-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: api-conformance-pull-target
+  namespace: api-conformance-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: api-conformance-pull-target
+subjects:
+- kind: ServiceAccount
+  name: kyverno-admission-controller
+  namespace: kyverno
+- kind: ServiceAccount
+  name: kyverno-background-controller
+  namespace: kyverno
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: api-conformance-result-proxy
+  namespace: api-conformance-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: api-conformance-result-proxy
+subjects:
+- kind: ServiceAccount
+  name: api-conformance-result-proxy
+  namespace: auth

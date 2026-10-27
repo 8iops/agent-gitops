@@ -1,0 +1,45 @@
+apiVersion: delivery.re8ch.com/v1alpha1
+kind: ReleaseContract
+metadata:
+  name: agent-runtime-domain-llm-gateway
+spec:
+  authorityDomain: agent-runtime
+  target:
+    cluster: re8ch
+    namespace: llm-gateway
+  source:
+    renderer: kustomize
+    revision: github-main-reviewed
+    repository: 8iops/agent-gitops
+    path: releases/agent-runtime-domain-llm-gateway
+  provenance:
+    repository: 8iops/agent-gitops
+    workflow: .github/workflows/static-release.yml
+    ref: refs/heads/main
+    environment: release-executor-agent-runtime
+    audience: https://kube-api.re8ch.com/release-executor-agent-runtime
+    signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
+    issuer: https://token.actions.githubusercontent.com
+  authorization:
+    fieldManager: re8ch-release/agent-runtime-domain-llm-gateway
+    resources:
+    - rbac.authorization.k8s.io/Role
+    - rbac.authorization.k8s.io/RoleBinding
+    objectNames:
+    - re8ch:toolhive-platform-restart
+    allowClusterScoped: false
+    forceConflictObjects:
+    - rbac.authorization.k8s.io/Role/llm-gateway/re8ch:toolhive-platform-restart
+    - rbac.authorization.k8s.io/RoleBinding/llm-gateway/re8ch:toolhive-platform-restart
+  inventory:
+    digest: sha256:8a4e9effc743e6078088e7f73cc8d0414944c00f7759eb812a6da37fa462f0a3
+  lifecycle:
+    prune: false
+    healthTimeoutSeconds: 300
+    protectedKinds:
+    - Namespace
+    - CustomResourceDefinition
+    - PersistentVolume
+    - PersistentVolumeClaim
+    - StorageClass
+    deletionAllowlist: []

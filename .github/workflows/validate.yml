@@ -26,3 +26,5 @@ jobs:
             --rendered "$RUNNER_TEMP/toolhive-rendered.yaml" \
             --output "$RUNNER_TEMP/toolhive-release.bundle"
       - run: python -m pytest -q
+      - name: Check complete native domain cohort
+        run: python operations/releases/compile_domain.py --check

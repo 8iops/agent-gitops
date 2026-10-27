@@ -1,0 +1,193 @@
+{
+  "domain": "agent-runtime",
+  "sourceObjects": 255,
+  "releases": [
+    {
+      "name": "agent-runtime-domain-ai-operations",
+      "namespace": "ai-operations",
+      "objects": 14,
+      "contract": "contracts/agent-runtime-domain-ai-operations.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-anycam",
+      "namespace": "anycam",
+      "objects": 3,
+      "contract": "contracts/agent-runtime-domain-anycam.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-api-conformance-system",
+      "namespace": "api-conformance-system",
+      "objects": 17,
+      "contract": "contracts/agent-runtime-domain-api-conformance-system.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-auth",
+      "namespace": "auth",
+      "objects": 7,
+      "contract": "contracts/agent-runtime-domain-auth.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-bench",
+      "namespace": "bench",
+      "objects": 1,
+      "contract": "contracts/agent-runtime-domain-bench.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-codex-archive",
+      "namespace": "codex-archive",
+      "objects": 1,
+      "contract": "contracts/agent-runtime-domain-codex-archive.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-codex-platform",
+      "namespace": "codex-platform",
+      "objects": 2,
+      "contract": "contracts/agent-runtime-domain-codex-platform.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-cosyvoice",
+      "namespace": "cosyvoice",
+      "objects": 3,
+      "contract": "contracts/agent-runtime-domain-cosyvoice.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-credential-broker",
+      "namespace": "credential-broker",
+      "objects": 5,
+      "contract": "contracts/agent-runtime-domain-credential-broker.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-cube-trial",
+      "namespace": "cube-trial",
+      "objects": 4,
+      "contract": "contracts/agent-runtime-domain-cube-trial.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-flux-system",
+      "namespace": "flux-system",
+      "objects": 2,
+      "contract": "contracts/agent-runtime-domain-flux-system.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-git-workspaces",
+      "namespace": "git-workspaces",
+      "objects": 118,
+      "contract": "contracts/agent-runtime-domain-git-workspaces.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-ledger",
+      "namespace": "ledger",
+      "objects": 1,
+      "contract": "contracts/agent-runtime-domain-ledger.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-llm-gateway",
+      "namespace": "llm-gateway",
+      "objects": 2,
+      "contract": "contracts/agent-runtime-domain-llm-gateway.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-mcp-registry",
+      "namespace": "mcp-registry",
+      "objects": 8,
+      "contract": "contracts/agent-runtime-domain-mcp-registry.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-observability-system",
+      "namespace": "observability-system",
+      "objects": 2,
+      "contract": "contracts/agent-runtime-domain-observability-system.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-opensandbox-system",
+      "namespace": "opensandbox-system",
+      "objects": 2,
+      "contract": "contracts/agent-runtime-domain-opensandbox-system.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-rook-ceph",
+      "namespace": "rook-ceph",
+      "objects": 4,
+      "contract": "contracts/agent-runtime-domain-rook-ceph.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-supabase-pg-re8ch",
+      "namespace": "supabase-pg-re8ch",
+      "objects": 4,
+      "contract": "contracts/agent-runtime-domain-supabase-pg-re8ch.yaml"
+    },
+    {
+      "name": "agent-runtime-domain-toolhive-system",
+      "namespace": "toolhive-system",
+      "objects": 39,
+      "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
+    }
+  ],
+  "publishableObjects": 239,
+  "deferred": [
+    {
+      "identity": "apps/Deployment/mcp-registry/mcp-registry-postgresql",
+      "reason": "image-digest-required"
+    },
+    {
+      "identity": "core/ConfigMap/ai-operations/ai-operations-inventory",
+      "reason": "restricted-cloud-decryption"
+    },
+    {
+      "identity": "core/ConfigMap/ai-operations/ai-operations-ssh-config",
+      "reason": "restricted-cloud-decryption"
+    },
+    {
+      "identity": "core/ConfigMap/cube-trial/cube-trial-values",
+      "reason": "restricted-cloud-decryption"
+    },
+    {
+      "identity": "core/ConfigMap/toolhive-system/ops-mcp-server-code",
+      "reason": "restricted-cloud-decryption"
+    },
+    {
+      "identity": "core/Secret/api-conformance-system/api-conformance-github-app",
+      "reason": "secret-provisioning"
+    },
+    {
+      "identity": "core/Secret/tenant-infrastructure/admin-vmcp-backend-auth",
+      "reason": "secret-provisioning"
+    },
+    {
+      "identity": "core/Secret/tenant-infrastructure/tenant-claim-internal-auth",
+      "reason": "secret-provisioning"
+    },
+    {
+      "identity": "core/Secret/tenant-infrastructure/tenant-registry-supply-chain",
+      "reason": "secret-provisioning"
+    },
+    {
+      "identity": "core/Secret/toolhive-system/admin-vmcp-backend-auth",
+      "reason": "secret-provisioning"
+    },
+    {
+      "identity": "helm.toolkit.fluxcd.io/HelmRelease/flux-agent-system/toolhive-operator",
+      "reason": "helm-render"
+    },
+    {
+      "identity": "kustomize.toolkit.fluxcd.io/Kustomization/flux-agent-system/api-conformance-runner-bootstrap",
+      "reason": "retired-flux-control-resource"
+    },
+    {
+      "identity": "source.toolkit.fluxcd.io/OCIRepository/flux-agent-system/toolhive-operator",
+      "reason": "retired-flux-control-resource"
+    },
+    {
+      "identity": "toolhive.stacklok.dev/MCPServer/toolhive-system/ops-admin-vmcp-internal",
+      "reason": "image-digest-required"
+    },
+    {
+      "identity": "toolhive.stacklok.dev/MCPServer/toolhive-system/ops-observe-vmcp-internal",
+      "reason": "image-digest-required"
+    },
+    {
+      "identity": "toolhive.stacklok.dev/MCPServer/toolhive-system/ops-operate-vmcp-internal",
+      "reason": "image-digest-required"
+    }
+  ]
+}

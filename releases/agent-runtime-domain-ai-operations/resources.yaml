@@ -1,0 +1,520 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: stagehand-service
+    app.kubernetes.io/part-of: agent-workspace
+  name: stagehand-service
+  namespace: ai-operations
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: stagehand-service
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: stagehand-service
+        app.kubernetes.io/part-of: agent-workspace
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - env:
+        - name: PORT
+          value: '8080'
+        - name: STAGEHAND_MODEL
+          value: openai/kimi-k2-5
+        - name: LITELLM_BASE_URL
+          value: http://litellm.llm-gateway.svc.cluster.local:4000/v1
+        - name: STEEL_URL
+          value: http://steel-browser.ai-operations.svc.cluster.local:3000
+        - name: STEEL_INTERNAL_HOST
+          value: steel-browser.ai-operations.svc.cluster.local:3000
+        - name: LITELLM_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: LITELLM_API_TOKEN
+              name: cluster-infra-litellm
+        - name: STAGEHAND_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: LITELLM_API_TOKEN
+              name: cluster-infra-litellm
+        image: ghcr.io/re8ch/stagehand-service@sha256:3e7a39dc30d4286e6c9795a04f76bc2c793bd4117b9cf96f83dc8f9a0c6765bb
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 4
+          httpGet:
+            path: /healthz
+            port: http
+          initialDelaySeconds: 20
+          periodSeconds: 15
+          timeoutSeconds: 5
+        name: stagehand-service
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 12
+          httpGet:
+            path: /healthz
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: '2'
+            memory: 2Gi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp
+      enableServiceLinks: false
+      imagePullSecrets:
+      - name: ghcr-re8ch
+      nodeSelector:
+        kubernetes.io/hostname: r640
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        operator: Exists
+      volumes:
+      - emptyDir:
+          sizeLimit: 256Mi
+        name: tmp
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: workspace-mirror-sync
+  namespace: ai-operations
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: workspace-mirror-sync
+            policy.re8ch.com/privileged-approved: 'true'
+        spec:
+          containers:
+          - args:
+            - --lock
+            - /config/workspace.lock.yaml
+            - --mirrors
+            - /var/lib/re8ch/workspace-mirrors
+            - --worktrees
+            - /var/lib/re8ch/agent-workspaces
+            - --memory-root
+            - /srv/service-backend/catalogs
+            - sync
+            env:
+            - name: GIT_SSH_COMMAND
+              value: ssh -F /credentials/ssh-config -o BatchMode=yes
+            image: registry.re8ch.com/functions-shared/re8ch-workspace-controller@sha256:a2e4088bc1d313e5f2680f75499d1337252bb8a13bf9827446a077870c2682d9
+            name: mirror
+            resources:
+              limits:
+                cpu: 500m
+                memory: 512Mi
+              requests:
+                cpu: 50m
+                memory: 128Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              runAsNonRoot: true
+            volumeMounts:
+            - mountPath: /var/lib/re8ch/workspace-mirrors
+              name: mirrors
+            - mountPath: /var/lib/re8ch/agent-workspaces
+              name: worktrees
+            - mountPath: /credentials
+              name: credentials
+              readOnly: true
+            - mountPath: /srv/re8ch/agent-artifacts
+              name: artifacts
+          initContainers:
+          - command:
+            - sh
+            - -c
+            - chown 65532:65532 /var/lib/re8ch/workspace-mirrors /var/lib/re8ch/agent-workspaces
+            image: registry.re8ch.com/functions-shared/re8ch-workspace-controller@sha256:a2e4088bc1d313e5f2680f75499d1337252bb8a13bf9827446a077870c2682d9
+            name: prepare-directories
+            resources:
+              limits:
+                cpu: 100m
+                memory: 128Mi
+              requests:
+                cpu: 10m
+                memory: 32Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                add:
+                - CHOWN
+                drop:
+                - ALL
+              runAsUser: 0
+            volumeMounts:
+            - mountPath: /var/lib/re8ch/workspace-mirrors
+              name: mirrors
+            - mountPath: /var/lib/re8ch/agent-workspaces
+              name: worktrees
+          nodeSelector:
+            kubernetes.io/hostname: r640
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 65532
+            fsGroupChangePolicy: OnRootMismatch
+          serviceAccountName: workspace-controller
+          volumes:
+          - hostPath:
+              path: /var/lib/re8ch/workspace-mirrors
+              type: DirectoryOrCreate
+            name: mirrors
+          - hostPath:
+              path: /var/lib/re8ch/agent-workspaces
+              type: DirectoryOrCreate
+            name: worktrees
+          - name: credentials
+            secret:
+              defaultMode: 256
+              secretName: workspace-git-credentials
+          - name: artifacts
+            persistentVolumeClaim:
+              claimName: workspace-agent-artifacts
+      ttlSecondsAfterFinished: 3600
+  schedule: 17 */2 * * *
+  successfulJobsHistoryLimit: 2
+  suspend: true
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    governance.re8ch.com/task-id: re8ch-owner-pilot-20260825
+  name: re8ch-owner-pilot-workspace-v4
+  namespace: ai-operations
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app: re8ch-owner-pilot-workspace
+    spec:
+      containers:
+      - args:
+        - --lock
+        - /config/workspace.lock.yaml
+        - --mirrors
+        - /var/lib/re8ch/workspace-mirrors
+        - --worktrees
+        - /var/lib/re8ch/agent-workspaces
+        - --memory-root
+        - /srv/service-backend/catalogs
+        - create
+        - re8ch-owner-pilot-20260825
+        - re8ch-core
+        image: registry.re8ch.com/functions-shared/re8ch-workspace-controller@sha256:a2e4088bc1d313e5f2680f75499d1337252bb8a13bf9827446a077870c2682d9
+        name: materialize
+        volumeMounts:
+        - mountPath: /var/lib/re8ch/workspace-mirrors
+          name: mirrors
+        - mountPath: /var/lib/re8ch/agent-workspaces
+          name: worktrees
+        - mountPath: /srv/re8ch/agent-artifacts
+          name: artifacts
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - chown 65532:65532 /var/lib/re8ch/workspace-mirrors /var/lib/re8ch/agent-workspaces
+        image: registry.re8ch.com/functions-shared/re8ch-workspace-controller@sha256:a2e4088bc1d313e5f2680f75499d1337252bb8a13bf9827446a077870c2682d9
+        name: prepare-directories
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            add:
+            - CHOWN
+            drop:
+            - ALL
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /var/lib/re8ch/workspace-mirrors
+          name: mirrors
+        - mountPath: /var/lib/re8ch/agent-workspaces
+          name: worktrees
+      - command:
+        - sh
+        - -c
+        - if [ -e /var/lib/re8ch/workspace-mirrors/re8ch-core.git ] && ! git -C /var/lib/re8ch/workspace-mirrors/re8ch-core.git
+          rev-parse --is-bare-repository >/dev/null 2>&1; then rm -rf /var/lib/re8ch/workspace-mirrors/re8ch-core.git;
+          fi; if [ -e /var/lib/re8ch/agent-workspaces/re8ch-owner-pilot-20260825/re8ch-core
+          ] && ! git -C /var/lib/re8ch/agent-workspaces/re8ch-owner-pilot-20260825/re8ch-core
+          rev-parse --is-inside-work-tree >/dev/null 2>&1; then rm -rf /var/lib/re8ch/agent-workspaces/re8ch-owner-pilot-20260825/re8ch-core;
+          fi
+        image: registry.re8ch.com/functions-shared/re8ch-workspace-controller@sha256:a2e4088bc1d313e5f2680f75499d1337252bb8a13bf9827446a077870c2682d9
+        name: remove-invalid-pilot-state
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+        volumeMounts:
+        - mountPath: /var/lib/re8ch/workspace-mirrors
+          name: mirrors
+        - mountPath: /var/lib/re8ch/agent-workspaces
+          name: worktrees
+      - args:
+        - --lock
+        - /config/workspace.lock.yaml
+        - --mirrors
+        - /var/lib/re8ch/workspace-mirrors
+        - --worktrees
+        - /var/lib/re8ch/agent-workspaces
+        - --memory-root
+        - /srv/service-backend/catalogs
+        - sync
+        - re8ch-core
+        image: registry.re8ch.com/functions-shared/re8ch-workspace-controller@sha256:a2e4088bc1d313e5f2680f75499d1337252bb8a13bf9827446a077870c2682d9
+        name: sync-lock
+        volumeMounts:
+        - mountPath: /var/lib/re8ch/workspace-mirrors
+          name: mirrors
+        - mountPath: /var/lib/re8ch/agent-workspaces
+          name: worktrees
+        - mountPath: /srv/re8ch/agent-artifacts
+          name: artifacts
+      nodeSelector:
+        kubernetes.io/hostname: r640
+      restartPolicy: Never
+      securityContext:
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
+      serviceAccountName: workspace-controller
+      volumes:
+      - hostPath:
+          path: /var/lib/re8ch/workspace-mirrors
+          type: DirectoryOrCreate
+        name: mirrors
+      - hostPath:
+          path: /var/lib/re8ch/agent-workspaces
+          type: DirectoryOrCreate
+        name: worktrees
+      - name: artifacts
+        persistentVolumeClaim:
+          claimName: workspace-agent-artifacts
+  ttlSecondsAfterFinished: 86400
+---
+apiVersion: v1
+data:
+  artc-controlled.yaml: "apiVersion: v1\nkind: Config\nclusters:\n  - name: artc-controlled\n\
+    \    cluster:\n      server: https://among-clusters.service.re8ch.com\nusers:\n\
+    \  - name: artc-controlled\n    user: {token: \"credential://among-clusters/byoc-pilot/artc-headlamp-admin\"\
+    }\ncontexts:\n  - name: artc-controlled\n    context: {cluster: artc-controlled,\
+    \ user: artc-controlled}\ncurrent-context: artc-controlled\n"
+  qwen-controlled.yaml: "apiVersion: v1\nkind: Config\nclusters:\n  - name: qwen-controlled\n\
+    \    cluster:\n      server: https://among-clusters.service.re8ch.com\nusers:\n\
+    \  - name: qwen-controlled\n    user: {token: \"credential://among-clusters/byoc-pilot/qwen-headlamp-admin\"\
+    }\ncontexts:\n  - name: qwen-controlled\n    context: {cluster: qwen-controlled,\
+    \ user: qwen-controlled}\ncurrent-context: qwen-controlled\n"
+kind: ConfigMap
+metadata:
+  name: controlled-cluster-kubeconfigs
+  namespace: ai-operations
+---
+apiVersion: v1
+data:
+  harbor-tenants.json: '{"tenants":{"2woodblog":{},"aesthete":{},"anycam":{"harbor":{"project":"anycam","webUsername":"anycam"}},"anysiteonearth":{},"artchais":{},"baozou-ppt-studio":{},"career-ops":{},"compocv":{},"farseer":{"harbor":{"project":"farseer","webUsername":"farseer"}},"garageband":{},"jjklive":{},"ledger":{"harbor":{"project":"ledger","webUsername":"ledger"}},"motor-muscle-sim":{},"network-decomplexer":{},"phonaid":{},"platform":{},"qwen":{"harbor":{"project":"qianwen","webUsername":"tianruoyou2022","accountEmail":"85153954@qq.com"}},"space-mining-stage":{},"tenant-ci":{},"thiking-machine":{},"re8ch":{"harbor":{"project":"re8ch","webUsername":"harry","accountEmail":"harry@re8ch.com"}}}}
+
+    '
+kind: ConfigMap
+metadata:
+  name: harbor-tenant-catalog
+  namespace: ai-operations
+---
+apiVersion: v1
+data:
+  policy.json: "{\n  \"revision\": 2,\n  \"rules\": [\n    {\n      \"name\": \"authenticated-node-operations\"\
+    ,\n      \"actions\": [\"shell\", \"file\"],\n      \"nodes\": [\"*\"],\n    \
+    \  \"groups\": [\"re8ch:k8s-admins\"],\n      \"credential_refs\": [\"node-ssh\"\
+    ]\n    }\n  ]\n}\n"
+kind: ConfigMap
+metadata:
+  name: ops-capsule-policy
+  namespace: ai-operations
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    storage.re8ch.com/replicated-approved: 'true'
+  name: cloud-device-registry
+  namespace: ai-operations
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: cephfs-re8ch
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    storage.re8ch.com/replicated-approved: 'true'
+  name: infra-device-registry
+  namespace: ai-operations
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: cephfs-re8ch
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    storage.re8ch.com/replicated-approved: 'true'
+  name: orchestra-device-registry
+  namespace: ai-operations
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: cephfs-re8ch
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    storage.re8ch.com/replicated-approved: 'true'
+  name: workspace-agent-artifacts
+  namespace: ai-operations
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: cephfs-re8ch
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: stagehand-service
+    app.kubernetes.io/part-of: agent-workspace
+  name: stagehand-service
+  namespace: ai-operations
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: http
+  selector:
+    app.kubernetes.io/name: stagehand-service
+  type: ClusterIP
+---
+apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  name: ai-operations
+  namespace: ai-operations
+---
+apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  name: workspace-controller
+  namespace: ai-operations
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: stagehand-service
+  namespace: ai-operations
+spec:
+  egress:
+  - ports:
+    - port: 3000
+      protocol: TCP
+    to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ai-operations
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: steel-browser
+  - ports:
+    - port: 4000
+      protocol: TCP
+    to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: llm-gateway
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: litellm
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ai-operations
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: toolhive-system
+    ports:
+    - port: 8080
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: stagehand-service
+  policyTypes:
+  - Ingress
+  - Egress

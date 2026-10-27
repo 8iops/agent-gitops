@@ -1,0 +1,195 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-conformance-result-proxy
+  namespace: auth
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api-conformance-result-proxy
+  template:
+    metadata:
+      annotations:
+        scheduling.re8ch.com/placement-class: service-core-r640
+      labels:
+        app.kubernetes.io/name: api-conformance-result-proxy
+    spec:
+      containers:
+      - env:
+        - name: POD_NAMESPACE
+          value: api-conformance-system
+        - name: RESULT_OIDC_POLICY
+          value: '{"Audience":"re8ch-api-conformance-results","Repository":"re8ch/cloud-functions","RepositoryID":"1248776882","OwnerID":"283958313","Ref":"refs/heads/master","WorkflowRef":"re8ch/cloud-functions/.github/workflows/re8ch-schemathesis-result.yml@refs/heads/master","WorkflowSHA":"91cfaedabf4978019c6b8a292454653390ef9acc"}'
+        image: registry.re8ch.com/auth/api-conformance-result-proxy@sha256:65179d6e43f79e380a1ce0c65eb009a06f7f8fbb8915b2a1cb88ab84af67a0d1
+        livenessProbe:
+          periodSeconds: 15
+          tcpSocket:
+            port: http
+        name: proxy
+        ports:
+        - containerPort: 8080
+          name: http
+        readinessProbe:
+          periodSeconds: 5
+          tcpSocket:
+            port: http
+        resources:
+          limits:
+            cpu: 200m
+            memory: 128Mi
+          requests:
+            cpu: 25m
+            memory: 32Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+      imagePullSecrets:
+      - name: harbor-auth-admin
+      nodeSelector:
+        scheduling.re8ch.com/pool-service-core-r640: 'true'
+      securityContext:
+        runAsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: api-conformance-result-proxy
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        operator: Exists
+      - effect: NoSchedule
+        key: anchor
+        operator: Equal
+        value: 'true'
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: api-conformance-result-proxy
+  namespace: auth
+spec:
+  egress:
+  - toEntities:
+    - kube-apiserver
+  - toEndpoints:
+    - matchLabels:
+        k8s:app.kubernetes.io/name: advanced-fabric-doh
+        k8s:io.kubernetes.pod.namespace: kube-system
+    toPorts:
+    - ports:
+      - port: '53'
+        protocol: UDP
+      - port: '53'
+        protocol: TCP
+      rules:
+        dns:
+        - matchPattern: '*'
+  - toFQDNs:
+    - matchName: token.actions.githubusercontent.com
+    toPorts:
+    - ports:
+      - port: '443'
+        protocol: TCP
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: api-conformance-result-proxy
+  ingress:
+  - fromEntities:
+    - ingress
+    toPorts:
+    - ports:
+      - port: '8080'
+        protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-conformance-result-proxy
+  namespace: auth
+spec:
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http
+  selector:
+    app.kubernetes.io/name: api-conformance-result-proxy
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: api-conformance-result-proxy
+  namespace: auth
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: api-conformance-result-proxy
+  namespace: auth
+spec:
+  hostnames:
+  - api.re8ch.com
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: api-https
+  - name: re8ch-region-loudi
+    namespace: kube-system
+    sectionName: api-https
+  - name: re8ch-region-guangzhou
+    namespace: kube-system
+    sectionName: api-https
+  - name: re8ch-region-shanghai
+    namespace: kube-system
+    sectionName: api-https
+  - name: re8ch-region-hangzhou-nuclio
+    namespace: kube-system
+    sectionName: api-https
+  - name: re8ch-region-shanghai-nuclio
+    namespace: kube-system
+    sectionName: api-https
+  rules:
+  - backendRefs:
+    - name: api-conformance-result-proxy
+      port: 8080
+    matches:
+    - path:
+        type: PathPrefix
+        value: /api-conformance/v1/reports
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: re8ch:toolhive-platform-restart
+  namespace: auth
+rules:
+- apiGroups:
+  - apps
+  resourceNames:
+  - authentik-server
+  - authentik-worker
+  resources:
+  - deployments
+  verbs:
+  - get
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: re8ch:toolhive-platform-restart
+  namespace: auth
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: re8ch:toolhive-platform-restart
+subjects:
+- kind: ServiceAccount
+  name: ops-mcp-operate
+  namespace: toolhive-system
