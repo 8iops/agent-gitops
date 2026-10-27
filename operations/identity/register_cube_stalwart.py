@@ -21,7 +21,7 @@ CALLBACK='https://cube.re8ch.com/oauth2/callback'
 CAPABILITIES=['urn:ietf:params:jmap:core','urn:stalwart:jmap']
 PHASE='initialization'
 ERROR_TYPES={'invalidArguments','invalidProperties','forbidden','notFound','serverFail','serverUnavailable','stateMismatch','alreadyExists','invalidResultReference','unknownMethod','accountNotFound','accountNotSupportedByMethod','requestTooLarge','invalidPatch','willDestroy','singleton','overQuota','rateLimit','tooLarge'}
-PROPERTY_NAMES={'clientId','secret','description','redirectUris','scopes','memberTenantId','firstParty','contacts','grantTypes','postLogoutRedirectUris','logo','expiresAt'}
+PROPERTY_NAMES={'clientId','secret','description','redirectUris','memberTenantId','contacts','grantTypes','postLogoutRedirectUris','logo','expiresAt'}
 
 class RegistrationError(ValueError):
     def __init__(self,code,detail=None):
@@ -54,7 +54,7 @@ def service_base():
 
 def registration(client_id,client_secret):
     if not client_id or not client_secret:raise ValueError('empty credential')
-    return {'clientId':client_id,'secret':client_secret,'description':'Cube sandbox','redirectUris':{CALLBACK:True},'scopes':{}}
+    return {'clientId':client_id,'secret':client_secret,'description':'Cube sandbox','redirectUris':{CALLBACK:True}}
 
 def plan_hash(payload,client_state):
     return hashlib.sha256(json.dumps({'payload':payload,'state':client_state},sort_keys=True,separators=(',',':')).encode()).hexdigest()
@@ -93,12 +93,12 @@ def execute(apply=False,expected_plan_hash=None):
         if len(result)!=1 or result[0][0]!=method:raise RegistrationError('unexpected-api-response')
         return result[0][1]
     ids=call('x:OAuthClient/query',{'filter':{'clientId':payload['clientId']}})['ids']
-    current=call('x:OAuthClient/get',{'ids':ids,'properties':['id','clientId','description','redirectUris','scopes','memberTenantId','firstParty']})
+    current=call('x:OAuthClient/get',{'ids':ids,'properties':['id','clientId','description','redirectUris','memberTenantId']})
     if ids:
         if len(ids)!=1 or len(current['list'])!=1:raise ValueError('ambiguous registration')
         item=current['list'][0]
-        if item.get('clientId')!=payload['clientId'] or item.get('redirectUris')!=payload['redirectUris'] or item.get('scopes',{})!={}:raise ValueError('existing client needs separate review')
-        if item.get('memberTenantId') is not None or item.get('firstParty',False) is not False:raise ValueError('existing client policy requires separate review')
+        if item.get('clientId')!=payload['clientId'] or item.get('redirectUris')!=payload['redirectUris']:raise ValueError('existing client needs separate review')
+        if item.get('memberTenantId') is not None:raise ValueError('existing client policy requires separate review')
         raise ValueError('existing client requires independent credential verification; no write performed')
     approval=plan_hash(payload,{'absent':True,'endpoint':endpoint})
     if not apply:
@@ -108,8 +108,8 @@ def execute(apply=False,expected_plan_hash=None):
     result=call('x:OAuthClient/set',{'create':{'cube':payload}})
     if result.get('notCreated') or 'cube' not in result.get('created',{}):raise RegistrationError('create-rejected',safe_api_error(result.get('notCreated',{}).get('cube',{})))
     object_id=result['created']['cube']['id']
-    item=call('x:OAuthClient/get',{'ids':[object_id],'properties':['id','clientId','redirectUris','scopes','memberTenantId','firstParty']})['list'][0]
-    if item['clientId']!=payload['clientId'] or item['redirectUris']!=payload['redirectUris'] or item.get('scopes',{})!={} or item.get('memberTenantId') is not None or item.get('firstParty',False) is not False:raise ValueError('registration verification failed')
+    item=call('x:OAuthClient/get',{'ids':[object_id],'properties':['id','clientId','redirectUris','memberTenantId']})['list'][0]
+    if item['clientId']!=payload['clientId'] or item['redirectUris']!=payload['redirectUris'] or item.get('memberTenantId') is not None:raise ValueError('registration verification failed')
     return {'outcome':'created-and-verified','clientCount':1,'callback':CALLBACK,'dataScopes':[],'credentialValuesExported':False,'kubernetesSecretsChanged':False}
 
 if __name__=='__main__':
