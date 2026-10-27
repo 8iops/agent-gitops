@@ -91,3 +91,13 @@ def test_fixed_service_resolution_rejects_wrong_port_and_headless(monkeypatch):
     with pytest.raises(ValueError):module.service_base()
     service['ports'][0]['port']=8080;service['clusterIP']='None'
     with pytest.raises(ValueError):module.service_base()
+
+def test_diagnostic_output_never_includes_remote_descriptions_or_arbitrary_fields():
+    import importlib.util,json
+    spec=importlib.util.spec_from_file_location('cube_diagnostic',ROOT/'operations/identity/register_cube_stalwart.py');module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    error={'type':'invalidProperties','description':'fixture-secret','properties':['clientId','secret','fixture-secret'], 'secret':'fixture-secret'}
+    safe=module.safe_api_error(error)
+    assert safe=={'type':'invalidProperties','invalidProperties':['clientId','secret']}
+    result=module.failure_report(module.RegistrationError('create-rejected',safe))
+    assert 'fixture-secret' not in json.dumps(result)
+    assert module.safe_api_error({'type':'fixture-secret'})['type']=='unrecognized'

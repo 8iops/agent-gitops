@@ -19,6 +19,24 @@ from urllib.error import HTTPError
 HOST='stalwart.mail-system.svc.cluster.local:8080'
 CALLBACK='https://cube.re8ch.com/oauth2/callback'
 CAPABILITIES=['urn:ietf:params:jmap:core','urn:stalwart:jmap']
+PHASE='initialization'
+ERROR_TYPES={'invalidArguments','invalidProperties','forbidden','notFound','serverFail','serverUnavailable','stateMismatch','alreadyExists','invalidResultReference','unknownMethod','accountNotFound','accountNotSupportedByMethod','requestTooLarge','invalidPatch','willDestroy','singleton','overQuota','rateLimit','tooLarge'}
+PROPERTY_NAMES={'clientId','secret','description','redirectUris','scopes','memberTenantId','firstParty','contacts','grantTypes','postLogoutRedirectUris','logo','expiresAt'}
+
+class RegistrationError(ValueError):
+    def __init__(self,code,detail=None):
+        self.code=code;self.detail=detail or {};super().__init__(code)
+
+def safe_api_error(error):
+    if not isinstance(error,dict):return {'type':'unrecognized'}
+    return {'type':error.get('type') if error.get('type') in ERROR_TYPES else 'unrecognized',
+            'invalidProperties':sorted(p for p in error.get('properties',[]) if isinstance(p,str) and p in PROPERTY_NAMES)}
+
+def failure_report(error):
+    report={'outcome':'failed','phase':PHASE,'reason':'credential-bearing diagnostics withheld'}
+    if isinstance(error,RegistrationError):report.update({'code':error.code,**error.detail})
+    elif isinstance(error,HTTPError):report['httpStatus']=error.code
+    return report
 
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self,*args,**kwargs):return None
@@ -49,6 +67,8 @@ def internal_api_url(session,base):
     return base+url.path
 
 def execute(apply=False,expected_plan_hash=None):
+    global PHASE
+    PHASE='service-and-credentials'
     base=service_base()
     admin=secret('mail-system','stalwart-recovery-admin')['STALWART_RECOVERY_ADMIN']
     cube=secret('cube-trial','oauth2-proxy-cube')
@@ -59,14 +79,18 @@ def execute(apply=False,expected_plan_hash=None):
         data=None if body is None else json.dumps(body).encode()
         req=Request(url,data=data,headers={'Host':HOST,'Authorization':authorization,'Content-Type':'application/json','Accept':'application/json'})
         with opener.open(req,timeout=20) as response:return json.load(response)
+    PHASE='session-discovery'
     try:session=request(base+'/.well-known/jmap')
     except HTTPError as error:
         if error.code!=307 or error.headers.get('Location')!='/jmap/session':raise ValueError('unexpected session redirect') from None
         session=request(base+'/jmap/session')
     endpoint=internal_api_url(session,base)
     def call(method,args):
+        global PHASE
+        PHASE=method
         result=request(endpoint,{'using':CAPABILITIES,'methodCalls':[[method,args,'cube']]})['methodResponses']
-        if len(result)!=1 or result[0][0]!=method:raise ValueError('unexpected API response')
+        if len(result)==1 and result[0][0]=='error':raise RegistrationError('method-error',safe_api_error(result[0][1]))
+        if len(result)!=1 or result[0][0]!=method:raise RegistrationError('unexpected-api-response')
         return result[0][1]
     ids=call('x:OAuthClient/query',{'filter':{'clientId':payload['clientId']}})['ids']
     current=call('x:OAuthClient/get',{'ids':ids,'properties':['id','clientId','description','redirectUris','scopes','memberTenantId','firstParty']})
@@ -79,9 +103,10 @@ def execute(apply=False,expected_plan_hash=None):
     approval=plan_hash(payload,{'absent':True,'endpoint':endpoint})
     if not apply:
         return {'outcome':'planned','planHash':approval,'clientCount':0,'action':'create-confidential-OAuthClient','callback':CALLBACK,'dataScopes':[],'namespace':'cube-trial','existingClientIdAndSecretReused':True,'cookieSecretUnchanged':True}
-    if expected_plan_hash!=approval:raise ValueError('reviewed plan changed')
+    PHASE='plan-verification'
+    if expected_plan_hash!=approval:raise RegistrationError('reviewed-plan-changed')
     result=call('x:OAuthClient/set',{'create':{'cube':payload}})
-    if result.get('notCreated') or 'cube' not in result.get('created',{}):raise ValueError('registration rejected')
+    if result.get('notCreated') or 'cube' not in result.get('created',{}):raise RegistrationError('create-rejected',safe_api_error(result.get('notCreated',{}).get('cube',{})))
     object_id=result['created']['cube']['id']
     item=call('x:OAuthClient/get',{'ids':[object_id],'properties':['id','clientId','redirectUris','scopes','memberTenantId','firstParty']})['list'][0]
     if item['clientId']!=payload['clientId'] or item['redirectUris']!=payload['redirectUris'] or item.get('scopes',{})!={} or item.get('memberTenantId') is not None or item.get('firstParty',False) is not False:raise ValueError('registration verification failed')
@@ -91,8 +116,8 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--apply',action='store_true');parser.add_argument('--expected-plan-hash');args=parser.parse_args()
     try:
         result=execute(args.apply,args.expected_plan_hash)
-    except Exception:
+    except Exception as error:
         # HTTP/API diagnostics may contain submitted credential data.
-        print(json.dumps({'outcome':'failed','reason':'platform registration failed; credential-bearing diagnostics withheld'}))
+        print(json.dumps(failure_report(error)))
         sys.exit(1)
     print(json.dumps(result,sort_keys=True))
