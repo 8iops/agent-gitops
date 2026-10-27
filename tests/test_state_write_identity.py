@@ -35,11 +35,11 @@ esac
                'ACTIONS_ID_TOKEN_REQUEST_TOKEN': 'fixture', 'ACTIONS_ID_TOKEN_REQUEST_URL': 'https://fixture.invalid',
                'EXECUTOR_AUDIENCE': 'https://kube-api.re8ch.com/release-executor-test', 'REFRESH_FAIL': 'no',
                'state_name': 'ssa-state-demo', 'TARGET_NAMESPACE': 'ops', 'executor_status': '0'}
-        subprocess.run(['bash', '-euo', 'pipefail', '-c', script], env=env, check=True, capture_output=True)
+        subprocess.run(['bash', '-euo', 'pipefail', '-c', script], env=env, cwd=run_dir, check=True, capture_output=True)
         assert (run_dir / 'patched').exists()
         (run_dir / 'patched').unlink()
         (run_dir / 'refreshed').unlink()
         env['REFRESH_FAIL'] = 'yes'
-        result = subprocess.run(['bash', '-euo', 'pipefail', '-c', script], env=env, capture_output=True)
+        result = subprocess.run(['bash', '-euo', 'pipefail', '-c', script], env=env, cwd=run_dir, capture_output=True)
         assert result.returncode != 0
         assert not (run_dir / 'patched').exists()
