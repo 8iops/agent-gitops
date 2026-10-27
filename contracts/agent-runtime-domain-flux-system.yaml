@@ -1,0 +1,46 @@
+apiVersion: delivery.re8ch.com/v1alpha1
+kind: ReleaseContract
+metadata:
+  name: agent-runtime-domain-flux-system
+spec:
+  authorityDomain: agent-runtime
+  target:
+    cluster: re8ch
+    namespace: flux-system
+  source:
+    renderer: kustomize
+    revision: github-main-reviewed
+    repository: 8iops/agent-gitops
+    path: releases/agent-runtime-domain-flux-system
+  provenance:
+    repository: 8iops/agent-gitops
+    workflow: .github/workflows/static-release.yml
+    ref: refs/heads/main
+    environment: release-executor-agent-runtime
+    audience: https://kube-api.re8ch.com/release-executor-agent-runtime
+    signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
+    issuer: https://token.actions.githubusercontent.com
+  authorization:
+    fieldManager: re8ch-release/agent-runtime-domain-flux-system
+    resources:
+    - batch/Job
+    - core/ServiceAccount
+    objectNames:
+    - retire-toolhive-session-redis
+    - retire-toolhive-session-redis-v3
+    allowClusterScoped: false
+    forceConflictObjects:
+    - batch/Job/flux-system/retire-toolhive-session-redis-v3
+    - core/ServiceAccount/flux-system/retire-toolhive-session-redis
+  inventory:
+    digest: sha256:38c4221a7b8b5c0a25516fca36ceab3d4906601883fe7f7028ee004d8cca8a8b
+  lifecycle:
+    prune: false
+    healthTimeoutSeconds: 300
+    protectedKinds:
+    - Namespace
+    - CustomResourceDefinition
+    - PersistentVolume
+    - PersistentVolumeClaim
+    - StorageClass
+    deletionAllowlist: []

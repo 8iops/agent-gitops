@@ -1,0 +1,119 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: oauth2-proxy-cube
+    app.kubernetes.io/part-of: cube-sandbox
+  name: oauth2-proxy-cube
+  namespace: cube-trial
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: oauth2-proxy-cube
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: oauth2-proxy-cube
+        app.kubernetes.io/part-of: cube-sandbox
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - args:
+        - --provider=oidc
+        - --oidc-issuer-url=https://dex.service.re8ch.com
+        - --redirect-url=https://cube.service.re8ch.com/oauth2/callback
+        - --upstream=http://cube-trial-webui:12088
+        - --http-address=0.0.0.0:4180
+        - --email-domain=*
+        - --scope=openid profile email
+        - --cookie-secure=true
+        - --cookie-samesite=lax
+        - --cookie-expire=12h
+        - --cookie-refresh=1h
+        - --reverse-proxy=true
+        - --set-xauthrequest=true
+        - --pass-access-token=true
+        - --skip-provider-button=true
+        envFrom:
+        - secretRef:
+            name: oauth2-proxy-cube
+        image: quay.io/oauth2-proxy/oauth2-proxy:v7.9.0@sha256:37c1570c0427e02fc7c947ef2c04e8995b8347b7abc9fcf1dbb4e376a4b221a7
+        name: oauth2-proxy
+        ports:
+        - containerPort: 4180
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: http
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+      nodeSelector:
+        kubernetes.io/hostname: r640
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy-cube
+  namespace: cube-trial
+spec:
+  ports:
+  - name: http
+    port: 4180
+    targetPort: http
+  selector:
+    app.kubernetes.io/name: oauth2-proxy-cube
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    networking.re8ch.com/dns-authority: cube-trial/cube-dns-authority
+  name: cube-public
+  namespace: cube-trial
+spec:
+  hostnames:
+  - cube.re8ch.com
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: cube-https
+  rules:
+  - backendRefs:
+    - name: oauth2-proxy-cube
+      port: 4180
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
+    external-dns.alpha.kubernetes.io/hostname: cube.re8ch.com
+    external-dns.alpha.kubernetes.io/ttl: '60'
+    networking.re8ch.com/provider: public-edge-manager
+  labels:
+    networking.re8ch.com/dns-authority: migrated-to-service-zone
+  name: cube-dns-authority
+  namespace: cube-trial
+spec:
+  ingressClassName: external-dns-only
+  rules:
+  - host: cube.re8ch.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: oauth2-proxy-cube
+            port:
+              number: 4180
+        path: /
+        pathType: Prefix

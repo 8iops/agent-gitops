@@ -1,0 +1,9 @@
+{
+  "conformance.re8ch.com/APIConformanceTarget": "apiconformancetargets",
+  "governance.re8ch.com/GitAccount": "gitaccounts",
+  "governance.re8ch.com/GitWorkspace": "gitworkspaces",
+  "toolhive.stacklok.dev/MCPExternalAuthConfig": "mcpexternalauthconfigs",
+  "toolhive.stacklok.dev/MCPGroup": "mcpgroups",
+  "toolhive.stacklok.dev/MCPTelemetryConfig": "mcptelemetryconfigs",
+  "toolhive.stacklok.dev/MCPToolConfig": "mcptoolconfigs"
+}

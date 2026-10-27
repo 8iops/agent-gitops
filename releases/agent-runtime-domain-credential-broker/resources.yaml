@@ -1,0 +1,62 @@
+---
+apiVersion: v1
+data:
+  harbor-tenants.json: '{"tenants":{"2woodblog":{},"aesthete":{},"anycam":{"harbor":{"project":"anycam","webUsername":"anycam"}},"anysiteonearth":{},"artchais":{},"baozou-ppt-studio":{},"career-ops":{},"compocv":{},"farseer":{"harbor":{"project":"farseer","webUsername":"farseer"}},"garageband":{},"jjklive":{},"ledger":{"harbor":{"project":"ledger","webUsername":"ledger"}},"motor-muscle-sim":{},"network-decomplexer":{},"phonaid":{},"platform":{},"qwen":{"harbor":{"project":"qianwen","webUsername":"tianruoyou2022","accountEmail":"85153954@qq.com"}},"space-mining-stage":{},"tenant-ci":{},"thiking-machine":{},"re8ch":{"harbor":{"project":"re8ch","webUsername":"harry","accountEmail":"harry@re8ch.com"}}}}
+
+    '
+kind: ConfigMap
+metadata:
+  name: harbor-tenant-catalog
+  namespace: credential-broker
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    storage.re8ch.com/replicated-approved: 'true'
+  name: credential-broker-registry
+  namespace: credential-broker
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: rbd-r640
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: credential-broker
+  namespace: credential-broker
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: credential-broker
+  namespace: credential-broker
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - create
+  - update
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: credential-broker
+  namespace: credential-broker
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: credential-broker
+subjects:
+- kind: ServiceAccount
+  name: credential-broker
+  namespace: credential-broker

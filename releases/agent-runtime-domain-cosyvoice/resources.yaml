@@ -1,0 +1,207 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: inference
+    app.kubernetes.io/name: cosyvoice
+    app.kubernetes.io/part-of: agent-runtime
+  name: cosyvoice
+  namespace: cosyvoice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cosyvoice
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: cosyvoice
+        app.kubernetes.io/component: inference
+        app.kubernetes.io/name: cosyvoice
+        app.kubernetes.io/part-of: agent-runtime
+    spec:
+      containers:
+      - command:
+        - /usr/local/bin/python
+        - /var/lib/cosyvoice/server_rocm.py
+        - --port
+        - '50000'
+        - --model_dir
+        - /var/lib/cosyvoice/models/Fun-CosyVoice3-0.5B-2512
+        env:
+        - name: HSA_ENABLE_DXG_DETECTION
+          value: '1'
+        - name: ROCR_VISIBLE_DEVICES
+          value: '0'
+        - name: HIP_VISIBLE_DEVICES
+          value: '0'
+        - name: LD_LIBRARY_PATH
+          value: /opt/rocm/lib:/usr/lib:/usr/lib/wsl/lib
+        - name: PYTHONPATH
+          value: /var/lib/cosyvoice/venv/lib/python3.12/site-packages:/var/lib/cosyvoice/CosyVoice:/var/lib/cosyvoice/CosyVoice/third_party/Matcha-TTS:/var/lib/comfy-agent/venv/lib/python3.12/site-packages
+        - name: MODELSCOPE_CACHE
+          value: /var/lib/cosyvoice/cache/modelscope
+        - name: HF_HOME
+          value: /var/lib/cosyvoice/cache/huggingface
+        - name: COSYVOICE_PROFILE_CATALOG
+          value: /etc/cosyvoice/profiles/profiles.yaml
+        image: docker.io/library/python:3.12.13-slim@sha256:229a2c5bfa27522db7815ea81f9bed70af17ccb9de9fc7ad142b1877b5830d36
+        imagePullPolicy: IfNotPresent
+        name: cosyvoice
+        ports:
+        - containerPort: 50000
+          name: http
+        readinessProbe:
+          failureThreshold: 6
+          httpGet:
+            path: /healthz
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: '6'
+            memory: 16Gi
+          requests:
+            cpu: '2'
+            memory: 5Gi
+        securityContext:
+          privileged: true
+          seccompProfile:
+            type: Unconfined
+        startupProbe:
+          failureThreshold: 180
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 10
+        volumeMounts:
+        - mountPath: /var/lib/cosyvoice
+          name: workspace
+        - mountPath: /var/lib/cosyvoice/voice-assets/harryneo
+          name: voice-assets
+          readOnly: true
+        - mountPath: /etc/cosyvoice/profiles
+          name: voice-profiles
+          readOnly: true
+        - mountPath: /var/lib/comfy-agent/venv
+          name: comfy-rocm-python
+          readOnly: true
+        - mountPath: /opt/rocm
+          name: rocm
+          readOnly: true
+        - mountPath: /usr/lib/wsl/lib
+          name: wsl-lib
+          readOnly: true
+        - mountPath: /dev/dxg
+          name: dxg
+        - mountPath: /lib/x86_64-linux-gnu/libelf.so.1
+          name: libelf
+          readOnly: true
+        - mountPath: /lib/x86_64-linux-gnu/libstdc++.so.6
+          name: libstdcpp
+          readOnly: true
+        - mountPath: /lib/x86_64-linux-gnu/libgcc_s.so.1
+          name: libgcc
+          readOnly: true
+        - mountPath: /lib/x86_64-linux-gnu/libz.so.1
+          name: libz
+          readOnly: true
+        - mountPath: /lib/x86_64-linux-gnu/libzstd.so.1
+          name: libzstd
+          readOnly: true
+        workingDir: /var/lib/cosyvoice/CosyVoice
+      nodeSelector:
+        kubernetes.io/hostname: amdwsl-zt
+      securityContext:
+        fsGroup: 100
+      volumes:
+      - hostPath:
+          path: /var/lib/cosyvoice
+          type: Directory
+        name: workspace
+      - name: voice-assets
+        nfs:
+          path: /srv/nas/shared/cosyvoice-delivery/voices/harryneo
+          readOnly: true
+          server: 192.168.88.251
+      - configMap:
+          name: cosyvoice-voice-profiles
+        name: voice-profiles
+      - hostPath:
+          path: /var/lib/comfy-agent/venv
+          type: Directory
+        name: comfy-rocm-python
+      - hostPath:
+          path: /opt/rocm
+          type: Directory
+        name: rocm
+      - hostPath:
+          path: /usr/lib/wsl/lib
+          type: Directory
+        name: wsl-lib
+      - hostPath:
+          path: /dev/dxg
+          type: CharDevice
+        name: dxg
+      - hostPath:
+          path: /lib/x86_64-linux-gnu/libelf.so.1
+          type: File
+        name: libelf
+      - hostPath:
+          path: /lib/x86_64-linux-gnu/libstdc++.so.6
+          type: File
+        name: libstdcpp
+      - hostPath:
+          path: /lib/x86_64-linux-gnu/libgcc_s.so.1
+          type: File
+        name: libgcc
+      - hostPath:
+          path: /lib/x86_64-linux-gnu/libz.so.1
+          type: File
+        name: libz
+      - hostPath:
+          path: /lib/x86_64-linux-gnu/libzstd.so.1
+          type: File
+        name: libzstd
+---
+apiVersion: v1
+data:
+  profiles.yaml: "apiVersion: voice.re8ch.com/v1alpha1\nkind: VoiceProfileCatalog\n\
+    profiles:\n  - id: harryneo\n    displayName: Harry Neo\n    engine: FunAudioLLM/Fun-CosyVoice3-0.5B-2512\n\
+    \    mode: zero-shot\n    promptAudio: /var/lib/cosyvoice/voice-assets/harryneo/01_natural.wav\n\
+    \    validationSamples:\n      zh: /var/lib/cosyvoice/voice-assets/harryneo/tests/clone-zh.wav\n\
+    \      en: /var/lib/cosyvoice/voice-assets/harryneo/tests/clone-en.wav\n    storage:\n\
+    \      class: nas-private-biometric\n      repository: none\n      source: 192.168.88.251:/srv/nas/shared/cosyvoice-delivery/voices/harryneo\n\
+    \    checksums:\n      promptAudioSha256: 272c4748967ff1516c5a1578a0ead6786b28a7979eb28e6797dbcaf8636118bb\n\
+    \      validationZhSha256: 1b35292935b6c3d9ed0bb5a8dc06df90cee7ad6ef537885032713468f77c6cdb\n\
+    \      validationEnSha256: d42ef7c139435f3230c75baa0b902b3afaee55ded2c29da8300970058b009e47\n"
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: voice-profile-catalog
+    app.kubernetes.io/name: cosyvoice
+    app.kubernetes.io/part-of: agent-runtime
+  name: cosyvoice-voice-profiles
+  namespace: cosyvoice
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: inference
+    app.kubernetes.io/name: cosyvoice
+    app.kubernetes.io/part-of: agent-runtime
+  name: cosyvoice
+  namespace: cosyvoice
+spec:
+  ports:
+  - name: http
+    port: 50000
+    targetPort: http
+  selector:
+    app: cosyvoice
+  type: ClusterIP

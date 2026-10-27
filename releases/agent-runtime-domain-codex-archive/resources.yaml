@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    storage.re8ch.com/availability-class: single-node
+    storage.re8ch.com/data-classification: private-conversations
+    storage.re8ch.com/failure-domain: r640
+  labels:
+    app.kubernetes.io/name: codex-conversation-archive
+    app.kubernetes.io/part-of: codex-conversation-archive
+  name: codex-conversations
+  namespace: codex-archive
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 32Gi
+  storageClassName: cephfs-r640

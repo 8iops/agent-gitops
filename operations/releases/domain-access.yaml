@@ -1,0 +1,1720 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-ai-operations
+  namespace: ai-operations
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-ai-operations
+  namespace: ai-operations
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  resourceNames:
+  - stagehand-service
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  resourceNames:
+  - workspace-mirror-sync
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  resourceNames:
+  - re8ch-owner-pilot-workspace-v4
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - controlled-cluster-kubeconfigs
+  - harbor-tenant-catalog
+  - ops-capsule-policy
+  - ssa-state-agent-runtime-domain-ai-operations
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - persistentvolumeclaims
+  resourceNames:
+  - cloud-device-registry
+  - infra-device-registry
+  - orchestra-device-registry
+  - workspace-agent-artifacts
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - serviceaccounts
+  resourceNames:
+  - ai-operations
+  - workspace-controller
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - services
+  resourceNames:
+  - stagehand-service
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  resourceNames:
+  - stagehand-service
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-ai-operations
+  namespace: ai-operations
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-ai-operations
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-anycam
+  namespace: anycam
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-anycam
+  namespace: anycam
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - ssa-state-agent-runtime-domain-anycam
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  resourceNames:
+  - credential-broker-secret-injector
+  - kyverno-toolhive-pull-secret-source
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  resourceNames:
+  - kyverno-toolhive-pull-secret-source
+  verbs:
+  - get
+  - patch
+  - update
+  - escalate
+  - bind
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-anycam
+  namespace: anycam
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-anycam
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-api-conformance-system
+  namespace: api-conformance-system
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-api-conformance-system
+  namespace: api-conformance-system
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  resourceNames:
+  - api-conformance-controller
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - cilium.io
+  resources:
+  - ciliumnetworkpolicies
+  resourceNames:
+  - api-conformance-controller
+  - api-conformance-default-deny
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - conformance.re8ch.com
+  resources:
+  - apiconformancetargets
+  resourceNames:
+  - cloud-functions-commerce
+  - cloud-functions-identity
+  - cloud-functions-payment-credits
+  - commerce-public-contract
+  - identity-public-denial-contract
+  - payment-public-contract
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - api-conformance-code-b85hdm9t6c
+  - ssa-state-agent-runtime-domain-api-conformance-system
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - serviceaccounts
+  resourceNames:
+  - api-conformance-controller
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  resourceNames:
+  - api-conformance-controller
+  - api-conformance-pull-target
+  - api-conformance-result-proxy
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  resourceNames:
+  - api-conformance-controller
+  - api-conformance-pull-target
+  - api-conformance-result-proxy
+  verbs:
+  - get
+  - patch
+  - update
+  - escalate
+  - bind
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-api-conformance-system
+  namespace: api-conformance-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-api-conformance-system
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-auth
+  namespace: auth
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-auth
+  namespace: auth
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  resourceNames:
+  - api-conformance-result-proxy
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - cilium.io
+  resources:
+  - ciliumnetworkpolicies
+  resourceNames:
+  - api-conformance-result-proxy
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - ssa-state-agent-runtime-domain-auth
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - serviceaccounts
+  resourceNames:
+  - api-conformance-result-proxy
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - services
+  resourceNames:
+  - api-conformance-result-proxy
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - gateway.networking.k8s.io
+  resources:
+  - httproutes
+  resourceNames:
+  - api-conformance-result-proxy
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  resourceNames:
+  - re8ch:toolhive-platform-restart
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  resourceNames:
+  - re8ch:toolhive-platform-restart
+  verbs:
+  - get
+  - patch
+  - update
+  - escalate
+  - bind
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-auth
+  namespace: auth
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-auth
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-bench
+  namespace: bench
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-bench
+  namespace: bench
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - ssa-state-agent-runtime-domain-bench
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  resourceNames:
+  - credential-broker-secret-injector
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-bench
+  namespace: bench
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-bench
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-codex-archive
+  namespace: codex-archive
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-codex-archive
+  namespace: codex-archive
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - ssa-state-agent-runtime-domain-codex-archive
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - persistentvolumeclaims
+  resourceNames:
+  - codex-conversations
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-codex-archive
+  namespace: codex-archive
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-codex-archive
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-codex-platform
+  namespace: codex-platform
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-codex-platform
+  namespace: codex-platform
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - ssa-state-agent-runtime-domain-codex-platform
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  resourceNames:
+  - re8ch:toolhive-platform-restart
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  resourceNames:
+  - re8ch:toolhive-platform-restart
+  verbs:
+  - get
+  - patch
+  - update
+  - escalate
+  - bind
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-codex-platform
+  namespace: codex-platform
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-codex-platform
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-cosyvoice
+  namespace: cosyvoice
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-cosyvoice
+  namespace: cosyvoice
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  resourceNames:
+  - cosyvoice
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - cosyvoice-voice-profiles
+  - ssa-state-agent-runtime-domain-cosyvoice
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - services
+  resourceNames:
+  - cosyvoice
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-cosyvoice
+  namespace: cosyvoice
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-cosyvoice
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-credential-broker
+  namespace: credential-broker
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-credential-broker
+  namespace: credential-broker
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - harbor-tenant-catalog
+  - ssa-state-agent-runtime-domain-credential-broker
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - persistentvolumeclaims
+  resourceNames:
+  - credential-broker-registry
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - serviceaccounts
+  resourceNames:
+  - credential-broker
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  resourceNames:
+  - credential-broker
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  resourceNames:
+  - credential-broker
+  verbs:
+  - get
+  - patch
+  - update
+  - escalate
+  - bind
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-credential-broker
+  namespace: credential-broker
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-credential-broker
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-cube-trial
+  namespace: cube-trial
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-cube-trial
+  namespace: cube-trial
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  resourceNames:
+  - oauth2-proxy-cube
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - ssa-state-agent-runtime-domain-cube-trial
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - services
+  resourceNames:
+  - oauth2-proxy-cube
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - gateway.networking.k8s.io
+  resources:
+  - httproutes
+  resourceNames:
+  - cube-public
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  resourceNames:
+  - cube-dns-authority
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-cube-trial
+  namespace: cube-trial
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-cube-trial
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-flux-system
+  namespace: flux-system
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-flux-system
+  namespace: flux-system
+rules:
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  resourceNames:
+  - retire-toolhive-session-redis-v3
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - ssa-state-agent-runtime-domain-flux-system
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - serviceaccounts
+  resourceNames:
+  - retire-toolhive-session-redis
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-flux-system
+  namespace: flux-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-flux-system
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-git-workspaces
+  namespace: git-workspaces
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-git-workspaces
+  namespace: git-workspaces
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  resourceNames:
+  - git-workspace-controller
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - git-workspace-controller
+  - repo-pilot-bot-dex-grant-request
+  - ssa-state-agent-runtime-domain-git-workspaces
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - serviceaccounts
+  resourceNames:
+  - deploying-evidence
+  - git-workspace-controller
+  - mailbox-provisioner
+  - monitoring-evidence
+  - owner-review-verifier
+  - planning-evidence
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - governance.re8ch.com
+  resources:
+  - gitaccounts
+  resourceNames:
+  - 2woodblog-maintain
+  - advanced-fabric-maintain
+  - aesthete-maintain
+  - among-clusters-maintain
+  - anycam-backend-maintain
+  - anycam-ios-maintain
+  - anycam-maintain
+  - anycam-website-maintain
+  - anysiteonearth-maintain
+  - anysiteonearth-website-maintain
+  - baozou-ppt-studio-maintain
+  - bifurcate-maintain
+  - brand-assets-maintain
+  - career-ops-maintain
+  - catalog-maintain
+  - cloud-functions-maintain
+  - cluster-website-maintain
+  - codex-admin-plugins-maintain
+  - compocv-maintain
+  - connectool-maintain
+  - director-engines-maintain
+  - farseer-maintain
+  - garageband-mcp-maintain
+  - garageband-mcp-site-maintain
+  - headlamp-advanced-fabric-maintain
+  - headlamp-birfucate-maintain
+  - image-website-maintain
+  - jjklive-maintain
+  - ledger-dashboard-maintain
+  - ledger-maintain
+  - ledger-site-maintain
+  - mihomos-cluster-maintain
+  - motor-muscle-sim-maintain
+  - network-decomplexer-ios-maintain
+  - observable-website-maintain
+  - phonaid-android-maintain
+  - phonaid-service-maintain
+  - phonaid-website-maintain
+  - product-public-data-maintain
+  - re8ch-ai-admin
+  - re8ch-business-admin
+  - re8ch-cloud-admin
+  - re8ch-core-maintain
+  - re8ch-image-admin
+  - re8ch-observability-admin
+  - registry-product-site-maintain
+  - repo-pilot-bot
+  - service-backend-maintain
+  - space-mining-stage-maintain
+  - thiking-machine-maintain
+  - tool-distribution-maintain
+  - user-hub-maintain
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - governance.re8ch.com
+  resources:
+  - gitworkspaces
+  resourceNames:
+  - 2woodblog-maintain
+  - advanced-fabric-maintain
+  - aesthete-maintain
+  - among-clusters-maintain
+  - anycam-backend-maintain
+  - anycam-ios-maintain
+  - anycam-maintain
+  - anycam-website-maintain
+  - anysiteonearth-maintain
+  - anysiteonearth-website-maintain
+  - baozou-ppt-studio-maintain
+  - bifurcate-maintain
+  - brand-assets-maintain
+  - career-ops-maintain
+  - catalog-maintain
+  - cloud-functions-maintain
+  - cluster-website-maintain
+  - codex-admin-plugins-maintain
+  - compocv-maintain
+  - connectool-maintain
+  - director-engines-maintain
+  - farseer-maintain
+  - garageband-mcp-maintain
+  - garageband-mcp-site-maintain
+  - headlamp-advanced-fabric-maintain
+  - headlamp-birfucate-maintain
+  - image-website-maintain
+  - jjklive-maintain
+  - ledger-dashboard-maintain
+  - ledger-maintain
+  - ledger-site-maintain
+  - mihomos-cluster-maintain
+  - motor-muscle-sim-maintain
+  - network-decomplexer-ios-maintain
+  - observable-website-maintain
+  - phonaid-android-maintain
+  - phonaid-service-maintain
+  - phonaid-website-maintain
+  - product-public-data-maintain
+  - re8ch-core-maintain
+  - registry-product-site-maintain
+  - repo-pilot-bot
+  - service-backend-maintain
+  - space-mining-stage-maintain
+  - thiking-machine-maintain
+  - tool-distribution-maintain
+  - user-hub-maintain
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  resourceNames:
+  - git-workspace-controller
+  - mailbox-provisioner
+  - owner-review-verifier
+  - repo-pilot-bot-governance-reader
+  - work-evidence-publishers
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  resourceNames:
+  - git-workspace-controller
+  - mailbox-provisioner
+  - owner-review-verifier
+  - repo-pilot-bot-governance-reader
+  - work-evidence-publisher
+  verbs:
+  - get
+  - patch
+  - update
+  - escalate
+  - bind
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-git-workspaces
+  namespace: git-workspaces
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-git-workspaces
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-ledger
+  namespace: ledger
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-ledger
+  namespace: ledger
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - ssa-state-agent-runtime-domain-ledger
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  resourceNames:
+  - credential-broker-secret-injector
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-ledger
+  namespace: ledger
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-ledger
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-llm-gateway
+  namespace: llm-gateway
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-llm-gateway
+  namespace: llm-gateway
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - ssa-state-agent-runtime-domain-llm-gateway
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  resourceNames:
+  - re8ch:toolhive-platform-restart
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  resourceNames:
+  - re8ch:toolhive-platform-restart
+  verbs:
+  - get
+  - patch
+  - update
+  - escalate
+  - bind
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-llm-gateway
+  namespace: llm-gateway
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-llm-gateway
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-mcp-registry
+  namespace: mcp-registry
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-mcp-registry
+  namespace: mcp-registry
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  resourceNames:
+  - mcp-registry
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - ssa-state-agent-runtime-domain-mcp-registry
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - persistentvolumeclaims
+  resourceNames:
+  - mcp-registry-postgresql-ab
+  - mcp-registry-postgresql-r640
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - services
+  resourceNames:
+  - mcp-registry
+  - postgresql
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  resourceNames:
+  - postgresql-ingress
+  - postgresql-toolhive-registry-ingress
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  resourceNames:
+  - mcp-registry
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-mcp-registry
+  namespace: mcp-registry
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-mcp-registry
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-observability-system
+  namespace: observability-system
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-observability-system
+  namespace: observability-system
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - ssa-state-agent-runtime-domain-observability-system
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  resourceNames:
+  - re8ch:toolhive-platform-restart
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  resourceNames:
+  - re8ch:toolhive-platform-restart
+  verbs:
+  - get
+  - patch
+  - update
+  - escalate
+  - bind
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-observability-system
+  namespace: observability-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-observability-system
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-opensandbox-system
+  namespace: opensandbox-system
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-opensandbox-system
+  namespace: opensandbox-system
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - ssa-state-agent-runtime-domain-opensandbox-system
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  resourceNames:
+  - re8ch:toolhive-platform-restart
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  resourceNames:
+  - re8ch:toolhive-platform-restart
+  verbs:
+  - get
+  - patch
+  - update
+  - escalate
+  - bind
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-opensandbox-system
+  namespace: opensandbox-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-opensandbox-system
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-rook-ceph
+  namespace: rook-ceph
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-rook-ceph
+  namespace: rook-ceph
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - ssa-state-agent-runtime-domain-rook-ceph
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  resourceNames:
+  - re8ch:ops-mcp-ceph-observe
+  - re8ch:toolhive-ceph-osd-recovery
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  resourceNames:
+  - re8ch:ops-mcp-ceph-observe
+  - re8ch:toolhive-ceph-osd-recovery
+  verbs:
+  - get
+  - patch
+  - update
+  - escalate
+  - bind
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-rook-ceph
+  namespace: rook-ceph
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-rook-ceph
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-supabase-pg-re8ch
+  namespace: supabase-pg-re8ch
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-supabase-pg-re8ch
+  namespace: supabase-pg-re8ch
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - ssa-state-agent-runtime-domain-supabase-pg-re8ch
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  resourceNames:
+  - ops-admin-postgres-credential
+  - re8ch:toolhive-platform-restart
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  resourceNames:
+  - ops-admin-postgres-credential
+  - re8ch:toolhive-platform-restart
+  verbs:
+  - get
+  - patch
+  - update
+  - escalate
+  - bind
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-supabase-pg-re8ch
+  namespace: supabase-pg-re8ch
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-supabase-pg-re8ch
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-domain-toolhive-system
+  namespace: toolhive-system
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-domain-toolhive-system
+  namespace: toolhive-system
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  resourceNames:
+  - re8ch-plugin-runtime
+  - toolhive-cloud-ui
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  resourceNames:
+  - re8ch-plugin-definitions
+  - re8ch-plugin-operation-catalog
+  - ssa-state-agent-runtime-domain-toolhive-system
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - serviceaccounts
+  resourceNames:
+  - ops-mcp-public
+  - plugin-advanced-fabrics
+  - plugin-cilium
+  - plugin-mihomos-cluster
+  - plugin-public-edge
+  - plugin-rook-ceph
+  - re8ch-plugin-runtime
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - services
+  resourceNames:
+  - re8ch-plugin-runtime
+  - toolhive-cloud-ui
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - gateway.networking.k8s.io
+  resources:
+  - httproutes
+  resourceNames:
+  - admin-tools-public
+  - connectool-cloud-mcp
+  - toolhive-cloud-ui
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  resourceNames:
+  - admin-tools-re8ch-com
+  - connectool-tools-re8ch-com
+  - toolhive-cloud-ui
+  - tools-re8ch-com
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  resourceNames:
+  - re8ch-plugin-runtime
+  - vmcp-internal-backends
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  resourceNames:
+  - re8ch-plugin-runtime
+  - toolhive-operator
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  resourceNames:
+  - api-conformance-pull-source
+  - kyverno-toolhive-pull-secret-target
+  - retire-toolhive-session-redis
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  resourceNames:
+  - api-conformance-pull-source
+  - kyverno-toolhive-pull-secret-target
+  - retire-toolhive-session-redis
+  verbs:
+  - get
+  - patch
+  - update
+  - escalate
+  - bind
+- apiGroups:
+  - toolhive.stacklok.dev
+  resources:
+  - mcpexternalauthconfigs
+  resourceNames:
+  - vmcp-admin-backend-auth
+  - vmcp-observe-backend-auth
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - toolhive.stacklok.dev
+  resources:
+  - mcpgroups
+  resourceNames:
+  - platform-admin-public
+  - platform-operate-public
+  - platform-tools-public
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - toolhive.stacklok.dev
+  resources:
+  - mcptelemetryconfigs
+  resourceNames:
+  - platform-tools-telemetry
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - toolhive.stacklok.dev
+  resources:
+  - mcptoolconfigs
+  resourceNames:
+  - ops-admin-tools
+  - ops-operate-tools
+  - ops-public-read-tools
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-domain-toolhive-system
+  namespace: toolhive-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-domain-toolhive-system
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
