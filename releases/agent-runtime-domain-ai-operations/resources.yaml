@@ -215,6 +215,80 @@ spec:
 ---
 apiVersion: v1
 data:
+  nodes.json: ENC[AES256_GCM,data:Z86FTRGqCPLls/zwQhUzeiYy93uq+EIUFhbNdbXn9Khsx00FgWY9YLylgsOuazlhcG9DaruGHoEcs4QAk49eQlIWor3I2z2kTVqu/p3M74pn8Gq4qt/gszdCFUOlEn86WuKklDoXEa92KaU6sXBL017GMfsh33KWbgSjsqBR/4iTn1oTg856po3fDt90Zwarywu7HKw+tk26sr29s5IC9BPs+0AIzd0NNfc/l4nvVUXzFaTLn5NoKCvsLCge9VkTmI8hChfHAQ+B34mveCl4PnuwTzRMQrIh38bMgc4BWdoe0iwBr6o4XDq+U3XSKOBvRkobVTCz3DdN3wj3l10coYhhjy8zg+ZBBp5NdTp+pye5FX7siICBfHsn9LvQVTAlO84hB0yT+GYbubfu+Dr06zcBG56TCQN36mJNchHjpU+igp+sYnWfH61258R9qsGJ6YfrLA9+ujzdpoV7ekCyOjX13Cn9PjT+Y/LHJBCuUFMaCmJPRNiue4e+YzaEyqzCGl9l/yRZGIkWIColYREAhRe0UludZpxKA9vONH4E5D0l95UPYb1mgGK6PUPiCj07eU6Du+ZZqCbmi8+lvt88hydDiG0SWTYL9bzj/+yizKoAaDsPw+qwp90p6J+GHkoZpuzFZ97DTfJnnJhA07bo0fcvRKh2lDmtbXOr5j1O2Wh1AcmdN5opy4B41idYQRYosVO0Q0uDz1zXj4k65bYYcYVcENk7CcWMVh7ZQKxE9FFl9mSryOP0hdmSRqmXO+rq2Figz4+M5hMEyzdBQeuqR/iFugZ9E1bwjpd8hpwwuxjeoEQP/ziceSls99s/FEmzQUu5nTaArG57jmxMwhaOp+A6WYaBfYQldCg6wTapTaUZi3XVwfQPotp7xZ15s0/wnuWmvhf0tpXoMsYA3dzjwhNXxDRL24YOHEo0OscroEg8HboecY/iWo5efReeEFcVxCnQxFStBJtimVuv5qjctGu6Ho7tlPRtiBTIvNBH5ODLGRNEx0hwFxdgf7Ic4zyq/O6iZN5DLV6bd0uiKSkKXR2D5cqk/HN3lEmAtPusMK7y0oeA2oueW7IUN6tkeZUbZR6fyz8J3qkVcz6MDgyB8/MAm5KNAhBrpMUoRAnho7R38+8WFdET7Dg1GrxgJrp/CATxeExndqpzbwwf/sLRsR/OCOKrs8Gfg8enfnsWdDl01D8RryWraQ6Zki115TshmFQEH/3c/9ibQ1Wrz0GhoYysBfdcdCmj60zC6PhoCpsK9QB8XeHySxFxbPle/I/LRqrMMTcaYE2Nfsdln5m446y4BDEu+QeNLmBtakSnBe/olCT8IxprUGyFbUL0jrWBmn6ZdCFtdSIY0K0rc+8ZXM7lsJ0krnyjYBpNJmp81SInnPoi+wqW9A4VGzffDqx0I51mC3G2irmtimBS3AMm6p1Lyw++0xptsCO2zjdhTOV4ows6tkHCjWWfoIukaNq9W9JzbaC9FwI77o9/quakFlDlYJWQy/WRrQPzwrV/DdHK1H0P0V8v6UN/cWvDs9tTLjN0r7odMQZIKPCLbFds0bXbfueqRr6eKMDZGtVFJ2033nYx8PBSQ4HcjT1FofRzNH3TmpH4Wu8dEkHSwrT4RxwtyLrAhwRZ1k+X0Zvg4VEuUKl+e81k/Akgbhu7mma1decKbOvY5dEUIvDOcVsxvbvuggz/eRFpXKCjF9zP62rqePzUjUIQtUg1XqxcJgF2XJLhOQApVYc2tTfwbOkXphIHKRL6QHxjOYK127yzsFBqdSoBKYqtOEjyWqYZeYvty4jWwDtgmqehdNQGdMWuwhRCcTa0nlWCpE9WIIObhvhHM3QxlXTX80dsy1GrmaxSqtXkLiI3Rp9tBK1Z7Uj9WaR8CpjxOqIKIHTCuOBpH7GgKxBxvkEwhB4m3BsoB+9mmY/XjyarckkdPaYASpZAPALUV5Mp9DW3O/ETwymr6ZANIbiEgsKghPPErQEms5/V4qx7w4Ut0IyGUcsGb5+AAl+ysYg3D1VJhttfYce5sKwXBY6XrKpNgfu32vP+ACNkJWljSZ69somGOXkYTZOPZsJ2RXxnINBf3Ru1H7BASnYwFv/I1A/ItaDxzyRxgwJp6BgCkCMVHjwdGuZVhUPJ6VPploBCVdaZzxI04OYt1c1TXBfoB+LQx/oL6NqUWXbmJfykCfBmlSMBVxgHNGT8U/e06HR9seiy1BqQpRfG2/cZGzKvq4iIu6h+C1wWLZsBHIo4JEyLnVnAnSJKSoR6DonOUVxHBoNFhfJ6gFUALBGFOzOOAhdpfm/muMze2gslayd4ojcT+CtXr0jSWJ9LcMHJCrVM5rzjWcj6s1e9bFrQtTK/Ca1tWN77wwYLC+vfNUAWKIJIhUyuymQhJwiY2DBN6OTk/nbXEg/wNC4uWnZqLyHxifERXRT+BmP0rZCsm7v48ogYJV2UT1Eqcy0zlbFwSFdADqAE8cv/wiwtImqGTZhHqD1l1a01,iv:Q4ERoO2nn+eGJpSKdj3f4wVP80YqtuASQrCSeU2ZZn8=,tag:63soBtwO/3d9qBbqHj5Xyg==,type:str]
+kind: ConfigMap
+metadata:
+  annotations:
+    security.re8ch.com/restricted-data-sha256: '{"nodes.json":"ca66aad32b6f5fe883e50353bee7e63d14753f78f751c08901a38ab1c6da1da5"}'
+  name: ai-operations-inventory
+  namespace: ai-operations
+sops:
+  age:
+  - enc: '-----BEGIN AGE ENCRYPTED FILE-----
+
+      YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBaR1Y2SU9WTDAzUDFBdWJa
+
+      cEU2OUdxci96aVhXb1lwZFZnWEc1RWQzM21nCjgzbWRWM2hPTVFkRi9HbkdOa1Rs
+
+      bDJaZVBVUHdVSlA4bWRuYkY1TnROcm8KLS0tIHlld05oN1h3L3IyZFY0WDJKNFhv
+
+      RFdnTHAxTDlycW1OR3pXZUJrQjR2WFkKGzlc/3EIZi/bS49ISX9apybL7+LeBBc/
+
+      g8NJuyMugtKCscRzXF2sfNNCzgjE6xlyZsVcyjpyjDYV2l+Dio7Hjg==
+
+      -----END AGE ENCRYPTED FILE-----
+
+      '
+    recipient: age1c7camhc8ql85t5u4hrjmsmkurfa0n0v7lg05espasa9fqapjz5vqql8lfj
+  encrypted_regex: ^(nodes\.json|inventory\.json|advanced-fabric-values\.yaml|adoption\.json|routeros-transit\.json|package\.json|host-network-contract\.json|ssh-config|reconcile\.sh|controlPlaneApi)$
+  lastmodified: '2026-10-27T15:40:16Z'
+  mac: ENC[AES256_GCM,data:A+MNFXC5+EBt4w14C/OopdcOAwnS55+8zCswpHOYzr6C5cDtP9o+kYDAEJAqG9D+exUv0a4kkL1/FJfOEm8DBeZ0A+lc+rmrY8JuNb6qdbGxTQ2GqRTL5/m4rVpeQkKLy7OC97FKMA1m2BFdGv5gXQinOu7z+a3Zjjo8kISQ/1g=,iv:c521faex8wlsLaRg29UkCGiHF/41nzx2XKJOaiDdYp8=,tag:EJYm6cW2YhzctTlEK+xOYw==,type:str]
+  version: 3.13.3
+_re8chSopsSource: '{"apiVersion":"v1","data":{"nodes.json":"ENC[AES256_GCM,data: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,iv:Q4ERoO2nn+eGJpSKdj3f4wVP80YqtuASQrCSeU2ZZn8=,tag:63soBtwO/3d9qBbqHj5Xyg==,type:str]"},"kind":"ConfigMap","metadata":{"name":"ai-operations-inventory","namespace":"ai-operations","annotations":{"security.re8ch.com/restricted-data-sha256":"{\"nodes.json\":\"ca66aad32b6f5fe883e50353bee7e63d14753f78f751c08901a38ab1c6da1da5\"}"}},"sops":{"age":[{"enc":"-----BEGIN
+  AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBaR1Y2SU9WTDAzUDFBdWJa\ncEU2OUdxci96aVhXb1lwZFZnWEc1RWQzM21nCjgzbWRWM2hPTVFkRi9HbkdOa1Rs\nbDJaZVBVUHdVSlA4bWRuYkY1TnROcm8KLS0tIHlld05oN1h3L3IyZFY0WDJKNFhv\nRFdnTHAxTDlycW1OR3pXZUJrQjR2WFkKGzlc/3EIZi/bS49ISX9apybL7+LeBBc/\ng8NJuyMugtKCscRzXF2sfNNCzgjE6xlyZsVcyjpyjDYV2l+Dio7Hjg==\n-----END
+  AGE ENCRYPTED FILE-----\n","recipient":"age1c7camhc8ql85t5u4hrjmsmkurfa0n0v7lg05espasa9fqapjz5vqql8lfj"}],"encrypted_regex":"^(nodes\\.json|inventory\\.json|advanced-fabric-values\\.yaml|adoption\\.json|routeros-transit\\.json|package\\.json|host-network-contract\\.json|ssh-config|reconcile\\.sh|controlPlaneApi)$","lastmodified":"2026-10-27T15:40:16Z","mac":"ENC[AES256_GCM,data:A+MNFXC5+EBt4w14C/OopdcOAwnS55+8zCswpHOYzr6C5cDtP9o+kYDAEJAqG9D+exUv0a4kkL1/FJfOEm8DBeZ0A+lc+rmrY8JuNb6qdbGxTQ2GqRTL5/m4rVpeQkKLy7OC97FKMA1m2BFdGv5gXQinOu7z+a3Zjjo8kISQ/1g=,iv:c521faex8wlsLaRg29UkCGiHF/41nzx2XKJOaiDdYp8=,tag:EJYm6cW2YhzctTlEK+xOYw==,type:str]","version":"3.13.3"}}'
+---
+apiVersion: v1
+data:
+  byoc-known-hosts: '124.220.54.182 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMm5W5YiKAtLIx0UpzIEyTs3mpBifAf369ykmN5jyLIc
+
+    '
+  ssh-config: ENC[AES256_GCM,data:/vzD8L1RfplyH68OyKEKl7VsVCnz30s7TCmmOxHEgWoyKY7UEW7QoV8cCTfeNYFBGo7M280Tn2berm6MV9cONgHFcPmlCA7BdsvDv+0RATXp7J+sqGdEcNUz9481pnrlBJ/FQ3CXLTCecaKIJqUynjtwkgDTYXoQEpwMY6xudyoX2N88TcphGbbrB7RcRct4xb27wzzEyHXQK35ixxYrrNFrVbh/cSIjsDmg39JLP2xuUNve0nCW9WlMNDnkJpIKGUx7FyA869rdudit3sGpxo4/SswSNdj94YzB5cj6pdZFkMuKu4cYP9lsuYVFcw9VynIZEjaTSZ1QYWkA9PpmaGRwgfN+Nbp9jVT09k7uzxIpb2CpJYuFBa3/cjLFndgsKAfjNMhbGrKtj3ordTasIZ0h/VF1AG57jxIPCDyz8hKnijvHLDvnyifrT/I55DDYfa0Xa1DKV5Lwx5aYgJ1N4FsNt0nazQZ7NkjhalGttHPjr5WEh3NBbgiuQYS7a5lv+gZxTHxxLSA5LwgNyI60ZIqpkFHdYHfJD/3x28+vo4tFMuyMjWZmxGLn7UsbzL70ANo3bhGPlZnzCW3DaP/bhxJqKnt+POUEC30Y3bJKmqy4XuD6qknajjmMFWtQdHGcZBOpjsnw1SKpDYiB9KDWZiGS2fB6Ibv4bJP4vbchDkZoDZ/f6rNpBiu0G2idlyUUINekeTmoVc37g/soHyLiVR5rCEhYzADl/6vsBRYnMPYmMqy3rRrJ7V8pyWLmoEEkvVoUwdfUZGonsOZiRFizRZrL1B8c+OyqarVVFvRiJ3by7grXrhBnq1uBiirYt3agX+sviTuBOQF+7OSDeXzNJTagmcjaYM98B6jcDEcFJW2Zcj78d6IIONJZbUnSlnsdwZBdR7D3/fn2qZbzFWtuUDmZ7MduZv3Z0H59g9UOWrs7cFYioJ8ba9S3SBTQ9Ttn3rM6WZt6E1fdjZ3fLdH2BdGUW9YG6q/VYWQTILO+suk57ZCR/vWlWdH5IziP7ENjcWgqGs0UdugjYzBt7rLHBct4sU66BDquNpeftFfZczn6FLJAaaFSCC//ZkY/okPVnRahdkQBxJ6ZmNeQTpD3cToLHcF9kGY1/GfRUvWK85YKovGvEKylKwVwv0saGTpuiAzfilR4xE4TNzyPB4kP5l4R6+tph6L79NQmxMGRQMruiWzlWbgqzPZgMlJ42ml3hiDkzylUk+v+JBtCkibXO5136Mn/ljSmmysRIxb+Cu7EnI617YQ/6nVWCCZpQHgjCzbU7WRgYBW9sHT/cOClLlffzWn1Y/rzfmHZ1zCwN4LxYU7bQlmi11dF96C83dGlqMANIJ5t0g/lSjRL/LyghoQfwhJr30LwJATt/dY1+xeTEJtyt6d72CcrPRyd+IZV9DyDOs6qxMjfROqmLcUnaeLceqe+NqtWUdisZYU3UQc/AbB/Yo1erYnr/XY7NmVJjIv5C81Lc9yOjo0VTw3UkWIwMGKy3QMXxNiFc5O1mnjUorLWIxHjtbv16/91m0a7ipn/Idno+f/oPbjV+SDQghO2kv9fG4JIkjUOCijBxL5oRO3A4N8GhV+SX9Tz2U05Felu07sLB96rZ2hURRTcbA==,iv:g7xKeU7XRU7BoCfrqlvUIKp68h6j9Z6GOA3nuwNUhYc=,tag:Id/yUw4DcYlXTU5UizGmOA==,type:str]
+kind: ConfigMap
+metadata:
+  annotations:
+    security.re8ch.com/restricted-data-sha256: '{"ssh-config":"fb94594aa961f36348a7791540fd1c3c3843bdb4d7bc2e1f264ac8a9fdeee8e3"}'
+  name: ai-operations-ssh-config
+  namespace: ai-operations
+sops:
+  age:
+  - enc: '-----BEGIN AGE ENCRYPTED FILE-----
+
+      YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBNNmVoajNTNDcxVVNsK296
+
+      bkRQaXFNWC96VmV6bjY0YVhWb0VORUFIdkZ3CmJ5YmNMUW9Bdk1pZFFRYmpBdDBL
+
+      S3JJVWFNOW9GcC9BdEc2eXc5dnZoa3cKLS0tIDlpRWtVQzVOTTJLako1Y09MOStJ
+
+      NmhublEzRFlWb0psVnNKRDhBd25iM3cKd6ayWtZZhh6WPd3L/GIDF8htM3hMZSzN
+
+      yA8rhv51882xzn8cvZTVH9BD9V2sSQXYrseHqvHbpr866UzC3+D0wg==
+
+      -----END AGE ENCRYPTED FILE-----
+
+      '
+    recipient: age1c7camhc8ql85t5u4hrjmsmkurfa0n0v7lg05espasa9fqapjz5vqql8lfj
+  encrypted_regex: ^(nodes\.json|inventory\.json|advanced-fabric-values\.yaml|adoption\.json|routeros-transit\.json|package\.json|host-network-contract\.json|ssh-config|reconcile\.sh|controlPlaneApi)$
+  lastmodified: '2026-10-27T15:40:16Z'
+  mac: ENC[AES256_GCM,data:PNqEb37xT2BbhGDyhOkQmqji7y8wAfo0Sg/WqeltM4NWmEifB2fMkIlwIDffzgrNMfGAGd8EzUQFADKRVK7W/dsZDmir8QlGWzX2OUwj6a+wMm9ksO1tRMKiR4V7TsysbOWFm+4AI5jmdGGKIFGgr8AFoiq4fQwDFbpL5tVLbdU=,iv:q+z9wvRxtLSVEWAcDE4PxdkFxC+E8jwIyQt/RPCso18=,tag:NuCxdjrh+kud8QRtZg/biw==,type:str]
+  version: 3.13.3
+_re8chSopsSource: '{"apiVersion":"v1","data":{"byoc-known-hosts":"124.220.54.182 ssh-ed25519
+  AAAAC3NzaC1lZDI1NTE5AAAAIMm5W5YiKAtLIx0UpzIEyTs3mpBifAf369ykmN5jyLIc\n","ssh-config":"ENC[AES256_GCM,data:/vzD8L1RfplyH68OyKEKl7VsVCnz30s7TCmmOxHEgWoyKY7UEW7QoV8cCTfeNYFBGo7M280Tn2berm6MV9cONgHFcPmlCA7BdsvDv+0RATXp7J+sqGdEcNUz9481pnrlBJ/FQ3CXLTCecaKIJqUynjtwkgDTYXoQEpwMY6xudyoX2N88TcphGbbrB7RcRct4xb27wzzEyHXQK35ixxYrrNFrVbh/cSIjsDmg39JLP2xuUNve0nCW9WlMNDnkJpIKGUx7FyA869rdudit3sGpxo4/SswSNdj94YzB5cj6pdZFkMuKu4cYP9lsuYVFcw9VynIZEjaTSZ1QYWkA9PpmaGRwgfN+Nbp9jVT09k7uzxIpb2CpJYuFBa3/cjLFndgsKAfjNMhbGrKtj3ordTasIZ0h/VF1AG57jxIPCDyz8hKnijvHLDvnyifrT/I55DDYfa0Xa1DKV5Lwx5aYgJ1N4FsNt0nazQZ7NkjhalGttHPjr5WEh3NBbgiuQYS7a5lv+gZxTHxxLSA5LwgNyI60ZIqpkFHdYHfJD/3x28+vo4tFMuyMjWZmxGLn7UsbzL70ANo3bhGPlZnzCW3DaP/bhxJqKnt+POUEC30Y3bJKmqy4XuD6qknajjmMFWtQdHGcZBOpjsnw1SKpDYiB9KDWZiGS2fB6Ibv4bJP4vbchDkZoDZ/f6rNpBiu0G2idlyUUINekeTmoVc37g/soHyLiVR5rCEhYzADl/6vsBRYnMPYmMqy3rRrJ7V8pyWLmoEEkvVoUwdfUZGonsOZiRFizRZrL1B8c+OyqarVVFvRiJ3by7grXrhBnq1uBiirYt3agX+sviTuBOQF+7OSDeXzNJTagmcjaYM98B6jcDEcFJW2Zcj78d6IIONJZbUnSlnsdwZBdR7D3/fn2qZbzFWtuUDmZ7MduZv3Z0H59g9UOWrs7cFYioJ8ba9S3SBTQ9Ttn3rM6WZt6E1fdjZ3fLdH2BdGUW9YG6q/VYWQTILO+suk57ZCR/vWlWdH5IziP7ENjcWgqGs0UdugjYzBt7rLHBct4sU66BDquNpeftFfZczn6FLJAaaFSCC//ZkY/okPVnRahdkQBxJ6ZmNeQTpD3cToLHcF9kGY1/GfRUvWK85YKovGvEKylKwVwv0saGTpuiAzfilR4xE4TNzyPB4kP5l4R6+tph6L79NQmxMGRQMruiWzlWbgqzPZgMlJ42ml3hiDkzylUk+v+JBtCkibXO5136Mn/ljSmmysRIxb+Cu7EnI617YQ/6nVWCCZpQHgjCzbU7WRgYBW9sHT/cOClLlffzWn1Y/rzfmHZ1zCwN4LxYU7bQlmi11dF96C83dGlqMANIJ5t0g/lSjRL/LyghoQfwhJr30LwJATt/dY1+xeTEJtyt6d72CcrPRyd+IZV9DyDOs6qxMjfROqmLcUnaeLceqe+NqtWUdisZYU3UQc/AbB/Yo1erYnr/XY7NmVJjIv5C81Lc9yOjo0VTw3UkWIwMGKy3QMXxNiFc5O1mnjUorLWIxHjtbv16/91m0a7ipn/Idno+f/oPbjV+SDQghO2kv9fG4JIkjUOCijBxL5oRO3A4N8GhV+SX9Tz2U05Felu07sLB96rZ2hURRTcbA==,iv:g7xKeU7XRU7BoCfrqlvUIKp68h6j9Z6GOA3nuwNUhYc=,tag:Id/yUw4DcYlXTU5UizGmOA==,type:str]"},"kind":"ConfigMap","metadata":{"name":"ai-operations-ssh-config","namespace":"ai-operations","annotations":{"security.re8ch.com/restricted-data-sha256":"{\"ssh-config\":\"fb94594aa961f36348a7791540fd1c3c3843bdb4d7bc2e1f264ac8a9fdeee8e3\"}"}},"sops":{"age":[{"enc":"-----BEGIN
+  AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBNNmVoajNTNDcxVVNsK296\nbkRQaXFNWC96VmV6bjY0YVhWb0VORUFIdkZ3CmJ5YmNMUW9Bdk1pZFFRYmpBdDBL\nS3JJVWFNOW9GcC9BdEc2eXc5dnZoa3cKLS0tIDlpRWtVQzVOTTJLako1Y09MOStJ\nNmhublEzRFlWb0psVnNKRDhBd25iM3cKd6ayWtZZhh6WPd3L/GIDF8htM3hMZSzN\nyA8rhv51882xzn8cvZTVH9BD9V2sSQXYrseHqvHbpr866UzC3+D0wg==\n-----END
+  AGE ENCRYPTED FILE-----\n","recipient":"age1c7camhc8ql85t5u4hrjmsmkurfa0n0v7lg05espasa9fqapjz5vqql8lfj"}],"encrypted_regex":"^(nodes\\.json|inventory\\.json|advanced-fabric-values\\.yaml|adoption\\.json|routeros-transit\\.json|package\\.json|host-network-contract\\.json|ssh-config|reconcile\\.sh|controlPlaneApi)$","lastmodified":"2026-10-27T15:40:16Z","mac":"ENC[AES256_GCM,data:PNqEb37xT2BbhGDyhOkQmqji7y8wAfo0Sg/WqeltM4NWmEifB2fMkIlwIDffzgrNMfGAGd8EzUQFADKRVK7W/dsZDmir8QlGWzX2OUwj6a+wMm9ksO1tRMKiR4V7TsysbOWFm+4AI5jmdGGKIFGgr8AFoiq4fQwDFbpL5tVLbdU=,iv:q+z9wvRxtLSVEWAcDE4PxdkFxC+E8jwIyQt/RPCso18=,tag:NuCxdjrh+kud8QRtZg/biw==,type:str]","version":"3.13.3"}}'
+---
+apiVersion: v1
+data:
   artc-controlled.yaml: "apiVersion: v1\nkind: Config\nclusters:\n  - name: artc-controlled\n\
     \    cluster:\n      server: https://among-clusters.service.re8ch.com\nusers:\n\
     \  - name: artc-controlled\n    user: {token: \"credential://among-clusters/byoc-pilot/artc-headlamp-admin\"\

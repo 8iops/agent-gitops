@@ -39,6 +39,8 @@ rules:
   resources:
   - configmaps
   resourceNames:
+  - ai-operations-inventory
+  - ai-operations-ssh-config
   - controlled-cluster-kubeconfigs
   - harbor-tenant-catalog
   - ops-capsule-policy
@@ -485,6 +487,7 @@ rules:
   resources:
   - configmaps
   resourceNames:
+  - cube-trial-values
   - ssa-state-agent-runtime-domain-cube-trial
   verbs:
   - get
@@ -893,6 +896,7 @@ rules:
   resources:
   - configmaps
   resourceNames:
+  - ops-mcp-server-code
   - re8ch-plugin-definitions
   - re8ch-plugin-operation-catalog
   - ssa-state-agent-runtime-domain-toolhive-system

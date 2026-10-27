@@ -12,6 +12,7 @@ from collections import defaultdict
 from pathlib import Path
 import yaml
 from operation_materialize import state_configmap_name
+from restricted_configmap import bind_source, validate_envelope, RestrictedConfigError
 from profile import REPOSITORY, ENVIRONMENT, AUDIENCE, GROUP, SIGNER, WORKFLOW
 from unified_bundle import canonical, digest, compile_bundle, object_identity
 ROOT = Path(__file__).resolve().parents[2]
@@ -44,7 +45,9 @@ def classify(item,reserved):
     if group(item)=='rbac.authorization.k8s.io':return 'platform-owned-rbac'
     if item['kind']=='Job':return 'one-shot-job-platform-owned'
     if item['kind']=='Secret':return 'secret-provisioning'
-    if contains_encrypted(item):return 'restricted-cloud-decryption'
+    if contains_encrypted(item):
+        try:validate_envelope(item)
+        except RestrictedConfigError:return 'restricted-cloud-decryption'
     if group(item) in FLUX_GROUPS:return 'helm-render' if item['kind']=='HelmRelease' else 'retired-flux-control-resource'
     if not item['metadata'].get('namespace'):return 'cluster-scoped-bootstrap'
     if mutable_image(item):return 'image-digest-required'
@@ -61,7 +64,10 @@ def compile_outputs():
         contract=yaml.safe_load(path.read_text()); source=contract['spec']['source']
         if source.get('path'):
             reserved.update(object_identity(d) for d in rendered(ROOT/source['path']))
-    items=rendered(ROOT/'clusters/re8ch'); by_namespace=defaultdict(list); deferred=[]; seen=set()
+    originals={object_identity(d):d for path in (ROOT/'clusters/re8ch').glob('*.yaml') for d in yaml.safe_load_all(path.read_text()) if isinstance(d,dict) and 'sops' in d}
+    items=rendered(ROOT/'clusters/re8ch')
+    items=[bind_source(d, originals[object_identity(d)]) if d.get('kind')=='ConfigMap' and 'sops' in d else d for d in items]
+    by_namespace=defaultdict(list); deferred=[]; seen=set()
     for item in items:
         ident=object_identity(item)
         if ident in seen:raise ValueError('duplicate object: '+ident)

@@ -24,22 +24,25 @@ spec:
     fieldManager: re8ch-release/agent-runtime-domain-cube-trial
     resources:
     - apps/Deployment
+    - core/ConfigMap
     - core/Service
     - gateway.networking.k8s.io/HTTPRoute
     - networking.k8s.io/Ingress
     objectNames:
     - cube-dns-authority
     - cube-public
+    - cube-trial-values
     - oauth2-proxy-cube
     allowClusterScoped: false
     requireExisting: true
     forceConflictObjects:
     - apps/Deployment/cube-trial/oauth2-proxy-cube
+    - core/ConfigMap/cube-trial/cube-trial-values
     - core/Service/cube-trial/oauth2-proxy-cube
     - gateway.networking.k8s.io/HTTPRoute/cube-trial/cube-public
     - networking.k8s.io/Ingress/cube-trial/cube-dns-authority
   inventory:
-    digest: sha256:54b343ec6ecfefbe97f6d7c8f8b40e17ec7a75b3d6af93193a20c720dffe844b
+    digest: sha256:2ac1ed303dbd15410f016bae0fee8ff4d455e8f0f5d18bcbf7f5c3a7c978dffb
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

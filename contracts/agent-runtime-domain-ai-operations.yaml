@@ -32,6 +32,8 @@ spec:
     - networking.k8s.io/NetworkPolicy
     objectNames:
     - ai-operations
+    - ai-operations-inventory
+    - ai-operations-ssh-config
     - cloud-device-registry
     - controlled-cluster-kubeconfigs
     - harbor-tenant-catalog
@@ -47,6 +49,8 @@ spec:
     forceConflictObjects:
     - apps/Deployment/ai-operations/stagehand-service
     - batch/CronJob/ai-operations/workspace-mirror-sync
+    - core/ConfigMap/ai-operations/ai-operations-inventory
+    - core/ConfigMap/ai-operations/ai-operations-ssh-config
     - core/ConfigMap/ai-operations/controlled-cluster-kubeconfigs
     - core/ConfigMap/ai-operations/harbor-tenant-catalog
     - core/ConfigMap/ai-operations/ops-capsule-policy
@@ -55,7 +59,7 @@ spec:
     - core/ServiceAccount/ai-operations/workspace-controller
     - networking.k8s.io/NetworkPolicy/ai-operations/stagehand-service
   inventory:
-    digest: sha256:b9ac567e700cc6dc3e718b3e5db3f18040a22f7483708e8a22489d6ec43aff27
+    digest: sha256:6ad3679d384cbea0c17ed8d9f64bf8a76310255211dcfe5a9dd9faba0fc4a084
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

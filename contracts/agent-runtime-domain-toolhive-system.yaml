@@ -42,6 +42,7 @@ spec:
     - connectool-tools-re8ch-com
     - ops-admin-tools
     - ops-mcp-public
+    - ops-mcp-server-code
     - ops-operate-tools
     - ops-public-read-tools
     - platform-admin-public
@@ -67,6 +68,7 @@ spec:
     forceConflictObjects:
     - apps/Deployment/toolhive-system/re8ch-plugin-runtime
     - apps/Deployment/toolhive-system/toolhive-cloud-ui
+    - core/ConfigMap/toolhive-system/ops-mcp-server-code
     - core/ConfigMap/toolhive-system/re8ch-plugin-definitions
     - core/ConfigMap/toolhive-system/re8ch-plugin-operation-catalog
     - core/Service/toolhive-system/re8ch-plugin-runtime
@@ -99,7 +101,7 @@ spec:
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-operate-tools
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-public-read-tools
   inventory:
-    digest: sha256:fb660f10d738791d6bf8496b39679628bad6874db21abe621487c56a255122b0
+    digest: sha256:1dcc74784590d5df2b5af84d2ece6a55e635205137eaf32f19b47542b1029ec0
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300
