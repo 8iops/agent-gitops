@@ -23,26 +23,72 @@ spec:
   authorization:
     fieldManager: re8ch-release/agent-runtime-domain-cube-trial
     resources:
+    - apps/DaemonSet
     - apps/Deployment
+    - apps/StatefulSet
     - core/ConfigMap
+    - core/PersistentVolumeClaim
     - core/Service
     - gateway.networking.k8s.io/HTTPRoute
     - networking.k8s.io/Ingress
+    - networking.k8s.io/NetworkPolicy
     objectNames:
     - cube-dns-authority
     - cube-public
+    - cube-recovery-api
+    - cube-recovery-cubemastercli
+    - cube-recovery-cubevs-cidr-preflight
+    - cube-recovery-internal
+    - cube-recovery-lifecycle-manager
+    - cube-recovery-master
+    - cube-recovery-master-storage
+    - cube-recovery-mysql
+    - cube-recovery-node
+    - cube-recovery-node-bootstrap
+    - cube-recovery-node-installer
+    - cube-recovery-ops
+    - cube-recovery-proxy
+    - cube-recovery-proxy-entrypoint
+    - cube-recovery-redis
+    - cube-recovery-webui
+    - cube-recovery-webui-config
     - cube-trial-values
     - oauth2-proxy-cube
     allowClusterScoped: false
     requireExisting: true
     forceConflictObjects:
+    - apps/DaemonSet/cube-trial/cube-recovery-node
+    - apps/DaemonSet/cube-trial/cube-recovery-node-bootstrap
+    - apps/DaemonSet/cube-trial/cube-recovery-node-installer
+    - apps/Deployment/cube-trial/cube-recovery-api
+    - apps/Deployment/cube-trial/cube-recovery-cubemastercli
+    - apps/Deployment/cube-trial/cube-recovery-lifecycle-manager
+    - apps/Deployment/cube-trial/cube-recovery-master
+    - apps/Deployment/cube-trial/cube-recovery-ops
+    - apps/Deployment/cube-trial/cube-recovery-proxy
+    - apps/Deployment/cube-trial/cube-recovery-webui
     - apps/Deployment/cube-trial/oauth2-proxy-cube
+    - apps/StatefulSet/cube-trial/cube-recovery-mysql
+    - apps/StatefulSet/cube-trial/cube-recovery-redis
+    - core/ConfigMap/cube-trial/cube-recovery-cubevs-cidr-preflight
+    - core/ConfigMap/cube-trial/cube-recovery-proxy-entrypoint
+    - core/ConfigMap/cube-trial/cube-recovery-redis
+    - core/ConfigMap/cube-trial/cube-recovery-webui-config
     - core/ConfigMap/cube-trial/cube-trial-values
+    - core/Service/cube-trial/cube-recovery-api
+    - core/Service/cube-trial/cube-recovery-lifecycle-manager
+    - core/Service/cube-trial/cube-recovery-master
+    - core/Service/cube-trial/cube-recovery-mysql
+    - core/Service/cube-trial/cube-recovery-ops
+    - core/Service/cube-trial/cube-recovery-proxy
+    - core/Service/cube-trial/cube-recovery-redis
+    - core/Service/cube-trial/cube-recovery-webui
     - core/Service/cube-trial/oauth2-proxy-cube
     - gateway.networking.k8s.io/HTTPRoute/cube-trial/cube-public
     - networking.k8s.io/Ingress/cube-trial/cube-dns-authority
+    - networking.k8s.io/NetworkPolicy/cube-trial/cube-recovery-internal
   inventory:
-    digest: sha256:2ac1ed303dbd15410f016bae0fee8ff4d455e8f0f5d18bcbf7f5c3a7c978dffb
+    digest: sha256:56ed078dfe924a6e5f34b8a8a21290895e9cb4424623c8534f2e7084156df584
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

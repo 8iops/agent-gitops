@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]
 def test_cube_identity_matches_registered_public_callback_without_privilege_changes():
     plan=yaml.safe_load((ROOT/'operations/identity/cube-stalwart-migration.yaml').read_text())
     docs=list(yaml.safe_load_all((ROOT/'releases/agent-runtime-domain-cube-trial/resources.yaml').read_text()))
-    deployment=next(d for d in docs if d['kind']=='Deployment')
+    deployment=next(d for d in docs if d['kind']=='Deployment' and d['metadata']['name']=='oauth2-proxy-cube')
     route=next(d for d in docs if d['kind']=='HTTPRoute')
     pod=deployment['spec']['template']['spec'];container=pod['containers'][0]
     args=dict(arg[2:].split('=',1) for arg in container['args'] if '=' in arg)

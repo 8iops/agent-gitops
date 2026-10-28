@@ -4,3 +4,4 @@ resources:
 - resources.yaml
 - mail-authority-resources.yaml
 - litellm-authority-resources.yaml
+- cube-recovery-resources.yaml

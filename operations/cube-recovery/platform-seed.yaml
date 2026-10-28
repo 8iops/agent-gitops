@@ -1,0 +1,464 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cube-recovery-node
+  labels:
+    helm.sh/chart: cube-0.5.1
+    app.kubernetes.io/name: cube
+    app.kubernetes.io/instance: cube-recovery
+    app.kubernetes.io/version: 0.5.1
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: cube-node
+  annotations: {}
+  namespace: cube-trial
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cube-recovery-master-config
+  namespace: cube-trial
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cube-recovery-secret
+  namespace: cube-trial
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cube-recovery-proxy-certs
+  labels:
+    helm.sh/chart: cube-0.5.1
+    app.kubernetes.io/name: cube
+    app.kubernetes.io/instance: cube-recovery
+    app.kubernetes.io/version: 0.5.1
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: cube-proxy
+  namespace: cube-trial
+spec:
+  secretName: cube-recovery-proxy-certs
+  commonName: cube-recovery.internal
+  dnsNames:
+  - cube-recovery.internal
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+  issuerRef:
+    group: cert-manager.io
+    kind: Issuer
+    name: cube-recovery-selfsigned
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cube-recovery-cubevs-cidr-preflight
+  labels:
+    helm.sh/chart: cube-0.5.1
+    app.kubernetes.io/name: cube
+    app.kubernetes.io/instance: cube-recovery
+    app.kubernetes.io/version: 0.5.1
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: cubevs-cidr-preflight
+  annotations: {}
+  namespace: cube-trial
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cube-cidr-cube-recovery-63b4c205e0
+  labels:
+    helm.sh/chart: cube-0.5.1
+    app.kubernetes.io/name: cube
+    app.kubernetes.io/instance: cube-recovery
+    app.kubernetes.io/version: 0.5.1
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: cubevs-cidr-preflight
+  annotations: {}
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cube-cidr-cube-recovery-63b4c205e0
+  labels:
+    helm.sh/chart: cube-0.5.1
+    app.kubernetes.io/name: cube
+    app.kubernetes.io/instance: cube-recovery
+    app.kubernetes.io/version: 0.5.1
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: cubevs-cidr-preflight
+  annotations: {}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cube-cidr-cube-recovery-63b4c205e0
+subjects:
+- kind: ServiceAccount
+  name: cube-recovery-cubevs-cidr-preflight
+  namespace: cube-trial
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cube-cidr-cube-recovery-63b4c205e0
+  namespace: kube-system
+  labels:
+    helm.sh/chart: cube-0.5.1
+    app.kubernetes.io/name: cube
+    app.kubernetes.io/instance: cube-recovery
+    app.kubernetes.io/version: 0.5.1
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: cubevs-cidr-preflight
+  annotations: {}
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  - pods
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cube-cidr-cube-recovery-63b4c205e0
+  namespace: kube-system
+  labels:
+    helm.sh/chart: cube-0.5.1
+    app.kubernetes.io/name: cube
+    app.kubernetes.io/instance: cube-recovery
+    app.kubernetes.io/version: 0.5.1
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: cubevs-cidr-preflight
+  annotations: {}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cube-cidr-cube-recovery-63b4c205e0
+subjects:
+- kind: ServiceAccount
+  name: cube-recovery-cubevs-cidr-preflight
+  namespace: cube-trial
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cube-recovery-cubevs-cidr-preflight
+  labels:
+    helm.sh/chart: cube-0.5.1
+    app.kubernetes.io/name: cube
+    app.kubernetes.io/instance: cube-recovery
+    app.kubernetes.io/version: 0.5.1
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: cubevs-cidr-preflight
+  annotations: {}
+  namespace: cube-trial
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 120
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cube
+        app.kubernetes.io/instance: cube-recovery
+        app.kubernetes.io/component: cubevs-cidr-preflight
+    spec:
+      restartPolicy: Never
+      serviceAccountName: cube-recovery-cubevs-cidr-preflight
+      nodeSelector:
+        cube.tencent.com/cube-control: 'true'
+        kubernetes.io/hostname: r640
+      tolerations:
+      - key: cube.tencent.com/pvm-not-ready
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: preflight
+        image: cube-sandbox-int.tencentcloudcr.com/cube-sandbox/alpine-k8s:1.28.15@sha256:782c4ec6276a7112ee358a11c4bfc238f2373e978cd97eada57494e05a980545
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/bash
+        - /scripts/cubevs-cidr-preflight.sh
+        env:
+        - name: TZ
+          value: Asia/Shanghai
+        - name: CUBE_SANDBOX_NETWORK_CIDR
+          value: 172.16.0.0/18
+        - name: CUBE_SANDBOX_NETWORK_CIDR_SKIP_CONFLICT_CHECK
+          value: '0'
+        - name: PACKAGED_CUBELET_CIDR
+          value: 192.168.0.0/18
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: '2'
+            memory: 2Gi
+      volumes:
+      - name: scripts
+        configMap:
+          name: cube-recovery-cubevs-cidr-preflight
+          defaultMode: 493
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: cube-recovery-selfsigned
+  namespace: cube-trial
+spec:
+  selfSigned: {}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cube-recovery-credential-template
+  namespace: cube-trial
+data:
+  conf.yaml: "\ncommon:\n  http_port: 8089\n  http_readtimeout: 120\n  http_writetimeout:\
+    \ 360\n  http_idletimeout: 360\n  sync_meta_data_interval: 30s\n  sync_metric_data_interval:\
+    \ 1s\n  collect_metric_interval: 1s\n  default_headless_service_nodes_num: 1\n\
+    \  enable_check_com_net_id_param: false\n\nlog:\n  module: \"cubemaster\"\n  path:\
+    \ \"/data/log/CubeMaster\"\n  file_size: 100\n  file_num: 10\n  level: \"info\"\
+    \n\ncubelet_conf:\n  grpc:\n    grpc_port: 9999\n  common_timeout_insec: 30\n\
+    \  create_image_timeout_insec: 300\n  create_concurrent_limit: 100\n  destroy_concurent_limit:\
+    \ 100\n  enable_exposed_port: true\n  exposed_port_list:\n    - \"80\"\n  disable_redis_proxy_port:\
+    \ true\n\nauth:\n  enable: false\n\nreq_template_conf:\n  whitelist_req_tag:\n\
+    \    WorkingDir: true\n    RLimit: true\n    DnsConfig: true\n    HostAliases:\
+    \ true\n    Poststop: true\n    Prestop: true\n  cube_box_req_template: >-\n \
+    \   {\"volumes\":[{\"name\":\"tmp\",\"volume_source\":{\"empty_dir\":{\"medium\"\
+    :0}}}],\"containers\":[{\"name\":\"cubebox-default\",\"envs\":[{\"key\":\"TZ\"\
+    ,\"value\":\"Asia/Shanghai\"},{\"key\":\"TERM\",\"value\":\"xterm\"}],\"volume_mounts\"\
+    :[{\"name\":\"tmp\",\"container_path\":\"/\"}],\"security_context\":{\"privileged\"\
+    :true,\"readonly_rootfs\":false,\"no_new_privs\":false}}],\"network_type\":\"\
+    tap\",\"cubevs_context\":{\"allowInternetAccess\":true,\"denyOut\":[\"10.0.0.0/8\"\
+    ,\"100.64.0.0/10\",\"172.16.0.0/12\",\"192.168.0.0/18\"]}}\n\nossdb_config:\n\
+    \  addr: \"cube-recovery-mysql.cube-trial.svc.cluster.local:3306\"\n  user: \"\
+    cube\"\n  pwd: \"__CUBE_MYSQL_PASSWORD__\"\n  db_name: \"cube_mvp\"\n  conn_timeout:\
+    \ 5\n  read_timeout: 5\n  write_timeout: 5\n  max_idle_conns: 5\n  max_open_conns:\
+    \ 20\n  max_conn_life_time_seconds: 300\n\ninstance_db_config:\n  addr: \"cube-recovery-mysql.cube-trial.svc.cluster.local:3306\"\
+    \n  user: \"cube\"\n  pwd: \"__CUBE_MYSQL_PASSWORD__\"\n  db_name: \"cube_mvp\"\
+    \n  conn_timeout: 5\n  read_timeout: 5\n  write_timeout: 5\n  max_idle_conns:\
+    \ 5\n  max_open_conns: 20\n  max_conn_life_time_seconds: 300\n\nredis:\n  nodes:\
+    \ \"cube-recovery-redis.cube-trial.svc.cluster.local:6379\"\n  password: \"__CUBE_REDIS_PASSWORD__\"\
+    \n  db_no: 0\n  max_idle: 8\n  max_active: 32\n  idle_timeout: 30\n  max_retry:\
+    \ 2\n\nredis_read:\n  nodes: \"cube-recovery-redis.cube-trial.svc.cluster.local:6379\"\
+    \n  password: \"__CUBE_REDIS_PASSWORD__\"\n  db_no: 0\n  max_idle: 8\n  max_active:\
+    \ 32\n  idle_timeout: 30\n  max_retry: 2\n\nredis_write:\n  nodes: \"cube-recovery-redis.cube-trial.svc.cluster.local:6379\"\
+    \n  password: \"__CUBE_REDIS_PASSWORD__\"\n  db_no: 0\n  max_idle: 8\n  max_active:\
+    \ 32\n  idle_timeout: 30\n  max_retry: 2\n\nscheduler:\n  priority_select_num:\
+    \ 1\n  metric_update_timeout: 300s\n  local_metric_update_timeout: 300s\n  filter:\n\
+    \    enable_filters:\n      - \"cpu\"\n      - \"mem\"\n      - \"template_locality\"\
+    \n      - \"realtime_create_num\"\n\n# Volume plugin (COS binary). Credentials:\
+    \ Secret-mounted volume-cos.conf\n# next to the binary (see values.volumeCos).\n\
+    volume_plugins:\n  - name: cos\n    type: binary\n    binary_path: /usr/local/services/cubetoolbox/CubeMaster/plugin/cube-volume-cos"
+  provision.py: "\"\"\"One-shot, cluster-only provisioning of two exact recovery Secrets.\n\
+    \nNo credential values are accepted from arguments or emitted in diagnostics.\n\
+    An empty seed is supplied by reviewed platform bootstrap. Existing credentials\n\
+    are retained; optimistic concurrency prevents two Jobs from rotating passwords.\n\
+    \"\"\"\nimport base64\nimport json\nimport secrets\nimport ssl\nfrom pathlib import\
+    \ Path\nfrom urllib.request import Request, urlopen\n\nNAMESPACE = 'cube-trial'\n\
+    BASE = 'cube-recovery-secret'\nMASTER = 'cube-recovery-master-config'\nKEYS =\
+    \ ('mysql-root-password', 'mysql-password', 'redis-password', 'cube-admin-token')\n\
+    MARKERS = dict(zip(KEYS, ('__CUBE_MYSQL_ROOT_PASSWORD__', '__CUBE_MYSQL_PASSWORD__',\
+    \ '__CUBE_REDIS_PASSWORD__', '__CUBE_ADMIN_TOKEN__')))\n\n\ndef credential_data(existing):\n\
+    \    data = existing.get('data') or {}\n    if not data:\n        values = {key:\
+    \ secrets.token_hex(32) for key in KEYS}\n        values['redis-auth.conf'] =\
+    \ 'requirepass ' + values['redis-password'] + '\\n'\n        return {key: base64.b64encode(value.encode()).decode()\
+    \ for key, value in values.items()}\n    values = {key: base64.b64decode(data[key],\
+    \ validate=True).decode() for key in KEYS}\n    if any(len(value) != 64 or any(c\
+    \ not in '0123456789abcdef' for c in value) for value in values.values()):\n \
+    \       raise ValueError('existing credential format rejected')\n    if base64.b64decode(data['redis-auth.conf']).decode()\
+    \ != 'requirepass ' + values['redis-password'] + '\\n':\n        raise ValueError('existing\
+    \ Redis configuration rejected')\n    return data\n\n\ndef master_data(template,\
+    \ data):\n    for key, marker in MARKERS.items():\n        template = template.replace(marker,\
+    \ base64.b64decode(data[key]).decode())\n    if '__CUBE_' in template:\n     \
+    \   raise ValueError('unresolved credential marker')\n    return {'conf.yaml':\
+    \ base64.b64encode(template.encode()).decode()}\n\n\ndef main():\n    service_account\
+    \ = Path('/var/run/secrets/kubernetes.io/serviceaccount')\n    token = service_account.joinpath('token').read_text().strip()\n\
+    \    context = ssl.create_default_context(cafile=str(service_account / 'ca.crt'))\n\
+    \n    def api(name, payload=None):\n        if name not in (BASE, MASTER):\n \
+    \           raise ValueError('undeclared Secret')\n        req = Request(f'https://kubernetes.default.svc/api/v1/namespaces/{NAMESPACE}/secrets/{name}',\n\
+    \                      data=json.dumps(payload).encode() if payload is not None\
+    \ else None,\n                      method='PATCH' if payload is not None else\
+    \ 'GET',\n                      headers={'Authorization': 'Bearer ' + token,\n\
+    \                               'Content-Type': 'application/merge-patch+json'})\n\
+    \        with urlopen(req, context=context, timeout=20) as response:\n       \
+    \     return json.load(response)\n\n    current = api(BASE)\n    data = credential_data(current)\n\
+    \    if not current.get('data'):\n        current = api(BASE, {'metadata': {'resourceVersion':\
+    \ current['metadata']['resourceVersion']}, 'data': data})\n        data = credential_data(current)\n\
+    \    target = api(MASTER)\n    config = master_data(Path('/templates/conf.yaml').read_text(),\
+    \ data)\n    if target.get('data') != config:\n        api(MASTER, {'metadata':\
+    \ {'resourceVersion': target['metadata']['resourceVersion']}, 'data': config})\n\
+    \    print('Cube recovery credential references ready; values suppressed.')\n\n\
+    \nif __name__ == '__main__':\n    try:\n        main()\n    except Exception:\n\
+    \        # Never emit HTTP response bodies, headers or rendered configuration.\n\
+    \        raise SystemExit('Cube credential provisioning failed; inspect Job metadata\
+    \ and scoped access.') from None\n"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cube-recovery-credentials
+  namespace: cube-trial
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cube-recovery-credentials
+  namespace: cube-trial
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - secrets
+  resourceNames:
+  - cube-recovery-secret
+  - cube-recovery-master-config
+  verbs:
+  - get
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cube-recovery-credentials
+  namespace: cube-trial
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cube-recovery-credentials
+subjects:
+- kind: ServiceAccount
+  name: cube-recovery-credentials
+  namespace: cube-trial
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cube-recovery-credentials-v1
+  namespace: cube-trial
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 180
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: cube-recovery-credentials
+      nodeSelector:
+        kubernetes.io/hostname: r640
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: provision
+        image: python:3.13-alpine@sha256:8bcfa47b04b853a17aaf909362b847b2112fd6ec4105ea553ef9a43bafbb5916
+        command:
+        - python
+        - -B
+        - /templates/provision.py
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+        volumeMounts:
+        - name: template
+          mountPath: /templates
+          readOnly: true
+      volumes:
+      - name: template
+        configMap:
+          name: cube-recovery-credential-template
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cube-recovery-node
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - ''
+  resources:
+  - nodes
+  resourceNames:
+  - r640
+  verbs:
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cube-recovery-node
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cube-recovery-node
+subjects:
+- kind: ServiceAccount
+  name: cube-recovery-node
+  namespace: cube-trial
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cube-recovery-node
+  namespace: cube-trial
+rules:
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - create
+  - update
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cube-recovery-node
+  namespace: cube-trial
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cube-recovery-node
+subjects:
+- kind: ServiceAccount
+  name: cube-recovery-node
+  namespace: cube-trial
