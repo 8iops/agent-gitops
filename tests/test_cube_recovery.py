@@ -52,3 +52,11 @@ def test_credentials_job_cannot_create_or_read_unrelated_secrets():
     role=next(d for d in docs if d['kind']=='Role' and d['metadata']['name']=='cube-recovery-credentials')
     assert role['rules']==[{'apiGroups':[''],'resources':['secrets'],'resourceNames':['cube-recovery-secret','cube-recovery-master-config'],'verbs':['get','patch']}]
     assert all(not d.get('data') and not d.get('stringData') for d in docs if d['kind']=='Secret')
+
+
+def test_preflight_uses_token_file_not_secret_argv():
+    docs=list(yaml.safe_load_all((ROOT/'clusters/re8ch/cube-recovery-resources.yaml').read_text()))
+    cm=next(d for d in docs if d['kind']=='ConfigMap' and d['metadata']['name']=='cube-recovery-cubevs-cidr-preflight')
+    script=cm['data']['cubevs-cidr-preflight.sh']
+    assert '--token=' not in script
+    assert 'tokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token' in script
