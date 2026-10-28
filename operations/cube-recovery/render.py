@@ -43,6 +43,31 @@ def compile_outputs():
     for obj in objects:
         obj['metadata'].setdefault('namespace', NS)
         kind = obj['kind']; name = obj['metadata']['name']
+        if kind == 'ConfigMap' and name == 'cube-recovery-cubevs-cidr-preflight':
+            script = obj['data']['cubevs-cidr-preflight.sh']
+            old = '--token="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"'
+            assert old in script
+            script = script.replace(old, '--kubeconfig=/tmp/cube-preflight-kubeconfig')
+            setup = '''umask 077
+cat > /tmp/cube-preflight-kubeconfig <<EOF
+apiVersion: v1
+kind: Config
+clusters:
+- name: in-cluster
+  cluster:
+    server: https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}
+    certificate-authority: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+users:
+- name: preflight
+  user:
+    tokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+contexts:
+- name: preflight
+  context: {cluster: in-cluster, user: preflight}
+current-context: preflight
+EOF
+'''
+            obj['data']['cubevs-cidr-preflight.sh'] = script.replace('  kubectl() {', setup + '  kubectl() {')
         if kind.startswith('Cluster'):
             obj['metadata'].pop('namespace', None)
         if kind == 'Secret':

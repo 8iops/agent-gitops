@@ -2176,9 +2176,14 @@ data:
     \ node registration fails.\nif [[ \"${CUBEVS_CIDR_PREFLIGHT_SOURCE_ONLY:-0}\"\
     \ != \"1\" ]]; then\n  set -euo pipefail\nfi\n\n# alpine/k8s kubectl does not\
     \ auto-load in-cluster config.\nif [[ -f /var/run/secrets/kubernetes.io/serviceaccount/token\
-    \ ]]; then\n  kubectl() {\n    command kubectl \\\n      --server=\"https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}\"\
-    \ \\\n      --token=\"$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)\"\
-    \ \\\n      --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt\
+    \ ]]; then\numask 077\ncat > /tmp/cube-preflight-kubeconfig <<EOF\napiVersion:\
+    \ v1\nkind: Config\nclusters:\n- name: in-cluster\n  cluster:\n    server: https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}\n\
+    \    certificate-authority: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n\
+    users:\n- name: preflight\n  user:\n    tokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token\n\
+    contexts:\n- name: preflight\n  context: {cluster: in-cluster, user: preflight}\n\
+    current-context: preflight\nEOF\n  kubectl() {\n    command kubectl \\\n     \
+    \ --server=\"https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}\" \\\
+    \n      --kubeconfig=/tmp/cube-preflight-kubeconfig \\\n      --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt\
     \ \\\n      \"$@\"\n  }\nfi\n\nkubectl_opts=(--request-timeout=30s)\n\nlog() {\
     \ printf 'cubevs-cidr preflight: %s\\n' \"$*\"; }\nfail() {\n  printf 'cubevs-cidr\
     \ preflight: ERROR: %s\\n' \"$*\" >&2\n  exit 1\n}\n\nPACKAGED_CUBELET_CIDR=\"\
