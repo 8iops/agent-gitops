@@ -6,10 +6,12 @@ placement:
   controlPlane:
     nodeSelector:
       kubernetes.io/hostname: r640
+      cube.tencent.com/cube-control: null
     tolerations: []
   compute:
     nodeSelector:
       kubernetes.io/hostname: r640
+      cube.tencent.com/cube-node: null
     tolerations: []
   pvm:
     nodeSelector:

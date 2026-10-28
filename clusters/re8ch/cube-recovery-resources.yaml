@@ -410,7 +410,6 @@ spec:
       dnsPolicy: ClusterFirst
       terminationGracePeriodSeconds: 30
       nodeSelector:
-        cube.tencent.com/cube-node: 'true'
         kubernetes.io/hostname: r640
       initContainers:
       - name: invalidate-stale-node-prep
@@ -720,7 +719,6 @@ spec:
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
       nodeSelector:
-        cube.tencent.com/cube-node: 'true'
         kubernetes.io/hostname: r640
       initContainers:
       - name: wait-node-prep
@@ -1117,7 +1115,6 @@ spec:
       dnsPolicy: ClusterFirst
       terminationGracePeriodSeconds: 15
       nodeSelector:
-        cube.tencent.com/cube-node: 'true'
         kubernetes.io/hostname: r640
       containers:
       - name: cube-shim-install
@@ -1255,7 +1252,6 @@ spec:
         app.kubernetes.io/component: api
     spec:
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
       containers:
       - name: cube-api
@@ -1343,7 +1339,6 @@ spec:
     spec:
       terminationGracePeriodSeconds: 5
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
       containers:
       - name: cubemastercli
@@ -1420,7 +1415,6 @@ spec:
         app.kubernetes.io/component: lifecycle-manager
     spec:
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
       containers:
       - name: cube-lifecycle-manager
@@ -1516,7 +1510,6 @@ spec:
         app.kubernetes.io/component: master
     spec:
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
       containers:
       - name: cube-master
@@ -1616,7 +1609,6 @@ spec:
         app.kubernetes.io/component: ops
     spec:
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
       containers:
       - name: cube-ops
@@ -1705,7 +1697,6 @@ spec:
       automountServiceAccountToken: false
       dnsPolicy: ClusterFirst
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
       containers:
       - name: cube-proxy
@@ -1891,7 +1882,6 @@ spec:
         checksum/nginx-conf: 7cd89b04158ef65c7417acbd83460e96a64a0f551a6be8e5c00ab32a1d0f6871
     spec:
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
       containers:
       - name: webui
@@ -1968,7 +1958,6 @@ spec:
         app.kubernetes.io/component: mysql
     spec:
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
       containers:
       - name: mysql
@@ -2080,7 +2069,6 @@ spec:
         app.kubernetes.io/component: redis
     spec:
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
       containers:
       - name: redis
