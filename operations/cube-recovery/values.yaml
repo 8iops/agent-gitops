@@ -1,0 +1,150 @@
+global:
+  timezone: Asia/Shanghai
+persistence:
+  storageClassName: cephfs-r640
+placement:
+  controlPlane:
+    nodeSelector:
+      kubernetes.io/hostname: r640
+    tolerations: []
+  compute:
+    nodeSelector:
+      kubernetes.io/hostname: r640
+    tolerations: []
+  pvm:
+    nodeSelector:
+      cube.tencent.com/allow-pvm-bootstrap: disabled-for-trial
+    tolerations: []
+cubeNode:
+  podAnnotations: {}
+  pvmGuestKernel:
+    enabled: false
+  network:
+    cidr: 172.16.0.0/18
+  updateStrategy:
+    type: OnDelete
+cubeProxy:
+  enabled: true
+  domain: cube-recovery.internal
+  configureClusterDNS: false
+  ingress:
+    enabled: false
+  service:
+    type: ClusterIP
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 1
+      memory: 512Mi
+controlPlane:
+  master:
+    command:
+    - /bin/bash
+    - -c
+    args:
+    - "fifo=/tmp/cube-master.stdout\nrm -f \"$fifo\"\nmkfifo \"$fifo\"\nsed -u '/^cfg:/d'\
+      \ <\"$fifo\" &\nfilter_pid=$!\n/usr/local/services/cubetoolbox/CubeMaster/bin/cubemaster\
+      \ >\"$fifo\" 2>&1 &\nmaster_pid=$!\nterminate() {\n  kill -TERM \"$master_pid\"\
+      \ 2>/dev/null || true\n  wait \"$master_pid\"\n}\ntrap terminate TERM INT\n\
+      wait \"$master_pid\"\nstatus=$?\nwait \"$filter_pid\" || true\nexit \"$status\"\
+      \n"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 2
+        memory: 2Gi
+  api:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 1
+        memory: 512Mi
+cubemastercli:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 32Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+webui:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 32Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+cubeOps:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 1
+      memory: 512Mi
+lifecycleManager:
+  resources:
+    requests:
+      cpu: 20m
+      memory: 32Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  adminToken: __CUBE_ADMIN_TOKEN__
+bootstrap:
+  pvmHostKernel:
+    enabled: false
+  nodeInit:
+    dataCubelet:
+      loopback:
+        enabled: true
+        imagePath: /data/cube-recovery/cubelet-xfs.img
+        size: 25G
+    loadKVMModule: false
+    chmodKVM: false
+    writeUdevRule: false
+mysql:
+  persistence:
+    storageClassName: cephfs-r640
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 2
+      memory: 2Gi
+  password: __CUBE_MYSQL_PASSWORD__
+  rootPassword: __CUBE_MYSQL_ROOT_PASSWORD__
+redis:
+  persistence:
+    storageClassName: cephfs-r640
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 1
+      memory: 512Mi
+  password: __CUBE_REDIS_PASSWORD__
+fullnameOverride: cube-recovery
+hostPaths:
+  dataCubelet: /data/cube-recovery/cubelet
+  dataLog: /data/cube-recovery/log
+  dataCubeShim: /data/cube-recovery/shim
+  dataSnapshotPack: /data/cube-recovery/snapshot_pack
+  dataCubeShared: /data/cube-recovery/shared
+  dataShared: /data/cube-recovery/host-shared
+  tmpCube: /tmp/cube-recovery
+  bootstrapState: /var/lib/cube-recovery-bootstrap
+  toolbox: /data/cube-recovery/toolbox
+  runContainerd: /data/cube-recovery/cubelet/run/containerd
+  runVc: /data/cube-recovery/cubelet/run/vc
+rbac:
+  create: false

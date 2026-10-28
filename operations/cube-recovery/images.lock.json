@@ -1,0 +1,92 @@
+{
+  "pvmHostBootstrap": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-pvm-host-bootstrap",
+    "tag": "v0.6.0",
+    "digest": "sha256:aa0592ad8330ab543789dd8f54cbc1c207d3b1def43236d15f41d4e9f58f64bc"
+  },
+  "nodeInit": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-node-init",
+    "tag": "v0.6.0",
+    "digest": "sha256:3e8f2fbf24bbb3446d537c28aab5a31de925574981198b3667097aa5cad20c3b"
+  },
+  "waitNodePrep": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-wait-node-prep",
+    "tag": "v0.6.0",
+    "digest": "sha256:67584162d88af7cf34360741c4e6b85747dd3cbda4a91d3dcd3e1d0a14fd5fbe"
+  },
+  "cubelet": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cubelet",
+    "tag": "v0.6.0",
+    "digest": "sha256:2554c459908bbf945599c065abac65bccab5eecaa4b144e8aeb1d6c7636ae35b"
+  },
+  "networkAgent": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/network-agent",
+    "tag": "v0.6.0",
+    "digest": "sha256:5efe25ab120f4ac2fb948db66260dbd85b747c2339c907d7f5943288b9b9e801"
+  },
+  "cubeShim": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-shim",
+    "tag": "v0.6.0",
+    "digest": "sha256:f9bf3fd2538b7ecc15c30b51f67244c4b20cd5563939cbe07442620f9dcc0b88"
+  },
+  "cubeKernel": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-kernel",
+    "tag": "v0.6.0",
+    "digest": "sha256:b1c1354ee061acb466a46807917c0555155bd8410d2608802dcc78f4514d9a75"
+  },
+  "cubeGuest": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-guest",
+    "tag": "v0.6.0",
+    "digest": "sha256:87250643a7fbd81882bdea058625b6f475d69850272c1e53f32f131291a0ee7c"
+  },
+  "master": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-master",
+    "tag": "v0.6.0",
+    "digest": "sha256:0dbb8867b9e706afe26ef583c823d482bb4fecf33ea0b9a3df256a85ec582a93"
+  },
+  "api": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-api",
+    "tag": "v0.6.0",
+    "digest": "sha256:f94f9188969afc1fd46c019f75e197d3cca8566dc19ff6ea3708611ff6762c9e"
+  },
+  "ops": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-ops",
+    "tag": "v0.6.0",
+    "digest": "sha256:760ec27a938d56bdefa56a9ef3d2fdfe0138ae889d18e0d2c265f0af51662b0b"
+  },
+  "cubemastercli": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cubemastercli",
+    "tag": "v0.6.0",
+    "digest": "sha256:1490535c11a893285e6c46e4cb4bc335187a030f1029ae71164e56c8d8154674"
+  },
+  "proxy": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-proxy",
+    "tag": "v0.6.0",
+    "digest": "sha256:f5e8bf7931831e43d05a84e805732e33a32843087bc21bf0116956fe37730f84"
+  },
+  "lifecycleManager": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-lifecycle-manager",
+    "tag": "v0.6.0",
+    "digest": "sha256:54a4b43775d0b85b2d48f37ceaadf9114122384f76947980d23e358768d73572"
+  },
+  "cubeEgress": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-egress",
+    "tag": "v0.6.0",
+    "digest": "sha256:ed5aa4b192b364469ca483b4c9e319949e407a2e3446a5f7f36fdc237eeb9e4b"
+  },
+  "cubeEgressNet": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-egress-net",
+    "tag": "v0.6.0",
+    "digest": "sha256:f9d87cbbaaf61a2cc26f8c24d352140549bdec3f61f89de4e074e0a6b718f5df"
+  },
+  "webui": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-webui",
+    "tag": "v0.6.0",
+    "digest": "sha256:9b79ff75dd2a763bb7b01ee4c6c05f785e8bad02989115001df3c7ffeb762747"
+  },
+  "kubectl": {
+    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/alpine-k8s",
+    "tag": "1.28.15",
+    "digest": "sha256:782c4ec6276a7112ee358a11c4bfc238f2373e978cd97eada57494e05a980545"
+  }
+}
