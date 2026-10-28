@@ -38,6 +38,13 @@ cubeProxy:
     limits:
       cpu: 1
       memory: 512Mi
+  tls:
+    mode: certManager
+    certManager:
+      issuerRef:
+        kind: Issuer
+        name: cube-recovery-selfsigned
+        group: cert-manager.io
 controlPlane:
   master:
     command:
@@ -110,6 +117,7 @@ bootstrap:
     loadKVMModule: false
     chmodKVM: false
     writeUdevRule: false
+    createHostDirs: false
 mysql:
   persistence:
     storageClassName: cephfs-r640
@@ -148,3 +156,9 @@ hostPaths:
   runVc: /data/cube-recovery/cubelet/run/vc
 rbac:
   create: false
+cubeEgress:
+  enabled: false
+diagnostics:
+  enabled: false
+helmTest:
+  enabled: false

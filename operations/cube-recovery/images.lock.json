@@ -88,5 +88,20 @@
     "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/alpine-k8s",
     "tag": "1.28.15",
     "digest": "sha256:782c4ec6276a7112ee358a11c4bfc238f2373e978cd97eada57494e05a980545"
+  },
+  "mysql": {
+    "repository": "mysql",
+    "tag": "8.0",
+    "digest": "sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b"
+  },
+  "redis": {
+    "repository": "redis",
+    "tag": "7-alpine",
+    "digest": "sha256:6ba19c50b56777f5c11c58eff8ddb69d0d5f27ba131cffb63f180ccfd43c66af"
+  },
+  "credentialBootstrap": {
+    "repository": "python",
+    "tag": "3.13-alpine",
+    "digest": "sha256:8bcfa47b04b853a17aaf909362b847b2112fd6ec4105ea553ef9a43bafbb5916"
   }
 }

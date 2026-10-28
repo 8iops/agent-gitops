@@ -1,0 +1,45 @@
+network-agent:
+  command:
+  - /usr/bin/tini
+  - -s
+  - --
+  - /bin/bash
+  - -ec
+  - "cfg=/usr/local/services/cubetoolbox/Cubelet/config/config.toml\nsentinel=/usr/local/services/cubetoolbox/.staged-cubelet\n\
+    until test -f \"${sentinel}\" && test -f \"${cfg}\"; do sleep 1; done\nsed -i\
+    \ -E \\\n  -e 's|^([[:space:]]*)cube_router_enable = .*|\\1cube_router_enable\
+    \ = true|' \\\n  -e 's|^([[:space:]]*)cube_router_cidr = .*|\\1cube_router_cidr\
+    \ = \"\"|' \\\n  \"${cfg}\"\ngrep -qE '^[[:space:]]*cube_router_enable = true$'\
+    \ \"${cfg}\"\nexec /usr/local/bin/component-entrypoint.sh\n"
+  env:
+  - name: CUBE_SANDBOX_NETWORK_CIDR
+    value: ''
+  - name: CUBE_SANDBOX_CUBE_ROUTER_ENABLE
+    value: '1'
+cubelet:
+  ports:
+  - name: cubelet-grpc
+    containerPort: 9999
+    hostPort: 9999
+    protocol: TCP
+  command:
+  - /usr/bin/tini
+  - -s
+  - --
+  - /bin/bash
+  - -ec
+  - "cfg=/opt/cube-image/Cubelet/config/config.toml\nsed -i -E \\\n  -e 's|^([[:space:]]*)cidr\
+    \ = .*|\\1cidr = \"172.16.0.0/18\"|' \\\n  -e 's|^([[:space:]]*)cube_router_enable\
+    \ = .*|\\1cube_router_enable = true|' \\\n  -e 's|^([[:space:]]*)cube_router_cidr\
+    \ = .*|\\1cube_router_cidr = \"\"|' \\\n  \"${cfg}\"\nset +e\n/usr/local/bin/component-entrypoint.sh\n\
+    rc=$?\npid=\"$(pidof cubelet 2>/dev/null | awk '{print $1}' || true)\"\nif test\
+    \ -n \"${pid}\" && kill -0 \"${pid}\" 2>/dev/null \\\n  && ss -lntp 2>/dev/null\
+    \ | grep -q ':9999'; then\n  printf '%s\\n' \"${pid}\" >/run/cube-node/cubelet.pid\n\
+    \  cleanup() { kill -TERM \"${pid}\" 2>/dev/null || true; }\n  trap cleanup TERM\
+    \ INT HUP EXIT\n  while kill -0 \"${pid}\" 2>/dev/null; do sleep 10; done\n  exit\
+    \ 1\nfi\nexit \"${rc}\"\n"
+  env:
+  - name: CUBE_SANDBOX_NETWORK_CIDR
+    value: ''
+  - name: CUBE_SANDBOX_CUBE_ROUTER_ENABLE
+    value: '1'
