@@ -178,7 +178,6 @@ spec:
       restartPolicy: Never
       serviceAccountName: cube-recovery-cubevs-cidr-preflight
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
       tolerations:
       - key: cube.tencent.com/pvm-not-ready

@@ -322,7 +322,6 @@ spec:
         - mountPath: /var/lib/cube-recovery-bootstrap
           name: bootstrap-state
       nodeSelector:
-        cube.tencent.com/cube-node: 'true'
         kubernetes.io/hostname: r640
       serviceAccountName: cube-recovery-node
       terminationGracePeriodSeconds: 30
@@ -652,7 +651,6 @@ spec:
           mountPropagation: Bidirectional
           name: tmp-cube
       nodeSelector:
-        cube.tencent.com/cube-node: 'true'
         kubernetes.io/hostname: r640
       serviceAccountName: cube-recovery-node
       terminationGracePeriodSeconds: 30
@@ -830,7 +828,6 @@ spec:
       dnsPolicy: ClusterFirst
       hostPID: false
       nodeSelector:
-        cube.tencent.com/cube-node: 'true'
         kubernetes.io/hostname: r640
       serviceAccountName: cube-recovery-node
       terminationGracePeriodSeconds: 15
@@ -932,7 +929,6 @@ spec:
             cpu: 50m
             memory: 64Mi
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
 ---
 apiVersion: apps/v1
@@ -1009,7 +1005,6 @@ spec:
             cpu: 20m
             memory: 32Mi
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
       terminationGracePeriodSeconds: 5
 ---
@@ -1109,7 +1104,6 @@ spec:
             cpu: 20m
             memory: 32Mi
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
 ---
 apiVersion: apps/v1
@@ -1197,7 +1191,6 @@ spec:
         - mountPath: /data/CubeMaster/storage
           name: cube-master-storage
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
       volumes:
       - name: cube-master-config
@@ -1293,7 +1286,6 @@ spec:
             cpu: 50m
             memory: 64Mi
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
 ---
 apiVersion: apps/v1
@@ -1462,7 +1454,6 @@ spec:
           readOnly: true
       dnsPolicy: ClusterFirst
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
       volumes:
       - name: proxy-certs
@@ -1558,7 +1549,6 @@ spec:
           name: webui-config
           readOnly: true
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
       volumes:
       - configMap:
@@ -1720,7 +1710,6 @@ spec:
         - mountPath: /var/lib/mysql
           name: mysql-data
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
   volumeClaimTemplates:
   - metadata:
@@ -1823,7 +1812,6 @@ spec:
         - mountPath: /data
           name: redis-data
       nodeSelector:
-        cube.tencent.com/cube-control: 'true'
         kubernetes.io/hostname: r640
       volumes:
       - name: redis-config

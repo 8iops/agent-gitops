@@ -31,6 +31,10 @@ def test_runtime_has_isolated_host_paths_and_immutable_images():
     node = next(d for d in docs if d['metadata']['name']=='cube-recovery-node' and d['kind']=='DaemonSet')
     pod = node['spec']['template']['spec']
     assert not pod.get('hostNetwork')
+    assert pod['nodeSelector']=={'kubernetes.io/hostname':'r640'}
+    for d in docs:
+        if d['kind'] in ('Deployment', 'DaemonSet', 'StatefulSet'):
+            assert d['spec']['template']['spec']['nodeSelector']=={'kubernetes.io/hostname':'r640'}
     volumes = {v['name']:v for v in pod['volumes']}
     assert volumes['data-cubelet']['hostPath']['path']=='/data/cube-recovery/cubelet'
     assert volumes['run-containerd']['hostPath']['path'].startswith('/data/cube-recovery/')
@@ -42,6 +46,9 @@ def test_runtime_has_isolated_host_paths_and_immutable_images():
 
 def test_credentials_job_cannot_create_or_read_unrelated_secrets():
     docs=list(yaml.safe_load_all((ROOT/'operations/cube-recovery/platform-seed.yaml').read_text()))
+    for d in docs:
+        if d['kind']=='Job':
+            assert d['spec']['template']['spec']['nodeSelector']=={'kubernetes.io/hostname':'r640'}
     role=next(d for d in docs if d['kind']=='Role' and d['metadata']['name']=='cube-recovery-credentials')
     assert role['rules']==[{'apiGroups':[''],'resources':['secrets'],'resourceNames':['cube-recovery-secret','cube-recovery-master-config'],'verbs':['get','patch']}]
     assert all(not d.get('data') and not d.get('stringData') for d in docs if d['kind']=='Secret')
