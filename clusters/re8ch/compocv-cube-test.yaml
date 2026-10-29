@@ -1,0 +1,133 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cube-compocv-router
+  namespace: cube-trial
+data:
+  nginx.conf: |
+    worker_processes 2;
+    pid /tmp/nginx.pid;
+    error_log /dev/stderr warn;
+    events { worker_connections 512; }
+    http {
+      access_log off;
+      client_body_temp_path /tmp/client;
+      proxy_temp_path /tmp/proxy;
+      map $http_upgrade $connection_upgrade { default upgrade; '' close; }
+      server {
+        listen 8080;
+        server_name _;
+        location = /router-health { return 200 'ok'; }
+        location = /compocv-test { return 308 /compocv-test/; }
+        location ^~ /compocv-test/ {
+          include /etc/nginx/test-upstream.conf;
+          proxy_set_header Authorization "";
+          proxy_pass http://cube-recovery-proxy:80;
+        }
+        location ^~ /test-rpc/ {
+          include /etc/nginx/test-upstream.conf;
+          # Only the application's test JWT; OAuth token forwarding is disabled.
+          proxy_set_header Authorization $http_authorization;
+          proxy_pass http://cube-recovery-proxy:80;
+        }
+        location ~ ^/test-(api|auth)(/|$) { return 404; }
+        location / {
+          proxy_set_header Host $host;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection $connection_upgrade;
+          proxy_pass http://cube-recovery-webui:12088;
+        }
+      }
+    }
+  test-upstream.conf: |
+    proxy_http_version 1.1;
+    proxy_set_header Host 5173-31b7f25e4ef04efe874818f7a3d02dd3.cube.app;
+    include /run/cube-access/proxy-traffic.conf;
+    proxy_set_header Cookie "";
+    proxy_set_header X-Forwarded-Access-Token "";
+    proxy_set_header X-Auth-Request-Access-Token "";
+    proxy_set_header X-Forwarded-User "";
+    proxy_set_header X-Forwarded-Email "";
+    proxy_set_header X-Forwarded-Groups "";
+    proxy_set_header X-Forwarded-Preferred-Username "";
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_read_timeout 3600s;
+    proxy_buffering off;
+    proxy_hide_header Set-Cookie;
+    add_header X-Robots-Tag 'noindex, nofollow, noarchive' always;
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cube-compocv-router
+  namespace: cube-trial
+spec:
+  selector: {app.kubernetes.io/name: cube-compocv-router}
+  ports: [{name: http, port: 8080, targetPort: http}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cube-compocv-router
+  namespace: cube-trial
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app.kubernetes.io/name: cube-compocv-router}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: cube-compocv-router}
+    spec:
+      automountServiceAccountToken: false
+      nodeSelector: {kubernetes.io/hostname: r640}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+      - name: router
+        image: nginx:stable-alpine@sha256:47928bf67eb62a1863cb08d9ecb52d3e704304ba614eaee17884204677702951
+        command: [nginx, -g, 'daemon off;']
+        ports: [{name: http, containerPort: 8080}]
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities: {drop: [ALL]}
+        resources:
+          requests: {cpu: 25m, memory: 32Mi}
+          limits: {cpu: 500m, memory: 128Mi}
+        readinessProbe:
+          httpGet: {path: /router-health, port: http}
+        volumeMounts:
+        - {name: config, mountPath: /etc/nginx, readOnly: true}
+        - {name: access, mountPath: /run/cube-access, readOnly: true}
+        - {name: tmp, mountPath: /tmp}
+      volumes:
+      - name: config
+        configMap: {name: cube-compocv-router}
+      - name: access
+        secret:
+          secretName: compocv-cube-test-access
+          defaultMode: 0440
+          items: [{key: proxy-traffic.conf, path: proxy-traffic.conf}]
+      - name: tmp
+        emptyDir: {sizeLimit: 64Mi}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cube-compocv-router
+  namespace: cube-trial
+spec:
+  podSelector:
+    matchLabels: {app.kubernetes.io/name: cube-compocv-router}
+  policyTypes: [Ingress]
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels: {app.kubernetes.io/name: oauth2-proxy-cube}
+    ports: [{protocol: TCP, port: 8080}]
