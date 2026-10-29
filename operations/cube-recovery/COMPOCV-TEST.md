@@ -2,7 +2,9 @@
 
 The existing Stalwart OIDC boundary at `cube.re8ch.com` protects
 `/compocv-test/` and `/test-rpc/`. The internal router restores `/` to the recovered
-Cube UI. No new public listener, IP, DNS record or OAuth client is created.
+Cube UI. The retired Cube DNS declaration is reactivated through the existing external-dns
+controller at the inventory-approved public edge `223.159.210.222`. No new listener,
+public IP or OAuth client is created.
 OAuth identity tokens and cookies are not forwarded into the test guest;
 only the product's own test JWT reaches the test RPC. The router mounts only the
 private Cube traffic header from `compocv-cube-test-access`, never SDK credentials.
