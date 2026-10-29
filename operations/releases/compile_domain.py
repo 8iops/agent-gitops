@@ -95,7 +95,7 @@ def compile_outputs():
         body=yaml.safe_dump_all(objects,sort_keys=False,explicit_start=True)
         if namespace in transfers:
             contract['spec']['authorization']['fieldManager']=transfers[namespace]['fieldManager']
-            contract['spec']['authorization']['forceConflictObjects']=[]
+            contract['spec']['authorization']['forceConflictObjects']=transfers[namespace].get('forceConflictObjects', [])
         compile_bundle(contract,body.encode()) # use the existing validator, never a weaker parallel format
         files[package/'resources.yaml']=body
         files[package/'kustomization.yaml']=yaml.safe_dump({'apiVersion':'kustomize.config.k8s.io/v1beta1','kind':'Kustomization','resources':['resources.yaml']},sort_keys=False)
