@@ -23,6 +23,8 @@ spec:
       automountServiceAccountToken: false
       containers:
       - env:
+        - name: OAUTH_ONLY
+          value: 'false'
         - name: SESSION_SECRET
           valueFrom:
             secretKeyRef:
@@ -35,8 +37,6 @@ spec:
         - name: JMAP_SERVER_URL
           value: https://id.re8ch.com
         - name: OAUTH_ENABLED
-          value: 'true'
-        - name: OAUTH_ONLY
           value: 'true'
         - name: OAUTH_CLIENT_ID
           value: 705c1168-43d8-4ec3-980a-0327a59c7fc6

@@ -17,8 +17,11 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     expected = copy.deepcopy(original)
     webmail = next(obj for obj in expected if obj['kind'] == 'Deployment' and obj['metadata']['name'] == 'stalwart-webmail')
     env = webmail['spec']['template']['spec']['containers'][0]['env']
-    env.insert(0, {'name': 'SESSION_SECRET', 'valueFrom': {'secretKeyRef': {
+    env.insert(0, env.pop(next(i for i, item in enumerate(env) if item['name'] == 'OAUTH_ONLY')))
+    env.insert(1, {'name': 'SESSION_SECRET', 'valueFrom': {'secretKeyRef': {
         'name': 'stalwart-webmail-session', 'key': 'session-secret'}}})
+    # Reviewed post-transfer change: keep SSO and expose app-password login.
+    next(item for item in env if item['name'] == 'OAUTH_ONLY')['value'] = 'false'
     assert target == expected
     assert len(target) == 45
     assert not {'Secret', 'Role', 'RoleBinding', 'Job'} & {obj['kind'] for obj in target}
