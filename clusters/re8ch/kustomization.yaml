@@ -5,3 +5,4 @@ resources:
 - mail-authority-resources.yaml
 - litellm-authority-resources.yaml
 - cube-recovery-resources.yaml
+- compocv-cube-test.yaml

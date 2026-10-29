@@ -33,6 +33,7 @@ spec:
     - networking.k8s.io/Ingress
     - networking.k8s.io/NetworkPolicy
     objectNames:
+    - cube-compocv-router
     - cube-dns-authority
     - cube-public
     - cube-recovery-api
@@ -60,6 +61,7 @@ spec:
     - apps/DaemonSet/cube-trial/cube-recovery-node
     - apps/DaemonSet/cube-trial/cube-recovery-node-bootstrap
     - apps/DaemonSet/cube-trial/cube-recovery-node-installer
+    - apps/Deployment/cube-trial/cube-compocv-router
     - apps/Deployment/cube-trial/cube-recovery-api
     - apps/Deployment/cube-trial/cube-recovery-cubemastercli
     - apps/Deployment/cube-trial/cube-recovery-lifecycle-manager
@@ -70,11 +72,13 @@ spec:
     - apps/Deployment/cube-trial/oauth2-proxy-cube
     - apps/StatefulSet/cube-trial/cube-recovery-mysql
     - apps/StatefulSet/cube-trial/cube-recovery-redis
+    - core/ConfigMap/cube-trial/cube-compocv-router
     - core/ConfigMap/cube-trial/cube-recovery-cubevs-cidr-preflight
     - core/ConfigMap/cube-trial/cube-recovery-proxy-entrypoint
     - core/ConfigMap/cube-trial/cube-recovery-redis
     - core/ConfigMap/cube-trial/cube-recovery-webui-config
     - core/ConfigMap/cube-trial/cube-trial-values
+    - core/Service/cube-trial/cube-compocv-router
     - core/Service/cube-trial/cube-recovery-api
     - core/Service/cube-trial/cube-recovery-lifecycle-manager
     - core/Service/cube-trial/cube-recovery-master
@@ -86,9 +90,10 @@ spec:
     - core/Service/cube-trial/oauth2-proxy-cube
     - gateway.networking.k8s.io/HTTPRoute/cube-trial/cube-public
     - networking.k8s.io/Ingress/cube-trial/cube-dns-authority
+    - networking.k8s.io/NetworkPolicy/cube-trial/cube-compocv-router
     - networking.k8s.io/NetworkPolicy/cube-trial/cube-recovery-internal
   inventory:
-    digest: sha256:56ed078dfe924a6e5f34b8a8a21290895e9cb4424623c8534f2e7084156df584
+    digest: sha256:4cf149dbc080c27186dc1e2671ce7d08b28b230efe66ba71e02536f6761430a8
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

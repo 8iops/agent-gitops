@@ -1,6 +1,6 @@
 {
   "domain": "agent-runtime",
-  "sourceObjects": 331,
+  "sourceObjects": 335,
   "releases": [
     {
       "name": "agent-runtime-domain-ai-operations",
@@ -41,7 +41,7 @@
     {
       "name": "agent-runtime-domain-cube-trial",
       "namespace": "cube-trial",
-      "objects": 31,
+      "objects": 35,
       "contract": "contracts/agent-runtime-domain-cube-trial.yaml"
     },
     {
@@ -81,7 +81,7 @@
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 270,
+  "publishableObjects": 274,
   "deferred": [
     {
       "identity": "apps/Deployment/mcp-registry/mcp-registry-postgresql",

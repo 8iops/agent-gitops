@@ -489,6 +489,7 @@ rules:
   resources:
   - deployments
   resourceNames:
+  - cube-compocv-router
   - cube-recovery-api
   - cube-recovery-cubemastercli
   - cube-recovery-lifecycle-manager
@@ -517,6 +518,7 @@ rules:
   resources:
   - configmaps
   resourceNames:
+  - cube-compocv-router
   - cube-recovery-cubevs-cidr-preflight
   - cube-recovery-proxy-entrypoint
   - cube-recovery-redis
@@ -542,6 +544,7 @@ rules:
   resources:
   - services
   resourceNames:
+  - cube-compocv-router
   - cube-recovery-api
   - cube-recovery-lifecycle-manager
   - cube-recovery-master
@@ -580,6 +583,7 @@ rules:
   resources:
   - networkpolicies
   resourceNames:
+  - cube-compocv-router
   - cube-recovery-internal
   verbs:
   - get

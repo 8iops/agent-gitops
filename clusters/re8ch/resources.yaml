@@ -3996,7 +3996,7 @@ spec:
         - --provider=oidc
         - --oidc-issuer-url=https://id.re8ch.com
         - --redirect-url=https://cube.re8ch.com/oauth2/callback
-        - --upstream=http://cube-trial-webui:12088
+        - --upstream=http://cube-compocv-router:8080
         - --http-address=0.0.0.0:4180
         - --email-domain=*
         - --scope=openid profile email
@@ -4006,7 +4006,10 @@ spec:
         - --cookie-refresh=1h
         - --reverse-proxy=true
         - --set-xauthrequest=true
-        - --pass-access-token=true
+        - --pass-access-token=false
+        - --pass-authorization-header=false
+        - --pass-basic-auth=false
+        - --pass-user-headers=false
         - --skip-provider-button=true
         envFrom:
         - secretRef:
