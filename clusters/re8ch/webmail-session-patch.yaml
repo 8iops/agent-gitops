@@ -9,6 +9,8 @@ spec:
       containers:
       - name: webmail
         env:
+        - name: OAUTH_ONLY
+          value: 'false'
         - name: SESSION_SECRET
           valueFrom:
             secretKeyRef:
