@@ -76,7 +76,8 @@ spec:
     - stalwart-webmail-redirect
     allowClusterScoped: false
     requireExisting: true
-    forceConflictObjects: []
+    forceConflictObjects:
+    - apps/Deployment/mail-system/stalwart-webmail
   inventory:
     digest: sha256:0ab9d21b1a88399364341e1e5ea585f36aebe8f71adb0d71808b8349bbf5e237
   lifecycle:
