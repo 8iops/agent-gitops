@@ -55,3 +55,12 @@ Existing public OAuth and route resources remain unchanged during qualification.
 
 Old Cube volumes may be retired under the owner's authorization after replacement
 acceptance. Do not delete unrelated Secrets, storage or namespace resources.
+
+## Recovery runtime bounds
+
+Proxy workers are bounded to two instead of upstream's twelve within its 512 MiB
+limit. Generated hexadecimal admin credentials are read by awk from the environment;
+health checks feed curl headers over stdin and MySQL passwords through MYSQL_PWD,
+never process arguments. Cubelet's multi-command readiness probe has a five-second
+budget; the original one-second budget timed out although each readiness condition
+passed during direct inspection.

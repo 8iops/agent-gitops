@@ -244,6 +244,7 @@ spec:
           failureThreshold: 6
           initialDelaySeconds: 10
           periodSeconds: 10
+          timeoutSeconds: 5
         resources:
           limits:
             cpu: '4'
@@ -1410,8 +1411,8 @@ spec:
             command:
             - /bin/sh
             - -ec
-            - 'curl -fsS -H "X-Cube-Admin-Token: ${CUBE_PROXY_ADMIN_TOKEN}" http://127.0.0.1:8082/admin/healthz
-              >/dev/null'
+            - 'printf ''header = "X-Cube-Admin-Token: %s"\n'' "${CUBE_PROXY_ADMIN_TOKEN}"
+              | curl -fsS --config - http://127.0.0.1:8082/admin/healthz >/dev/null'
           failureThreshold: 6
           initialDelaySeconds: 30
           periodSeconds: 20
@@ -1431,8 +1432,8 @@ spec:
             command:
             - /bin/sh
             - -ec
-            - 'curl -fsS -H "X-Cube-Admin-Token: ${CUBE_PROXY_ADMIN_TOKEN}" http://127.0.0.1:8082/admin/healthz
-              >/dev/null'
+            - 'printf ''header = "X-Cube-Admin-Token: %s"\n'' "${CUBE_PROXY_ADMIN_TOKEN}"
+              | curl -fsS --config - http://127.0.0.1:8082/admin/healthz >/dev/null'
           failureThreshold: 6
           initialDelaySeconds: 5
           periodSeconds: 10
@@ -1670,7 +1671,7 @@ spec:
             command:
             - /bin/sh
             - -ec
-            - mysqladmin ping -h 127.0.0.1 -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}"
+            - MYSQL_PWD="${MYSQL_PASSWORD}" mysqladmin ping -h 127.0.0.1 -u"${MYSQL_USER}"
               --silent
           failureThreshold: 6
           initialDelaySeconds: 60
@@ -1684,7 +1685,7 @@ spec:
             command:
             - /bin/sh
             - -ec
-            - mysqladmin ping -h 127.0.0.1 -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}"
+            - MYSQL_PWD="${MYSQL_PASSWORD}" mysqladmin ping -h 127.0.0.1 -u"${MYSQL_USER}"
               --silent
           failureThreshold: 6
           initialDelaySeconds: 5
@@ -1701,7 +1702,7 @@ spec:
             command:
             - /bin/sh
             - -ec
-            - mysqladmin ping -h 127.0.0.1 -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}"
+            - MYSQL_PWD="${MYSQL_PASSWORD}" mysqladmin ping -h 127.0.0.1 -u"${MYSQL_USER}"
               --silent
           failureThreshold: 40
           initialDelaySeconds: 10
@@ -2015,17 +2016,18 @@ data:
     \ 8080;/set \\\\\\$host_proxy_port ${CUBE_PROXY_HTTPS_LISTEN_PORT};/g\" \\\n \
     \ -e \"s/listen 127\\\\.0\\\\.0\\\\.1:8082;/listen ${admin_listen}:${admin_port};/g\"\
     \ \\\n  /usr/local/openresty/nginx/conf/nginx.conf\n\nescape_nginx_value() {\n\
-    \  printf '%s' \"$1\" | sed 's/[\\\\\"]/\\\\&/g'\n}\n\nif [ -n \"${CUBE_PROXY_ADMIN_TOKEN:-}\"\
-    \ ]; then\n  token_escaped=\"$(escape_nginx_value \"${CUBE_PROXY_ADMIN_TOKEN}\"\
-    )\"\n  # Stock nginx.conf sets an empty token in each server block; rewrite them\n\
-    \  # so /admin/* and resume paths share the same secret as cube-lifecycle-manager.\n\
-    \  sed -i \\\n    -e \"s/set \\\\\\$cube_admin_token \\\"\\\";/set \\\\\\$cube_admin_token\
-    \ \\\"${token_escaped}\\\";/g\" \\\n    /usr/local/openresty/nginx/conf/nginx.conf\n\
-    fi\n\nresolver_addrs=\"${CUBE_PROXY_RESOLVER_ADDRS:-}\"\nif [ -z \"${resolver_addrs}\"\
-    \ ]; then\n  resolver_addrs=\"$(awk '/^nameserver[[:space:]]+/ { printf \"%s \"\
-    , $2 }' /etc/resolv.conf | sed 's/[[:space:]]*$//')\"\nfi\n[ -n \"${resolver_addrs}\"\
-    \ ] || {\n  echo \"unable to determine nginx DNS resolver for CubeProxy Redis\
-    \ lookups\" >&2\n  exit 1\n}\ncase \"${resolver_addrs}${CUBE_PROXY_RESOLVER_VALID}${CUBE_PROXY_RESOLVER_TIMEOUT}${CUBE_PROXY_RESOLVER_IPV6}\"\
+    \  printf '%s' \"$1\" | sed 's/[\\\\\"]/\\\\&/g'\n}\n\n# Bound workers to this\
+    \ Pod's CPU/memory allocation. Keep credentials out of argv.\numask 077\nawk '\n\
+    BEGIN {\n  token = ENVIRON[\"CUBE_PROXY_ADMIN_TOKEN\"]\n  if (token !~ /^[a-f0-9]+$/\
+    \ || length(token) != 64) exit 1\n}\n/^worker_processes / { print \"worker_processes\
+    \ 2;\"; next }\n{\n  gsub(/set \\$cube_admin_token \"\";/, \"set $cube_admin_token\
+    \ \\\"\" token \"\\\";\")\n  print\n}' /usr/local/openresty/nginx/conf/nginx.conf\
+    \ > /usr/local/openresty/nginx/conf/nginx.conf.safe\nmv /usr/local/openresty/nginx/conf/nginx.conf.safe\
+    \ /usr/local/openresty/nginx/conf/nginx.conf\n\n\nresolver_addrs=\"${CUBE_PROXY_RESOLVER_ADDRS:-}\"\
+    \nif [ -z \"${resolver_addrs}\" ]; then\n  resolver_addrs=\"$(awk '/^nameserver[[:space:]]+/\
+    \ { printf \"%s \", $2 }' /etc/resolv.conf | sed 's/[[:space:]]*$//')\"\nfi\n\
+    [ -n \"${resolver_addrs}\" ] || {\n  echo \"unable to determine nginx DNS resolver\
+    \ for CubeProxy Redis lookups\" >&2\n  exit 1\n}\ncase \"${resolver_addrs}${CUBE_PROXY_RESOLVER_VALID}${CUBE_PROXY_RESOLVER_TIMEOUT}${CUBE_PROXY_RESOLVER_IPV6}\"\
     \ in\n  *[\\;\\{\\}\\$\\`]*)\n    echo \"invalid CubeProxy resolver configuration\"\
     \ >&2\n    exit 1\n    ;;\nesac\n\nsidecar_addr=\"${CUBE_SIDECAR_LISTEN_ADDR:-}\"\
     \n[ -n \"${sidecar_addr}\" ] || {\n  echo \"CUBE_SIDECAR_LISTEN_ADDR is required\
