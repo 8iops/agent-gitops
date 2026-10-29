@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stalwart-bot-access-contract
+  namespace: mail-system
+data:
+  # Discover the authenticated principal and collection hrefs. A mailbox's
+  # local part is not an authoritative Stalwart account identifier.
+  caldav: https://id.re8ch.com/.well-known/caldav
+  carddav: https://id.re8ch.com/.well-known/carddav
+  webdav: https://id.re8ch.com/dav/file/{account}
+  accountContract: Resolve the account and shared collections from the authenticated provider session; use the full percent-encoded email address or server-returned account ID, never an inferred email local part.
+  discoveryContract: Resolve relative hrefs against the configured provider origin; reject cross-origin URLs, embedded credentials, path traversal and redirects that would forward credentials to another origin.

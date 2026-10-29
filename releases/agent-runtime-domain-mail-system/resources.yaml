@@ -726,17 +726,23 @@ metadata:
 ---
 apiVersion: v1
 data:
+  accountContract: Resolve the account and shared collections from the authenticated
+    provider session; use the full percent-encoded email address or server-returned
+    account ID, never an inferred email local part.
   baseUrl: https://id.re8ch.com
-  caldav: https://id.re8ch.com/dav/cal/{email-local-part}
-  carddav: https://id.re8ch.com/dav/card/{email-local-part}
+  caldav: https://id.re8ch.com/.well-known/caldav
+  carddav: https://id.re8ch.com/.well-known/carddav
   credentialContract: Kubernetes Secret reference only; never inject a primary password
     into an image or Git workspace.
+  discoveryContract: Resolve relative hrefs against the configured provider origin;
+    reject cross-origin URLs, embedded credentials, path traversal and redirects that
+    would forward credentials to another origin.
   jmapSession: https://id.re8ch.com/.well-known/jmap
   managementContract: stalwart-cli remains cluster-internal and authenticates through
     mail-system/stalwart-recovery-admin.
   sandboxContract: Mount one revocable Stalwart application-password Secret per bot
     and expose only the protocol endpoints listed here.
-  webdav: https://id.re8ch.com/dav/file/{email-local-part}
+  webdav: https://id.re8ch.com/dav/file/{account}
 kind: ConfigMap
 metadata:
   labels:

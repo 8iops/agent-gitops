@@ -1,0 +1,1 @@
+{"@type":"upsert","object":"OAuthClient","matchOn":["clientId"],"value":{"re8ch-self-service":{"clientId":"re8ch-self-service","description":"Re8ch self-service user-authorized mail, calendars and lightweight files","firstParty":false,"scopes":{"mail":true,"calendars":true,"files":true},"redirectUris":{}}}}
