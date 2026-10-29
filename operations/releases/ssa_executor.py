@@ -609,7 +609,9 @@ class Executor:
                     previous, manifest, selected_objects, contract, operation, manager, store, reason)
                 outcome, healthy = "rolled-back", True
             except Rejected as error:
-                blocked = {**previous, "blocked": True, "blockedReason": f"rollback failed: {error}", "updatedAt": self.now().isoformat()}
+                blocked = {**previous, "blocked": True,
+                           "blockedReason": f"release failed: {reason}; rollback failed: {error}"[:512],
+                           "updatedAt": self.now().isoformat()}
                 store.accept(blocked)
                 raise Rejected(blocked["blockedReason"]) from error
         elif finalize:
