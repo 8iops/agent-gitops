@@ -6649,10 +6649,11 @@ metadata:
   annotations:
     external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
     external-dns.alpha.kubernetes.io/hostname: cube.re8ch.com
+    external-dns.alpha.kubernetes.io/target: 223.159.210.222
     external-dns.alpha.kubernetes.io/ttl: '60'
     networking.re8ch.com/provider: public-edge-manager
   labels:
-    networking.re8ch.com/dns-authority: migrated-to-service-zone
+    networking.re8ch.com/dns-authority: public-edge
   name: cube-dns-authority
   namespace: cube-trial
 spec:
