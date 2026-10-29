@@ -1155,6 +1155,8 @@ spec:
           value: /data/CubeMaster/storage
         - name: CUBE_NODE_IPS
           value: ''
+        - name: GODEBUG
+          value: http2client=0
         image: cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-master:v0.6.0@sha256:0dbb8867b9e706afe26ef583c823d482bb4fecf33ea0b9a3df256a85ec582a93
         imagePullPolicy: IfNotPresent
         livenessProbe:

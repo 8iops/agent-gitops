@@ -89,6 +89,8 @@ EOF
             if key.startswith('helm.sh/'): del annotations[key]
         if kind in ('Deployment', 'StatefulSet', 'DaemonSet', 'Job'):
             pod = obj['spec']['template']['spec']
+            if name == 'cube-recovery-master':
+                pod['containers'][0].setdefault('env', []).append({'name': 'GODEBUG', 'value': 'http2client=0'})
             if name == 'cube-recovery-node':
                 obj['spec']['updateStrategy'].pop('rollingUpdate', None)
                 for container in pod['containers']:
