@@ -23,6 +23,11 @@ spec:
       automountServiceAccountToken: false
       containers:
       - env:
+        - name: SESSION_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: session-secret
+              name: stalwart-webmail-session
         - name: HOSTNAME
           value: 0.0.0.0
         - name: PORT
