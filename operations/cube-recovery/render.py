@@ -68,6 +68,14 @@ current-context: preflight
 EOF
 '''
             obj['data']['cubevs-cidr-preflight.sh'] = script.replace('  kubectl() {', setup + '  kubectl() {')
+        if kind == 'ConfigMap' and name == 'cube-recovery-proxy-entrypoint':
+            script = obj['data']['cube-proxy-entrypoint.sh']
+            start = script.index('if [ -n "${CUBE_PROXY_ADMIN_TOKEN:-}" ]; then')
+            end = script.index('\nfi', start) + 3
+            # Generated credentials are hexadecimal; read them from the environment,
+            # never interpolate their value into an external process argument.
+            replacement = (HERE / 'proxy-config.sh').read_text()
+            obj['data']['cube-proxy-entrypoint.sh'] = script[:start] + replacement + script[end:]
         if kind.startswith('Cluster'):
             obj['metadata'].pop('namespace', None)
         if kind == 'Secret':
@@ -87,6 +95,7 @@ EOF
                     for mount in container.get('volumeMounts', []):
                         if mount['name'] in fixed: mount['mountPath'] = fixed[mount['name']]
                     if container['name'] == 'cubelet':
+                        container['readinessProbe']['timeoutSeconds'] = 5
                         container['resources'] = {'requests': {'cpu': '250m', 'memory': '512Mi'}, 'limits': {'cpu': '4', 'memory': '8Gi'}}
                     patch = patches.get(container['name'])
                     if patch:
@@ -96,6 +105,12 @@ EOF
                                 container[key] = [v for v in container.get(key, []) if v['name'] not in names] + value
                             else: container[key] = value
             for container in pod.get('containers', []) + pod.get('initContainers', []):
+                for probe in ('startupProbe', 'readinessProbe', 'livenessProbe'):
+                    command = container.get(probe, {}).get('exec', {}).get('command', [])
+                    for i, value in enumerate(command):
+                        value = value.replace('mysqladmin ping -h 127.0.0.1 -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}"', 'MYSQL_PWD="${MYSQL_PASSWORD}" mysqladmin ping -h 127.0.0.1 -u"${MYSQL_USER}"')
+                        value = value.replace('curl -fsS -H "X-Cube-Admin-Token: ${CUBE_PROXY_ADMIN_TOKEN}"', "printf 'header = \"X-Cube-Admin-Token: %s\"\\n' \"${CUBE_PROXY_ADMIN_TOKEN}\" | curl -fsS --config -")
+                        command[i] = value
                 if '@sha256:' not in container['image']: raise ValueError('mutable image')
                 container.setdefault('resources', {'requests': {'cpu': '50m', 'memory': '64Mi'}, 'limits': {'cpu': '2', 'memory': '2Gi'}})
             if name.endswith('-node-installer'):

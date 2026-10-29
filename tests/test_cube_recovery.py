@@ -60,3 +60,33 @@ def test_preflight_uses_token_file_not_secret_argv():
     script=cm['data']['cubevs-cidr-preflight.sh']
     assert '--token=' not in script
     assert 'tokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token' in script
+
+
+def test_proxy_config_bounds_workers_and_reads_token_without_argv(tmp_path):
+    import os
+    import subprocess
+    script = (ROOT/'operations/cube-recovery/proxy-config.sh').read_text()
+    conf = tmp_path/'nginx.conf'
+    conf.write_text('worker_processes 12;\nset $cube_admin_token "";\n')
+    script = script.replace('/usr/local/openresty/nginx/conf/nginx.conf', str(conf))
+    env = {**os.environ, 'CUBE_PROXY_ADMIN_TOKEN': 'a'*64}
+    subprocess.run(['sh', '-ec', script], env=env, check=True, capture_output=True)
+    assert conf.read_text() == 'worker_processes 2;\nset $cube_admin_token "' + 'a'*64 + '";\n'
+    env['CUBE_PROXY_ADMIN_TOKEN'] = 'invalid";'
+    before = conf.read_text()
+    assert subprocess.run(['sh', '-ec', script], env=env, capture_output=True).returncode != 0
+    assert conf.read_text() == before
+
+
+def test_health_probes_do_not_expand_secrets_into_external_argv():
+    docs=list(yaml.safe_load_all((ROOT/'clusters/re8ch/cube-recovery-resources.yaml').read_text()))
+    for d in docs:
+        for c in d.get('spec', {}).get('template', {}).get('spec', {}).get('containers', []):
+            for key in ('startupProbe', 'livenessProbe', 'readinessProbe'):
+                command=' '.join(c.get(key, {}).get('exec', {}).get('command', []))
+                assert '-p"${MYSQL_PASSWORD}"' not in command
+                assert '-H "X-Cube-Admin-Token:' not in command
+                if 'CUBE_PROXY_ADMIN_TOKEN' in command:
+                    assert '| curl -fsS --config -' in command
+                if 'MYSQL_PASSWORD' in command:
+                    assert 'MYSQL_PWD="${MYSQL_PASSWORD}" mysqladmin' in command
