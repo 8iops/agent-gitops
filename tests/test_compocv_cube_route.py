@@ -11,6 +11,8 @@ def test_test_route_keeps_oauth_and_private_sandbox_boundary():
     config = next(d['data'] for d in docs if d['kind'] == 'ConfigMap')
     assert '49983' not in str(config)
     assert 'PENDING' not in str(config)
+    for area in ('client_body', 'proxy', 'fastcgi', 'uwsgi', 'scgi'):
+        assert f'{area}_temp_path /tmp/' in config['nginx.conf']
     assert 'include /run/cube-access/proxy-traffic.conf;' in config['test-upstream.conf']
     for header in ('Cookie', 'X-Forwarded-Access-Token', 'X-Auth-Request-Access-Token'):
         assert f'proxy_set_header {header} "";' in config['test-upstream.conf']
