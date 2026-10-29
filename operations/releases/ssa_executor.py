@@ -48,6 +48,15 @@ def parse_time(value: str) -> dt.datetime:
     return dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
+def transient_kube_error(message: str) -> bool:
+    """Retry only transport failures; authorization and validation errors remain final."""
+    value = message.lower()
+    return any(marker in value for marker in (
+        "connection reset by peer", "context deadline exceeded", "client.timeout",
+        "unexpected eof", "error from a previous attempt: eof", "tls handshake timeout",
+    ))
+
+
 def atomic_json(path: Path, value: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary = tempfile.mkstemp(prefix=path.name + ".", dir=path.parent)
@@ -285,9 +294,19 @@ class Executor:
 
     def with_existing_versions(self, objects: list[dict]) -> list[dict]:
         try:
-            return bind_existing(objects, self.command)
+            return bind_existing(objects, self.kube_get)
         except ExistingObjectError as error:
             raise Rejected(str(error)) from None
+
+    def kube_get(self, argv: list[str], timeout: int = 60) -> subprocess.CompletedProcess[str]:
+        for attempt in range(3):
+            try:
+                return self.command(argv, timeout=timeout)
+            except Rejected as error:
+                if attempt == 2 or not transient_kube_error(str(error)):
+                    raise
+                self.sleeper(1)
+        raise AssertionError("unreachable")
 
     def apply(self, objects: list[dict], field_manager: str, dry_run: bool,
               force_objects: set[str] | None = None, require_existing: bool = False) -> None:
@@ -297,6 +316,10 @@ class Executor:
                 argv.append("--force-conflicts")
             if dry_run:
                 argv.append("--dry-run=server")
+            else:
+                # The exact object passed strict server dry-run above. Avoid a
+                # second OpenAPI download for each write across the public edge.
+                argv.append("--validate=false")
             argv += ["-f", "-"]
             for attempt in range(3 if require_existing else 1):
                 current = self.with_existing_versions([item])[0] if require_existing else item
@@ -304,8 +327,9 @@ class Executor:
                     self.command(argv, json.dumps(current), timeout=120, redact=object_identity(item) in self._restricted_identities)
                     break
                 except Rejected as error:
-                    if not require_existing or attempt == 2 or not resource_version_conflict(str(error)):
+                    if not require_existing or attempt == 2 or not (resource_version_conflict(str(error)) or transient_kube_error(str(error))):
                         raise
+                    self.sleeper(1)
 
     @staticmethod
     def pointer(value: object, pointer: str) -> object:
@@ -341,7 +365,7 @@ class Executor:
         if ref.get("namespace"):
             argv += ["--namespace", ref["namespace"]]
         argv += ["-o", "json"]
-        live = json.loads(self.command(argv).stdout)
+        live = json.loads(self.kube_get(argv).stdout)
         for check in matching:
             try:
                 observed = self.pointer(live, check["jsonPointer"])

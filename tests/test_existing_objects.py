@@ -93,6 +93,8 @@ class MovingVersionRunner(Runner):
             assert item['metadata']['uid'] == 'original'
             if self.fault == 'ownership':
                 return subprocess.CompletedProcess(argv, 1, '', 'error: Apply failed with 1 conflict: conflict with "other": .spec.rules')
+            if self.fault == 'transport-once' and self.applies == 2:
+                return subprocess.CompletedProcess(argv, 1, '', 'read: connection reset by peer')
             if self.fault in {'always-conflict', 'replaced-on-retry', 'missing-on-retry'} or (self.fault == 'once' and self.applies == 1):
                 return subprocess.CompletedProcess(argv, 1, '', 'error: Operation cannot be fulfilled on deployments.apps "demo": the object has been modified; please apply your changes to the latest version and try again')
             if '--dry-run=server' not in argv:
@@ -101,7 +103,7 @@ class MovingVersionRunner(Runner):
         return super().__call__(argv, **kwargs)
 
 
-@pytest.mark.parametrize('fault', [None, 'once'])
+@pytest.mark.parametrize('fault', [None, 'once', 'transport-once'])
 def test_status_versions_refresh_per_object_without_replacing_uid(tmp_path, fault):
     value, op, path = fixture(tmp_path)
     runner = MovingVersionRunner(fault)
@@ -109,6 +111,18 @@ def test_status_versions_refresh_per_object_without_replacing_uid(tmp_path, faul
     assert result['outcome'] == 'healthy' and runner.writes == 1
     assert runner.reads == (3 if fault is None else 4)
     assert runner.applies == (2 if fault is None else 3)
+
+
+def test_bounded_get_retry_handles_transient_public_edge_reset():
+    calls = []
+    def runner(argv, **kwargs):
+        calls.append(argv)
+        if len(calls) == 1:
+            return subprocess.CompletedProcess(argv, 1, '', 'read: connection reset by peer')
+        return subprocess.CompletedProcess(argv, 0, 'ok', '')
+    instance = executor.Executor(runner=runner, sleeper=lambda _: None)
+    assert instance.kube_get(['kubectl', 'get', 'deployment', 'demo']).stdout == 'ok'
+    assert len(calls) == 2
 
 
 @pytest.mark.parametrize('fault,expected_applies', [

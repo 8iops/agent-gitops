@@ -170,6 +170,8 @@ def test_reconcile_dry_runs_applies_persists_and_is_idempotent(tmp_path):
     apply_calls = [call for call in runner.calls if call[0][:2] == ["kubectl", "apply"]]
     assert len(apply_calls) == 2
     assert "--dry-run=server" in apply_calls[0][0]
+    assert "--validate=false" not in apply_calls[0][0]
+    assert "--validate=false" in apply_calls[1][0]
     assert "--field-manager=re8ch-release/demo" in apply_calls[1][0]
     persisted = json.loads((tmp_path / "state/state/demo.json").read_text())
     assert persisted["inventory"] == ["apps/Deployment/demo/demo"]
