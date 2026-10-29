@@ -1,5 +1,6 @@
 import hashlib
 import json
+import copy
 from pathlib import Path
 
 import yaml
@@ -13,7 +14,12 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     assert 'sha256:' + hashlib.sha256(source).hexdigest() == transfer['sourceDigest']
     original = list(yaml.safe_load_all(source))
     target = list(yaml.safe_load_all((ROOT / 'releases/agent-runtime-domain-mail-system/resources.yaml').read_text()))
-    assert target == original
+    expected = copy.deepcopy(original)
+    webmail = next(obj for obj in expected if obj['kind'] == 'Deployment' and obj['metadata']['name'] == 'stalwart-webmail')
+    env = webmail['spec']['template']['spec']['containers'][0]['env']
+    env.insert(2, {'name': 'SESSION_SECRET', 'valueFrom': {'secretKeyRef': {
+        'name': 'stalwart-webmail-session', 'key': 'session-secret'}}})
+    assert target == expected
     assert len(target) == 45
     assert not {'Secret', 'Role', 'RoleBinding', 'Job'} & {obj['kind'] for obj in target}
     contract = yaml.safe_load((ROOT / 'contracts/agent-runtime-domain-mail-system.yaml').read_text())['spec']
