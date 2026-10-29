@@ -1536,6 +1536,8 @@ spec:
           value: /data/CubeMaster/storage
         - name: CUBE_NODE_IPS
           value: ''
+        - name: GODEBUG
+          value: http2client=0
         ports:
         - name: cubemaster
           containerPort: 8089

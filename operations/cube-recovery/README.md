@@ -64,3 +64,8 @@ health checks feed curl headers over stdin and MySQL passwords through MYSQL_PWD
 never process arguments. Cubelet's multi-command readiness probe has a five-second
 budget; the original one-second budget timed out although each readiness condition
 passed during direct inspection.
+
+The recovery master uses HTTP/1.1 for outbound Go HTTP clients. The qualification
+image pull failed with an upstream HTTP/2 PROTOCOL_ERROR mid-layer; TLS verification
+and immutable digest validation stay enabled. This is scoped to the recovery
+master and does not alter host networking or other platform services.
