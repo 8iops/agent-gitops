@@ -17,7 +17,7 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     expected = copy.deepcopy(original)
     webmail = next(obj for obj in expected if obj['kind'] == 'Deployment' and obj['metadata']['name'] == 'stalwart-webmail')
     env = webmail['spec']['template']['spec']['containers'][0]['env']
-    env.insert(2, {'name': 'SESSION_SECRET', 'valueFrom': {'secretKeyRef': {
+    env.insert(0, {'name': 'SESSION_SECRET', 'valueFrom': {'secretKeyRef': {
         'name': 'stalwart-webmail-session', 'key': 'session-secret'}}})
     assert target == expected
     assert len(target) == 45

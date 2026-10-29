@@ -6,3 +6,5 @@ resources:
 - litellm-authority-resources.yaml
 - cube-recovery-resources.yaml
 - compocv-cube-test.yaml
+patches:
+- path: webmail-session-patch.yaml

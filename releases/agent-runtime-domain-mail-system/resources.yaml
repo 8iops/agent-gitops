@@ -23,15 +23,15 @@ spec:
       automountServiceAccountToken: false
       containers:
       - env:
+        - name: SESSION_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: session-secret
+              name: stalwart-webmail-session
         - name: HOSTNAME
           value: 0.0.0.0
         - name: PORT
           value: '3000'
-        - name: SESSION_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: stalwart-webmail-session
-              key: session-secret
         - name: JMAP_SERVER_URL
           value: https://id.re8ch.com
         - name: OAUTH_ENABLED
