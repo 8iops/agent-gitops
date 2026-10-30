@@ -9,3 +9,4 @@ resources:
 patches:
 - path: webmail-session-patch.yaml
 - path: stalwart-client-discovery-patch.yaml
+- path: stalwart-v01627-production-patch.yaml

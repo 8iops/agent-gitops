@@ -27,6 +27,14 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     discovery = yaml.safe_load((ROOT / 'clusters/re8ch/stalwart-client-discovery-patch.yaml').read_text())
     access = next(obj for obj in expected if obj['kind'] == 'ConfigMap' and obj['metadata']['name'] == 'stalwart-bot-access-contract')
     access['data'].update(discovery['data'])
+    # Reviewed production migration phase: start the live source once on the
+    # converter-required v0.16.27 image before the bounded v1 cutover.
+    source_upgrade = yaml.safe_load((ROOT / 'clusters/re8ch/stalwart-v01627-production-patch.yaml').read_text())
+    stalwart = next(obj for obj in expected if obj['kind'] == 'StatefulSet' and obj['metadata']['name'] == 'stalwart-flk')
+    stalwart['spec']['template']['metadata']['annotations'].update(
+        source_upgrade['spec']['template']['metadata']['annotations'])
+    stalwart['spec']['template']['spec']['containers'][0]['image'] = (
+        source_upgrade['spec']['template']['spec']['containers'][0]['image'])
     assert target == expected
     assert len(target) == 45
     assert not {'Secret', 'Role', 'RoleBinding', 'Job'} & {obj['kind'] for obj in target}
