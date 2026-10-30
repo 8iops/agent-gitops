@@ -57,3 +57,22 @@ def test_no_native_no_db_no_write_mount():
     assert len(p['volumes'])==2
     assert p['volumes'][0]['persistentVolumeClaim']['readOnly'] is True
     assert all(v['readOnly'] for v in p['containers'][0]['volumeMounts'])
+
+
+def test_public_configmap_symlink_does_not_relax_private_reads(tmp_path):
+    revision=tmp_path/'..2026';revision.mkdir()
+    (revision/'vocabulary.json').write_text('{"objectTypes":[],"properties":[]}')
+    (tmp_path/'..data').symlink_to(revision,target_is_directory=True)
+    projected=tmp_path/'vocabulary.json';projected.symlink_to('..data/vocabulary.json')
+    assert m.read_vocabulary(projected)=={'objectTypes':[],'properties':[]}
+    with pytest.raises(m.Invalid):m.read(projected)
+
+
+def test_fixed_stage_failure_does_not_emit_values(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(m, 'read_vocabulary', lambda: VOCAB)
+    def reject(_): raise ValueError('SENTINEL_SECRET')
+    monkeypatch.setattr(m,'read',reject)
+    assert m.main()==1
+    text=capsys.readouterr().out
+    assert json.loads(text)['stage']=='answers_read'
+    assert 'SENTINEL' not in text

@@ -66,3 +66,18 @@ projection explicitly marks permissionMatches unknown. Recommended grant
 defaults are not evidence of existing enabled/disabled/credential matches. The
 same mapping can affect enabled permissions, disabled permissions and credential
 permission lists; current aggregate warning counts cannot authorize any choice.
+
+## v2 ConfigMap compatibility correction
+
+The first Job failed because the public vocabulary was read with the private-state
+no-symlink reader. Kubelet ConfigMaps use ..data symlinks. A separate bounded
+reader now follows the fixed reviewed public vocabulary projection; private
+state still rejects symlinks and nonregular/oversized files. No field validator
+is relaxed. The new Job name is policy-projection-v2, retaining the failed v1
+evidence. It runs the full originally approved projection directly; failures
+return only a fixed processing-stage identifier, never input or exception text.
+
+Official 0.16.27 Map<String> serializes requireScopes as a boolean-valued object
+(empty is {}), Duration as u64 milliseconds, and requireAudience is nullable.
+No observed input format is inferred from these types, and no exception to the
+existing validators is introduced.

@@ -21,6 +21,8 @@ TABLE = re.compile(r'# \[(global|instance)\.([a-z_]+)(?:\."([^"\\\r\n]{1,160})")
 KEY = r'(?P<object>(?:x:)?[A-Za-z][A-Za-z0-9]*)(?:/[^\s:]{1,160})?'
 ENTRY = re.compile(r'  (?P<level>info|warning|error): ' + KEY + r'(?: (?P<path>[^:\r\n]{1,256}))?: (?P<detail>.*)')
 
+STAGE = "initialization"
+
 class Invalid(Exception): pass
 
 def read(path):
@@ -32,6 +34,16 @@ def read(path):
         raw = source.read(MAX_BYTES + 1)
     if len(raw) > MAX_BYTES: raise Invalid()
     return raw.decode('utf-8')
+
+def read_vocabulary(path=Path('/scripts/vocabulary.json')):
+    # Kubelet ConfigMap projections use ..data symlinks. This separate reader
+    # is called only for reviewed public vocabulary, never private state input.
+    with path.open('rb') as source:
+        info = os.fstat(source.fileno())
+        if not stat.S_ISREG(info.st_mode) or info.st_size > MAX_BYTES: raise Invalid()
+        raw = source.read(MAX_BYTES + 1)
+    if len(raw) > MAX_BYTES: raise Invalid()
+    return json.loads(raw.decode('utf-8'))
 
 def value(field, raw):
     v = json.loads(raw)
@@ -65,8 +77,11 @@ def change_code(detail):
     return None
 
 def project(directory, vocabulary):
+    global STAGE
+    STAGE = "answers_read"
     answers = read(directory / 'answers.toml')
     if tomllib.loads(answers) != {'version': 1}: raise Invalid()
+    STAGE = "source_context"
     pending = {}
     contexts = {}
     questions = []
@@ -94,21 +109,26 @@ def project(directory, vocabulary):
                 contexts.setdefault(prompt, []).append(output)
             pending = {}
     if pending or collections.Counter(p for p, _ in questions) != {p: 1 for p in PROMPTS}: raise Invalid()
+    STAGE = "report_read"
     report = read(directory / 'prepare-report.txt')
     if not report.startswith('stalwart-migrate prepare report\n'): raise Invalid()
+    STAGE = "report_structure"
     sections = report.split('\nChanges:\n')
     if len(sections) != 2: raise Invalid()
     header, changes = sections
+    STAGE = "report_summary"
     summaries = SUMMARY.findall(header)
     if len(summaries) != 1: raise Invalid()
     objects, drops, warnings, errors, answered = map(int, summaries[0])
     if (objects, drops, warnings, errors, answered) != (2927, 12, 63, 0, 0): raise Invalid()
+    STAGE = "question_match"
     marker = 'run will refuse to start until these are resolved:\n'
     if header.count(marker) != 1 or 'settings objects are unreadable' in header: raise Invalid()
     problems = header.split(marker)[1].split('\nDropped objects:', 1)[0].strip().splitlines()
     expected = {f'{p}' + (f' for {k}' if k else '') + ': not answered' for p, k in questions}
     if {p.strip() for p in problems} != expected or len(problems) != len(expected): raise Invalid()
     types, properties = set(vocabulary['objectTypes']), set(vocabulary['properties'])
+    STAGE = "dropped_objects"
     drop_counts = collections.Counter()
     unknown_drops = 0
     dropped = header.split('\nDropped objects:\n')
@@ -119,6 +139,7 @@ def project(directory, vocabulary):
         if not m or m['object'] not in types: unknown_drops += 1
         else: drop_counts[m['object']] += 1
     if sum(drop_counts.values()) + unknown_drops != drops: raise Invalid()
+    STAGE = "warning_entries"
     warning_counts = collections.Counter()
     warning_seen = unknown_warnings = unknown_lines = 0
     for line in changes.splitlines():
@@ -150,12 +171,14 @@ def project(directory, vocabulary):
                     'warningEntries': unknown_warnings + warnings - warning_seen, 'reportLines': unknown_lines}}
 
 def main():
+    global STAGE
+    STAGE = "public_vocabulary"
     try:
-        vocab = json.loads(read(Path('/scripts/vocabulary.json')))
+        vocab = read_vocabulary()
         output = project(Path('/state/prepare-discovery-v1/native'), vocab)
         print(json.dumps(output, sort_keys=True, separators=(',', ':')))
     except Exception:
-        print('{"projection":"failed","reason":"evidence_not_classifiable","policyApproved":false}')
+        print(json.dumps({"projection": "failed", "stage": STAGE, "reason": "evidence_not_classifiable", "policyApproved": False}))
         return 1
     return 0
 
