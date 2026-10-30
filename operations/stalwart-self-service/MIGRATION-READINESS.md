@@ -1,6 +1,6 @@
 # Scoped OAuth migration readiness (issue #39)
 
-Status: preparation only. Runtime version, live schema, native client dry-run,
+Status: preparation only. Runtime version, authenticated live schema, native client dry-run,
 backup restore and user-token isolation remain unverified. No image, storage,
 routing or activation declaration changes are part of this preparation.
 
@@ -26,6 +26,18 @@ introduces scoped OAuth and an incompatible database layout. The
 [v1.0.1 release](https://github.com/stalwartlabs/stalwart/releases/tag/v1.0.1)
 includes additional consent changes. Upgrading the existing image on its current
 PVC directly to v1 is not an admissible deployment plan.
+
+## Public discovery observation
+
+An unauthenticated HTTPS GET of
+`https://id.re8ch.com/.well-known/oauth-authorization-server` on 2026-10-30
+returned issuer `https://id.re8ch.com`, device endpoint `/auth/device`, token
+endpoint `/auth/token`, and authorization_code, refresh_token and device_code
+(the standard URN) grants. Advertised scopes were openid, offline_access and
+service URNs for mail, contacts and calendars; **files was absent**. The current
+three-service gate therefore fails. Discovery does not identify the binary
+version or prove token isolation. Do not infer upgrade completion from this
+response or omit the files scope to bypass the gate.
 
 ## Required evidence and reviewed sequence
 
