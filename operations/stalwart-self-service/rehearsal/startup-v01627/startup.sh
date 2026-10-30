@@ -28,10 +28,16 @@ while [ "$attempt" -lt 60 ]; do
   kill -0 "$server_pid" 2>/dev/null || break
   # Match the official image's loopback listener fallbacks; only /ready counts.
   # TLS verification is disabled solely for loopback and no response is printed.
-  if curl --noproxy '*' -fsSk --connect-timeout 1 --max-time 1 -o /dev/null \
-       -H 'X-Forwarded-For: 127.0.0.1' https://127.0.0.1:443/healthz/ready 2>/dev/null || \
-     curl --noproxy '*' -fsS --connect-timeout 1 --max-time 1 -o /dev/null \
-       -H 'X-Forwarded-For: 127.0.0.1' http://127.0.0.1:8080/healthz/ready 2>/dev/null; then
+  https_code=$(curl --noproxy '*' -sSk --connect-timeout 1 --max-time 1 \
+    -o /dev/null -w '%{http_code}' -H 'X-Forwarded-For: 127.0.0.1' \
+    https://127.0.0.1:443/healthz/ready 2>/dev/null) || https_code=000
+  http_code=000
+  if [ "$https_code" != 200 ]; then
+    http_code=$(curl --noproxy '*' -sS --connect-timeout 1 --max-time 1 \
+      -o /dev/null -w '%{http_code}' -H 'X-Forwarded-For: 127.0.0.1' \
+      http://127.0.0.1:8080/healthz/ready 2>/dev/null) || http_code=000
+  fi
+  if [ "$https_code" = 200 ] || [ "$http_code" = 200 ]; then
     ready=true
     break
   fi

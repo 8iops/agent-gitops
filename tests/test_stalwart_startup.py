@@ -8,8 +8,9 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 PROBE = ROOT / 'operations/stalwart-self-service/rehearsal/startup-v01627'
 
-@pytest.mark.parametrize('ready,expected', [(True, 0), (False, 1)])
-def test_startup_requires_ready_and_clean_shutdown(tmp_path, ready, expected):
+@pytest.mark.parametrize('status,shutdown,expected', [('200', 0, 0), ('503', 0, 1), ('302', 0, 1), ('200', 7, 1)])
+def test_startup_requires_ready_and_clean_shutdown(tmp_path, status, shutdown, expected):
+    ready = status == '200' and shutdown == 0
     state = tmp_path / 'state'
     (state / 'native-v01618-v2').mkdir(parents=True)
     (state / 'native-v01618-v2/ACCEPTED').touch()
@@ -22,10 +23,10 @@ def test_startup_requires_ready_and_clean_shutdown(tmp_path, ready, expected):
     binaries = tmp_path / 'bin'
     binaries.mkdir()
     server = binaries / 'stalwart'
-    server.write_text('#!/bin/sh\ntrap "exit 0" TERM\nwhile :; do sleep 0.05; done\n')
+    server.write_text(f'#!/bin/sh\ntrap "exit {shutdown}" TERM\nwhile :; do sleep 0.05; done\n')
     server.chmod(0o755)
     curl = binaries / 'curl'
-    curl.write_text('#!/bin/sh\nsleep 0.1\nexit ' + ('0' if ready else '1') + '\n')
+    curl.write_text('#!/bin/sh\nsleep 0.1\nprintf ' + status + '\nexit 0\n')
     curl.chmod(0o755)
     script = (PROBE / 'startup.sh').read_text().replace('/state', str(state)).replace('/var/lib/stalwart/database', str(database)).replace('/work', str(work)).replace('/usr/local/bin/stalwart', str(server)).replace('"$attempt" -lt 60', '"$attempt" -lt 2')
     result = subprocess.run(['sh', '-c', script], capture_output=True, text=True, timeout=10,

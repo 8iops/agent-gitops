@@ -27,4 +27,7 @@ documented in the parent rehearsal README.
 
 References: official [0.16.27 image](https://github.com/stalwartlabs/stalwart/blob/v0.16.27/Dockerfile)
 includes curl and the same HTTPS 443 / HTTP 8080 loopback fallbacks; this probe
-requires readiness instead of the image's liveness check.
+requires readiness instead of the image's liveness check. Official
+[`request.rs`](https://github.com/stalwartlabs/stalwart/blob/v0.16.27/crates/http/src/request.rs#L587)
+returns HTTP 200 for a configured data store and 503 otherwise. The probe accepts
+exactly 200; redirects are not followed or accepted, and response bodies are discarded.
