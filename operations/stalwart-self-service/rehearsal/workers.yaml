@@ -366,6 +366,7 @@ spec:
         image: docker.io/stalwartlabs/stalwart-migrate:1.0.3@sha256:1e936a872424bb8856ac2186129266f5179e516d9dbf58853c73364e6e0fc563
         args:
         - rollback
+        - --verify-full
         - --yes
         - --source
         - /config/target.json

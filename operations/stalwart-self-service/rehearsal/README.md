@@ -114,7 +114,7 @@ Execute these reviewed phases, through the platform plan/write path:
 4. Resume `migrate-verify` (`verify --full`). Require success, no unexplained
    mismatches and reviewed conversion warnings. Start pinned v1.0.1 against the
    target copy for isolated integrity and OAuth tests, then stop it cleanly.
-5. Resume `migrate-rollback`, targeting only the empty rollback-v01627 claim and
+5. Resume `migrate-rollback` with `--verify-full`, targeting only the empty rollback-v01627 claim and
    retaining `/state/forward`. Require success before starting v0.16.27 on that
    copy. Compare data counts and documented v1-only losses.
 
@@ -170,3 +170,11 @@ and `audit://operations/op_ee564ff660c543d285a03a5846013dae`. The 17Gi rehearsal
 4Gi backup staging request needs **21Gi** and an explicit storage-risk acceptance;
 these raw capacity figures do not prove pool replication or restore performance.
 No production freeze, backup Job, claim or worker has been executed.
+
+Backup destination discovery remains unresolved: the global ObjectBucketClaim
+inventory is empty (`audit://operations/op_e9b3ac6a01384ba8b75bc049a0267f83`).
+The existing Harbor S3 backup uses a Harbor-owned Secret reference and its last
+success was 2026-06-20 (`audit://operations/op_3341b079f5f24a139a38138754fe3f8e`).
+That is neither current backup-health evidence nor permission to reuse Harbor
+credentials for Stalwart. Obtain a platform-approved opaque backup accessRef,
+encryption and retention policy before requesting the cold-copy outage.

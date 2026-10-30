@@ -34,3 +34,29 @@ def test_workers_are_suspended_pinned_and_rehearsal_only():
         source = next(v for v in pod['volumes'] if v['name'] == 'source')
         assert source['persistentVolumeClaim']['readOnly'] is True
         assert not any(a in ['--allow-errors', '--allow-mass-removal', '--force-after-final'] for a in pod['containers'][0]['args'])
+
+
+def test_worker_arguments_bind_the_expected_stores_and_full_verification():
+    docs = list(yaml.safe_load_all((ROOT / 'operations/stalwart-self-service/rehearsal/workers.yaml').read_text()))
+    expected = {
+        'prepare': ['prepare', '--non-interactive'],
+        'run': ['run'],
+        'final': ['run', '--final', '--yes'],
+        'verify': ['verify', '--full'],
+        'rollback': ['rollback', '--verify-full', '--yes'],
+    }
+    for job in (d for d in docs if d['kind'] == 'Job'):
+        phase = job['metadata']['name'].removeprefix('migrate-')
+        pod = job['spec']['template']['spec']
+        args = expected[phase] + ['--source', '/config/target.json' if phase == 'rollback' else '/config/source.json']
+        if phase != 'prepare':
+            args += ['--target', '/config/rollback.json' if phase == 'rollback' else '/config/target.json']
+        args += ['--state', '/state/rollback' if phase == 'rollback' else '/state/forward']
+        if phase == 'rollback':
+            args += ['--forward-state', '/state/forward']
+        assert pod['containers'][0]['args'] == args
+        claims = {v['name']: v['persistentVolumeClaim'] for v in pod['volumes'] if 'persistentVolumeClaim' in v}
+        assert claims['source'] == {'claimName': 'source-v01627', 'readOnly': True}
+        assert claims['target'] == {'claimName': 'target-v1', 'readOnly': phase in ['verify', 'rollback']}
+        assert claims['state'] == {'claimName': 'migration-state', 'readOnly': False}
+        assert set(claims) == ({'source', 'target', 'state', 'rollback'} if phase == 'rollback' else {'source', 'target', 'state'})
