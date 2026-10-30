@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stalwart-migration-rehearsal
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: rehearsal-bound
+  namespace: stalwart-migration-rehearsal
+spec:
+  hard:
+    requests.storage: 17Gi
+    persistentvolumeclaims: '5'
+    pods: '2'
+    requests.cpu: '2'
+    requests.memory: 4Gi
+    limits.cpu: '4'
+    limits.memory: 8Gi
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all
+  namespace: stalwart-migration-rehearsal
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress: []
+  egress: []
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: source-restore
+  namespace: stalwart-migration-rehearsal
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: rbd-r640
+  resources:
+    requests:
+      storage: 4Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: source-v01627
+  namespace: stalwart-migration-rehearsal
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: rbd-r640
+  resources:
+    requests:
+      storage: 4Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: target-v1
+  namespace: stalwart-migration-rehearsal
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: rbd-r640
+  resources:
+    requests:
+      storage: 4Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rollback-v01627
+  namespace: stalwart-migration-rehearsal
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: rbd-r640
+  resources:
+    requests:
+      storage: 4Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: migration-state
+  namespace: stalwart-migration-rehearsal
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: rbd-r640
+  resources:
+    requests:
+      storage: 1Gi
