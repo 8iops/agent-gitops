@@ -10,7 +10,8 @@
     "mode": "authority-only-existing-payload",
     "forceConflictObjects": [
       "apps/Deployment/mail-system/stalwart-webmail",
-      "apps/StatefulSet/mail-system/stalwart-flk"
+      "apps/StatefulSet/mail-system/stalwart-flk",
+      "core/ConfigMap/mail-system/stalwart-bot-access-contract"
     ]
   }
 }
