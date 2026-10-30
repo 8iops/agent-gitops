@@ -48,6 +48,17 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     config_patch = yaml.safe_load((ROOT / 'clusters/re8ch/stalwart-v1-config-patch.yaml').read_text())
     config = next(obj for obj in expected if obj['kind'] == 'ConfigMap' and obj['metadata']['name'] == 'stalwart-config')
     config['data'].update(config_patch['data'])
+    for patch_name in (
+        'stalwart-unified-identity-trust-patch.yaml',
+        'stalwart-userhub-trust-patch.yaml',
+    ):
+        trust_patch = yaml.safe_load((ROOT / 'clusters/re8ch' / patch_name).read_text())
+        trust_config = next(
+            obj for obj in expected
+            if obj['kind'] == 'ConfigMap'
+            and obj['metadata']['name'] == trust_patch['metadata']['name']
+        )
+        trust_config['data'].update(trust_patch['data'])
     device_route_patch = yaml.safe_load((ROOT / 'clusters/re8ch/stalwart-device-route-patch.yaml').read_text())
     assert device_route_patch == [{
         'op': 'add',
@@ -60,6 +71,11 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     assert stalwart['spec']['replicas'] == 1
     assert 'v1.0.1@sha256:' in stalwart['spec']['template']['spec']['containers'][0]['image']
     assert config['data']['config.json'] == '{"@type":"RocksDb","path":"/var/lib/stalwart/database"}'
+    for name in ('stalwart-unified-identity-bootstrap-plan-v2', 'stalwart-userhub-oauth-plan-v1'):
+        plan = next(obj for obj in target if obj['kind'] == 'ConfigMap' and obj['metadata']['name'] == name)['data']['plan.ndjson']
+        assert '"issuerUrl":"https://auth.re8ch.com"' in plan
+        assert '"requireAudience":"stalwart-webui"' in plan
+        assert 'https://db-rw.re8ch.com/auth/v1' not in plan
     assert len(target) == 45
     assert not {'Secret', 'Role', 'RoleBinding', 'Job'} & {obj['kind'] for obj in target}
     contract = yaml.safe_load((ROOT / 'contracts/agent-runtime-domain-mail-system.yaml').read_text())['spec']
