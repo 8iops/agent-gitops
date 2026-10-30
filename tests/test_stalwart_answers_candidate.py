@@ -69,5 +69,5 @@ def test_changed_role_or_drop_count_fails_closed(monkeypatch):
     bad['warningGroups'][0]['count'] = 42
     monkeypatch.setattr(candidate, 'project', lambda *_: bad)
     monkeypatch.setattr(candidate, 'read_vocabulary', lambda: {})
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         candidate.candidate()

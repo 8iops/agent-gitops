@@ -24,45 +24,50 @@ CATEGORIES = ('settings', 'principals', 'mail', 'calendars', 'contacts', 'files'
               'reports', 'archive', 'spam_model', 'queue', 'tasks', 'telemetry')
 
 
+def require(condition):
+    if not condition:
+        raise ValueError('fixed_evidence_mismatch')
+
+
 def candidate():
     evidence = project(SOURCE, read_vocabulary())
-    assert evidence['unknown'] == {'contextFields': 0, 'droppedObjects': 0,
-                                    'warningEntries': 0, 'reportLines': 0}
-    assert evidence['sourceCounts'] == {'objects': 2927, 'dropped': 12, 'warnings': 63}
-    assert evidence['droppedObjectTypes'] == {'x:SpamTag': 12}
+    require(evidence['unknown'] == {'contextFields': 0, 'droppedObjects': 0,
+                                    'warningEntries': 0, 'reportLines': 0})
+    require(evidence['sourceCounts'] == {'objects': 2927, 'dropped': 12, 'warnings': 63})
+    require(evidence['droppedObjectTypes'] == {'x:SpamTag': 12})
     warnings = {(x['objectType'], x['property'], x['changeCode']): x['count']
                 for x in evidence['warningGroups']}
-    assert warnings[('x:Role', 'enabledPermissions', 'dropped')] == 43
-    assert evidence['contexts']['oauth_registration'] == [{
+    require(warnings[('x:Role', 'enabledPermissions', 'dropped')] == 43)
+    require(evidence['contexts']['oauth_registration'] == [{
         'anonymousClientRegistration': {'status': 'observed', 'value': True},
-        'requireClientRegistration': {'status': 'observed', 'value': True}}]
-    assert evidence['contexts']['oidc_directory'] == [{
+        'requireClientRegistration': {'status': 'observed', 'value': True}}])
+    require(evidence['contexts']['oidc_directory'] == [{
         'issuerUrl': {'status': 'observed', 'value': 'https://db-rw.re8ch.com/auth/v1'},
         'requireAudience': {'status': 'observed', 'value': 'authenticated'},
         'requireScopes': {'status': 'observed', 'value':
-                          {'email': True, 'openid': True, 'profile': True}}}]
-    assert evidence['contexts']['oidc_token_lifetimes'] == [{
+                          {'email': True, 'openid': True, 'profile': True}}}])
+    require(evidence['contexts']['oidc_token_lifetimes'] == [{
         'accessTokenExpiry': {'status': 'unknown'},
         'authCodeExpiry': {'status': 'unknown'},
-        'refreshTokenExpiry': {'status': 'observed', 'value': 28800000}}]
+        'refreshTokenExpiry': {'status': 'observed', 'value': 28800000}}])
 
     original = read(SOURCE / 'answers.toml')
-    assert tomllib.loads(original) == {'version': 1}
+    require(tomllib.loads(original) == {'version': 1})
     keys = {}
     for line in original.splitlines():
         match = TABLE.fullmatch(line)
         if match:
             scope, prompt, key = match.groups()
-            assert prompt in EXPECTED and prompt not in keys
-            assert (scope == 'global') == (EXPECTED[prompt] is None)
+            require(prompt in EXPECTED and prompt not in keys)
+            require((scope == 'global') == (EXPECTED[prompt] is None))
             if EXPECTED[prompt] is None:
-                assert key is None
+                require(key is None)
             else:
-                assert key is not None and key.startswith(EXPECTED[prompt])
+                require(key is not None and key.startswith(EXPECTED[prompt]))
             if key is not None:
-                assert re.fullmatch(r'x:(?:OidcProvider|Directory/[A-Za-z0-9_-]{1,128})', key)
+                require(re.fullmatch(r'x:(?:OidcProvider|Directory/[A-Za-z0-9_-]{1,128})', key))
             keys[prompt] = key
-    assert set(keys) == set(EXPECTED)
+    require(set(keys) == set(EXPECTED))
 
     categories = ', '.join(json.dumps(v) for v in CATEGORIES)
     # Values are fixed policy. Instance keys are copied only from the validated
@@ -95,7 +100,7 @@ claim_name = "name"
 action = "clamp"
 '''
     parsed = tomllib.loads(answer)
-    assert parsed['version'] == 1 and len(parsed['global']) == 3 and len(parsed['instance']) == 3
+    require(parsed['version'] == 1 and len(parsed['global']) == 3 and len(parsed['instance']) == 3)
     return answer.encode()
 
 
