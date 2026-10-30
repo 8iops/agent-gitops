@@ -58,38 +58,68 @@ from guesswork; introspection may require server-side credentials. `full` is
 not an acceptable shortcut. Rejection of unscoped tokens is a candidate only
 for a confirmed compatible directory, not a global migration default.
 
-## Safe restored-copy projection: implementation contract
+## Native capability assessment and preferred projection path
 
-This is a precise design for a subsequent reviewed worker, not an instruction
-to run an unrestricted console dump or expose full objects through the model.
-The native console's raw `scan`/`get` output is unsuitable for configuration
-projection. No full registry export, token decoding output, or config dump may
-be attached to GitHub or returned by the platform tool.
+Prefer the already pinned official migrate worker plus the existing reviewed
+Python runtime image. Do not build a Rust reader as a prerequisite. The official
+CLI provides prepare, run, verify, status, report and rollback; there is no
+standalone inspect command in the documented command inventory. `status` and
+`report` describe migration state/issues, not a complete source configuration.
+Native server export is a full data backup, not a bounded JSON configuration
+projection; introducing an export decoder would add unnecessary format work.
 
-1. The accepted readability result is schema 6 / propertyRecords 1986. Run stages
-   serially: the 0.16.27 startup process must terminate cleanly before a reader
-   or copy opens its RocksDB files; never share an active RocksDB directory.
-   Use a new disposable copy of the accepted restored database, with CURRENT
-   and MANIFEST prechecks and complete copy verification. Baseline mounts remain
-   read-only. No production PVC, production route, source listener or external
-   directory connection is allowed. Retain deny-all networking and no API token.
-2. Build a small one-shot reader against the exact official 0.16.27 source and
-   pin its artifact. Use `RegistryStore::init(config, false)` and typed
-   `RegistryStore::get`/`list` from `crates/store/src/registry/get.rs`; do not call
-   the server main, start services, initialize defaults, or invoke migrate.
-   RocksDB opening can write engine files, so only the disposable copy is writable.
-   Verify schema 6 before reading and reject missing/empty/unexpected stores.
-3. Match only the object types below. Typed objects may contain secrets in
-   process memory; construct a NEW output structure field by field. Never
-   serialize the source object, stringify native errors, or print Debug output.
-   Bound collection reads/output (maximum 100 directory/client objects and
-   64 KiB total); exceedance fails with a scalar classification, not truncation
-   presented as complete. A paginated implementation may be reviewed separately.
-4. Emit one schema-versioned JSON projection with snapshot identity, reader
-   digest, completeness flags and counts. Errors contain only fixed codes.
-   Stderr stays in mode-0700 restricted state, without log tailing. Tests must
-   insert sentinel secrets into every excluded field and prove neither success
-   nor failure output contains them; test unknown variants and limit failures.
+Official `prepare.rs::source_objects` already reads typed source registry objects
+and converts them in memory. `write_outputs` emits `answers.toml` and
+`prepare-report.txt`, not the complete converted settings. The answer writer
+includes contextual values and suggested defaults in comments; unanswered tables
+remain commented out (tested upstream in `unanswered_questions_are_written_commented_out`).
+Therefore prepare is useful evidence discovery even when its expected result is
+unanswered questions. It is not the migration `run`, and recording its restricted
+state does not approve any policy. No prepare execution is authorized by this PR.
+
+Preferred next reviewed operation:
+
+1. Require accepted readability (schema 6 / propertyRecords 1986), completed
+   0.16.27 normal startup and clean stop. Serialize all RocksDB users; never open
+   the working database while startup or another migration worker is active.
+   Use the existing reviewed worker source configuration and isolated state
+   directory, immutable image, deny-all networking and no production PVC.
+2. Run ONLY `prepare --source <reviewed-source-config> --state <new-private-state>
+   --non-interactive` in that worker. Keep stdout/stderr, answers and report on
+   restricted PVC with umask 077. No target/run/final/rollback invocation and no
+   fabricated answers. A return code of 1 is not automatically success: require
+   complete native output files and classify unanswered questions separately
+   from source-open, validation or conversion errors. Otherwise fail closed.
+3. In a separate existing signed Python runtime worker, mount that state read-only
+   and parse bounded files (maximum 1 MiB each, maximum 100 questions). First
+   return only counts and allowlisted prompt identifiers/object keys, never raw
+   report lines or comment text. Treat TOML comments as untrusted text: use exact
+   version-pinned syntax recognizers for individual known context fields, reject
+   unknown shapes, and never uncomment the whole file into accepted answers.
+   Any field not reliably present remains explicitly unknown. Fixed error codes
+   only; no parser exceptions containing input. Tests must prove sentinel secrets
+   cannot escape via success, errors, unknown fields or limit failures.
+4. Apply the allowlist below only to fields actually available from these native
+   outputs. The concrete gap is that prepare reports decisions/changes rather
+   than all unchanged properties or all registered OAuth clients. Do not infer
+   absent clients/properties from absent questions. Fill remaining OAuth consumer
+   metadata from reviewed nonsecret application declarations and an existing
+   platform-mediated, server-side property-selective management read when the
+   isolated endpoint is ready. Credentials and complete API responses stay on
+   the server; no token is passed in tool argv or returned to the model.
+5. Only if these native paths demonstrably cannot supply a required field should
+   a separate PR propose a one-shot typed registry reader. Document the exact
+   missing field and why property-selective native/API access cannot provide it.
+   Such a fallback would use official 0.16.27 RegistryStore getters on a disposable
+   copy, never server main or unrestricted registry serialization. It is not
+   implemented or selected by this document.
+
+The initial projection should identify which decisions actually trigger before
+choosing implementation for the remaining fields. Preserve raw state for audit,
+but do not attach it to GitHub or tail it through platform tools. Emit a new
+schema-versioned JSON object with snapshot identity, native/Python image digests,
+completeness flags and bounded counts. The native console's raw scan/get output
+is not an approved configuration projection.
 
 Allowlist, derived from official 0.16.27 `crates/registry/src/schema/structs.rs`:
 
@@ -110,9 +140,9 @@ contains only policy, not the actual projection.
 The exact typed schema is available in
 [0.16.27 structs](https://github.com/stalwartlabs/stalwart/blob/v0.16.27/crates/registry/src/schema/structs.rs)
 and [registry getters](https://github.com/stalwartlabs/stalwart/blob/v0.16.27/crates/store/src/registry/get.rs).
-The one-shot reader still needs implementation, tests, immutable artifact
-review and a platform execution plan before use; this document claims none of
-those execution results.
+The preferred native-output filter and platform execution plan still require
+review and tests before use. This document claims no projection execution result
+and does not request a new image build.
 
 ## Existing login contract and production decision gate
 
