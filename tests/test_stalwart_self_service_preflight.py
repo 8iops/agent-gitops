@@ -15,10 +15,11 @@ spec.loader.exec_module(gate)
 def evidence():
     schema = {
         "fields": {"x:OAuthClient": {"properties": {
+            "grantTypes": {"type": {"type": "set", "class": {"type": "enum", "enumName": "OAuthGrantType"}}},
             "firstParty": {"type": {"type": "boolean"}},
             "scopes": {"type": {"type": "set", "class": {"type": "enum", "enumName": "OAuthScope"}}},
         }}},
-        "enums": {"OAuthScope": [{"name": service} for service in sorted(gate.SERVICES)]},
+        "enums": {"OAuthGrantType": [{"name": grant} for grant in sorted(gate.CLIENT_GRANTS)], "OAuthScope": [{"name": service} for service in sorted(gate.SERVICES)]},
     }
     metadata = {
         "issuer": "https://id.re8ch.com",
@@ -70,9 +71,21 @@ def test_candidate_registration_is_unprivileged_and_not_in_runtime_root():
     assert value["clientId"] == gate.CLIENT_ID
     assert value["firstParty"] is False
     assert value["scopes"] == {service: True for service in gate.SERVICES}
+    assert value["grantTypes"] == {grant: True for grant in gate.CLIENT_GRANTS}
     assert value["redirectUris"] == {}
     assert "secret" not in value
     env = (ROOT / "operations/stalwart-self-service/tenant-runtime.env.example").read_text()
     assert "COLLABORATION_ENABLED=false" in env
     root = yaml.safe_load((ROOT / "clusters/re8ch/kustomization.yaml").read_text())
     assert all("stalwart-self-service" not in name for name in root["resources"])
+
+
+@pytest.mark.parametrize("missing", ["grantTypes", "deviceCode"])
+def test_missing_client_grant_support_is_rejected(missing):
+    schema, metadata = evidence()
+    if missing == "grantTypes":
+        del schema["fields"]["x:OAuthClient"]["properties"][missing]
+    else:
+        schema["enums"]["OAuthGrantType"] = [entry for entry in schema["enums"]["OAuthGrantType"] if entry["name"] != missing]
+    with pytest.raises(ValueError):
+        gate.validate(schema, metadata, "https://id.re8ch.com")
