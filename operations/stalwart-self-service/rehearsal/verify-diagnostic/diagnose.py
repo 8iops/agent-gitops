@@ -43,9 +43,16 @@ def diagnose():
     matches = SUMMARY.findall(stdout)
     if len(matches) > 1:
         raise ValueError()
-    result = {'schemaVersion': 1, 'rehearsalOnly': True,
+    result = {'schemaVersion': 2, 'rehearsalOnly': True,
               'nativeExitNonzero': True, 'nativeSummaryPresent': bool(matches),
               'stderrNonempty': stderr_size > 0,
+              'stdoutNonempty': bool(stdout),
+              'fixedFailureSignals': {
+                  'targetOpen': 'cannot open the v1 target' in stdout,
+                  'sourceOpen': 'cannot open the v0.16 store' in stdout,
+                  'readOnlyFilesystem': 'read-only file system' in stdout.lower(),
+                  'stateAnswersMissing': 'answers.toml not found; run prepare first' in stdout,
+              },
               'fullVerificationAccepted': False}
     if matches:
         accounts, mismatches, unexplained = map(int, matches[0])
