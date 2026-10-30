@@ -27,8 +27,8 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     discovery = yaml.safe_load((ROOT / 'clusters/re8ch/stalwart-client-discovery-patch.yaml').read_text())
     access = next(obj for obj in expected if obj['kind'] == 'ConfigMap' and obj['metadata']['name'] == 'stalwart-bot-access-contract')
     access['data'].update(discovery['data'])
-    # Reviewed production migration phase: start the live source once on the
-    # converter-required v0.16.27 image before the bounded v1 cutover.
+    # Reviewed production migration phase: start the verified v1 target after
+    # the official converter completed and the marker was written.
     source_upgrade = yaml.safe_load((ROOT / 'clusters/re8ch/stalwart-v01627-production-patch.yaml').read_text())
     stalwart = next(obj for obj in expected if obj['kind'] == 'StatefulSet' and obj['metadata']['name'] == 'stalwart-flk')
     stalwart['spec']['replicas'] = source_upgrade['spec']['replicas']
@@ -36,8 +36,22 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
         source_upgrade['spec']['template']['metadata']['annotations'])
     stalwart['spec']['template']['spec']['containers'][0]['image'] = (
         source_upgrade['spec']['template']['spec']['containers'][0]['image'])
+    next(item for item in stalwart['spec']['template']['spec']['initContainers']
+         if item['name'] == 'wait-for-migration')['args'] = (
+             source_upgrade['spec']['template']['spec']['initContainers'][0]['args'])
+    volumes = stalwart['spec']['template']['spec']['volumes']
+    data_index = next(i for i, item in enumerate(volumes) if item['name'] == 'data')
+    data_volume = volumes.pop(data_index)
+    data_volume['persistentVolumeClaim'] = (
+        source_upgrade['spec']['template']['spec']['volumes'][0]['persistentVolumeClaim'])
+    volumes.insert(0, data_volume)
+    config_patch = yaml.safe_load((ROOT / 'clusters/re8ch/stalwart-v1-config-patch.yaml').read_text())
+    config = next(obj for obj in expected if obj['kind'] == 'ConfigMap' and obj['metadata']['name'] == 'stalwart-config')
+    config['data'].update(config_patch['data'])
     assert target == expected
-    assert stalwart['spec']['replicas'] == 0
+    assert stalwart['spec']['replicas'] == 1
+    assert 'v1.0.1@sha256:' in stalwart['spec']['template']['spec']['containers'][0]['image']
+    assert config['data']['config.json'] == '{"@type":"RocksDb","path":"/var/lib/stalwart/database"}'
     assert len(target) == 45
     assert not {'Secret', 'Role', 'RoleBinding', 'Job'} & {obj['kind'] for obj in target}
     contract = yaml.safe_load((ROOT / 'contracts/agent-runtime-domain-mail-system.yaml').read_text())['spec']
