@@ -88,3 +88,21 @@ until the user accepts migration and its rollback window has ended.
 
 The key-init Job may be removed after successful initialization and its named
 patch Role/RoleBinding/SA retired; never delete the key Secret during that cleanup.
+
+## Maintenance placement and recovery scheduling
+
+The overseas node has exact NoSchedule taints dedicated=overseas-edge and
+scheduling.re8ch.com/capacity-window=closed. These one-shot maintenance Jobs copy
+the existing Stalwart StatefulSet's two Equal tolerations; they do not clear
+node taints, open tenant capacity windows or use wildcard tolerations. Production
+stalwart-flk already has both tolerations, verified before the pause
+(`audit://operations/op_bbd93f469bb04b07b06c844da192238e`).
+
+Observed node allocatable memory is 3906236Ki, CPU 2. Actual usage was 1838Mi and
+1008m; the source used 190Mi and 2m. Cold-backup requests 1Gi and is capped at
+1536Mi/1CPU; key/preflight are capped at 128Mi/1CPU and run sequentially. At that
+snapshot, stopping the source leaves headroom for the bounded backup. Recheck
+fresh node pressure and scheduling before pause; a changed workload/metric may
+invalidate this estimate. Audits `audit://operations/op_f07e8c01f3d944f19aa32396ddcc0313`,
+`audit://operations/op_efee11a1b55c4558ad382cf5fe69dd82`,
+`audit://operations/op_8f6bedcf8d35499eb01bfb725db3a7e5`.

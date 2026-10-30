@@ -146,6 +146,15 @@ spec:
               - key: ca.crt
                 path: ca.crt
       serviceAccountName: stalwart-backup-key-init
+      tolerations:
+      - key: dedicated
+        operator: Equal
+        value: overseas-edge
+        effect: NoSchedule
+      - key: scheduling.re8ch.com/capacity-window
+        operator: Equal
+        value: closed
+        effect: NoSchedule
 ---
 apiVersion: batch/v1
 kind: Job
@@ -189,7 +198,7 @@ spec:
             memory: 1Gi
           limits:
             cpu: '1'
-            memory: 2Gi
+            memory: 1536Mi
         volumeMounts:
         - name: script
           mountPath: /scripts
@@ -224,6 +233,15 @@ spec:
         secret:
           secretName: stalwart-migration-backup-key
           defaultMode: 292
+      tolerations:
+      - key: dedicated
+        operator: Equal
+        value: overseas-edge
+        effect: NoSchedule
+      - key: scheduling.re8ch.com/capacity-window
+        operator: Equal
+        value: closed
+        effect: NoSchedule
 ---
 apiVersion: batch/v1
 kind: Job
@@ -295,3 +313,12 @@ spec:
         secret:
           secretName: stalwart-migration-backup-key
           defaultMode: 292
+      tolerations:
+      - key: dedicated
+        operator: Equal
+        value: overseas-edge
+        effect: NoSchedule
+      - key: scheduling.re8ch.com/capacity-window
+        operator: Equal
+        value: closed
+        effect: NoSchedule

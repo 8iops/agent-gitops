@@ -20,6 +20,7 @@ def test_backup_grants_only_named_secret_patch_and_keeps_data_off_api():
         assert job['spec']['backoffLimit'] == 0
         pod = job['spec']['template']['spec']
         assert pod['nodeSelector'] == {'kubernetes.io/hostname': 'overseas-flk'}
+        assert pod['tolerations'] == [{'key': 'dedicated', 'operator': 'Equal', 'value': 'overseas-edge', 'effect': 'NoSchedule'}, {'key': 'scheduling.re8ch.com/capacity-window', 'operator': 'Equal', 'value': 'closed', 'effect': 'NoSchedule'}]
         assert pod['automountServiceAccountToken'] is False
         assert '@sha256:' in pod['containers'][0]['image']
     cold = next(d for d in docs if d['metadata']['name'] == 'stalwart-cold-backup')
