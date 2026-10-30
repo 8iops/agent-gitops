@@ -10,7 +10,7 @@ module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
 
-def fixture(tmp_path, *, questions=6):
+def fixture(tmp_path, *, questions=0):
     state = tmp_path / 'answered-prepare-v1'
     native = state / 'native'
     native.mkdir(parents=True)
@@ -50,7 +50,7 @@ def test_bounded_success_does_not_emit_private_values(tmp_path):
 
 
 def test_unanswered_or_changed_answer_fails_closed(tmp_path):
-    fixture(tmp_path, questions=5)
+    fixture(tmp_path, questions=1)
     with pytest.raises(ValueError):
         module.verify()
     fixture(tmp_path / 'another')

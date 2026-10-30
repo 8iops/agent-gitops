@@ -9,8 +9,11 @@ state PVC. No ServiceAccount token or network access is present; the rehearsal
 deny-all policy selects the Pod.
 
 The verifier compares the parsed native answers with the original candidate,
-requires all six questions answered, zero errors, exactly 12 dropped objects,
-and bounded source counts. Logs contain only fixed status and counts. A second
+requires the six preloaded answer groups to match the candidate, zero errors,
+exactly 12 dropped objects, and the unchanged 2927-object/63-warning source
+summary. Upstream reports `0 questions answered now` for noninteractive
+validation because that counter only tracks answers entered during this run.
+Logs contain only fixed status and counts. A second
 attempt cannot overwrite the directory. A failure never becomes migration
 approval. The 43 removed old role permissions and 12 SpamTags still need
 review after actual converted target inspection.

@@ -35,13 +35,15 @@ def verify():
     if len(matches) != 1:
         raise ValueError()
     objects, drops, warnings, errors, questions = map(int, matches[0])
-    if objects < 2927 or drops != 12 or warnings > 63 or errors != 0 or questions != 6:
+    # Upstream Prepared::validate sets `answered` to 0. This counter records
+    # answers given interactively during this invocation, not loaded answers.
+    if (objects, drops, warnings, errors, questions) != (2927, 12, 63, 0, 0):
         raise ValueError()
     if 'run will refuse to start until these are resolved:' in report:
         raise ValueError()
     return {'answeredPrepareComplete': True, 'rehearsalOnly': True,
             'objectsToWrite': objects, 'droppedObjects': drops,
-            'warnings': warnings, 'questionsAnswered': questions}
+            'warnings': warnings, 'loadedAnswerGroups': 6}
 
 
 def main():
