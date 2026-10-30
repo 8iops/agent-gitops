@@ -132,7 +132,7 @@ metadata:
   namespace: mail-system
 spec:
   podManagementPolicy: OrderedReady
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: stalwart
@@ -141,7 +141,7 @@ spec:
     metadata:
       annotations:
         governance.re8ch.com/mail-authority: staged
-        governance.re8ch.com/stalwart-migration-phase: source-v0.16.27
+        governance.re8ch.com/stalwart-migration-phase: production-cutover-stopped
       labels:
         app.kubernetes.io/name: stalwart
     spec:
