@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: stalwart-rehearsal-native-readability
+  name: stalwart-rehearsal-native-readability-v2
   namespace: mail-system
 spec:
   suspend: true
@@ -38,6 +38,8 @@ spec:
           capabilities:
             drop:
             - ALL
+            add:
+            - NET_BIND_SERVICE
         volumeMounts:
         - name: baseline
           mountPath: /baseline
