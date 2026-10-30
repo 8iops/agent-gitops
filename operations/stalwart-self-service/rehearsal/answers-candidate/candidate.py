@@ -1,5 +1,4 @@
 """Write a rehearsal-only answer candidate from validated private prepare state."""
-import hashlib
 import json
 import os
 from pathlib import Path
@@ -114,7 +113,6 @@ def main():
             target.flush()
             os.fsync(target.fileno())
         print(json.dumps({'candidateWritten': True, 'rehearsalOnly': True,
-                          'answerSha256': hashlib.sha256(content).hexdigest(),
                           'prompts': 6, 'rolePermissionDrops': 43, 'spamTagDrops': 12},
                          sort_keys=True))
         return 0

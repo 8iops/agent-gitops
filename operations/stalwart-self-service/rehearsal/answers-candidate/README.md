@@ -11,7 +11,7 @@ The script first repeats the complete bounded policy projection and pins the
 observed six prompts, source counts, contexts, 43 removed role permission
 entries, and 12 dropped SpamTags. It extracts exact instance keys only from
 private `prepare` output. Changed evidence fails closed; logs contain only
-fixed status, counts, and hash. The output file is mode 0600 and is never
+fixed status and counts. The output file is mode 0600 and is never
 returned through platform tools. A second run fails instead of overwriting it.
 
 Candidate choices for an **isolated rehearsal**: all 16 categories; pin changed
