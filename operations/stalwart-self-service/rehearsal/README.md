@@ -126,3 +126,30 @@ Every subsequent baseline copy must read **only source-restore-local/database**.
 Working, v1 and rollback store JSON paths likewise end in `/database`. Never use
 partial files left at the old PVC root as database input. This change needs no
 root container, source permission changes or new PVC. Production remains online.
+
+## Final cutover must capture post-backup writes
+
+Production has continued accepting writes after the cold-backup window. This
+rehearsal snapshot and its v1 test target must **never be promoted directly**.
+Successful rehearsal authorizes preparation of a separate cutover plan, not use
+of stale user data. Reuse the verified immutable program images; do not rebuild.
+
+At cutover, root must stop all current source writers again, capture a new
+consistent source generation and account for its messages, calendar/file changes,
+queues and scheduled tasks. The official converter requires v0.16.27: if the live
+source is still v0.16.18, the reviewed plan must patch-upgrade the fresh stopped
+working copy first and migrate that generation into a clean final target/state.
+Do not pretend an old rehearsal --final can synchronize a still-v0.16.18 source.
+Alternatively, a separately reviewed live v0.16.27 transition may permit official
+incremental runs followed by supported --final after all writers stop. Use only
+the procedure actually demonstrated in rehearsal and the converter's source and
+state fingerprint checks; do not bypass them or mix unrelated snapshot/state IDs.
+
+Before routing users, prove final full verification and compare fresh source
+aggregates, including changes since the old backup. Exercise authorized canary
+write/read and queue behavior on the final target. Keep the original source
+stopped so there is no dual-writer split. Until v1 accepts new writes, rollback can
+restore the unchanged stopped source under the reviewed plan. After v1 writes,
+rollback must preserve those new writes through the supported reverse conversion
+into a fresh v0.16.27 store, with queue drain and documented v1-only losses; merely
+restarting the old source would lose user changes. Root coordinates that decision.

@@ -42,4 +42,17 @@ def test_probe_uses_only_working_copy_and_prevents_bootstrap_fallback():
     assert 'quit > /work/commands' in script
     assert 'mkfifo /work/native-output' in script
     assert '> /work/native-output' in script
-    assert 'cat /state/native-v01618/result.json' in script
+    assert 'cat /state/native-v01618-v2/result.json' in script
+
+
+def test_exec_repair_is_narrow_and_does_not_reset_working_copy():
+    job = yaml.safe_load((PROBE / 'job.yaml').read_text())
+    assert job['metadata']['name'] == 'stalwart-rehearsal-native-readability-v2'
+    security = job['spec']['template']['spec']['containers'][0]['securityContext']
+    assert security['capabilities'] == {'drop': ['ALL'], 'add': ['NET_BIND_SERVICE']}
+    assert security['allowPrivilegeEscalation'] is False
+    script = (PROBE / 'readability.sh').read_text()
+    assert "grep -Fq 'Operation not permitted' /state/native-v01618/startup.stderr" in script
+    assert 'diff -qr /baseline/database /var/lib/stalwart/database >/dev/null 2>&1' in script
+    assert script.index('diff -qr ') < script.index('/usr/local/bin/stalwart --config')
+    assert 'cp -a' not in script and 'rm -' not in script
