@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: stalwart-rehearsal-full-verify-v1
+  name: stalwart-rehearsal-full-verify-v2
   namespace: mail-system
 spec:
   suspend: true
@@ -44,7 +44,7 @@ spec:
           readOnly: true
         - name: target
           mountPath: /var/lib/stalwart-v1
-          readOnly: true
+          readOnly: false
         - name: state
           mountPath: /state
           readOnly: false
@@ -67,7 +67,7 @@ spec:
       - name: target
         persistentVolumeClaim:
           claimName: stalwart-rehearsal-target-v1-local
-          readOnly: true
+          readOnly: false
       - name: state
         persistentVolumeClaim:
           claimName: stalwart-rehearsal-migration-state-local

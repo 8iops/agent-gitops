@@ -4,7 +4,7 @@ umask 077
 unset CONFIG_PATH
 stage=/state/answered-prepare-v1
 run=$stage/forward-run-v1
-verify=$stage/full-verify-v1
+verify=$stage/full-verify-v2
 [ "$(cat "$stage/native-exit")" = 0 ]
 [ "$(cat "$run/native-exit")" = 0 ]
 [ ! -e "$verify" ]
