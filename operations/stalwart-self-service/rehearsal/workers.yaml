@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: migration-store-config
-  namespace: stalwart-migration-rehearsal
+  name: stalwart-rehearsal-migration-store-config
+  namespace: mail-system
 data:
   source.json: '{"@type": "RocksDb", "path": "/var/lib/stalwart"}'
   target.json: '{"@type": "RocksDb", "path": "/var/lib/stalwart-v1"}'
@@ -11,8 +11,8 @@ data:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: migrate-prepare
-  namespace: stalwart-migration-rehearsal
+  name: stalwart-rehearsal-migrate-prepare
+  namespace: mail-system
 spec:
   suspend: true
   backoffLimit: 0
@@ -21,6 +21,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: stalwart-migrate
+        re8ch.com/stalwart-rehearsal: 'true'
     spec:
       restartPolicy: Never
       automountServiceAccountToken: false
@@ -72,19 +73,19 @@ spec:
       volumes:
       - name: source
         persistentVolumeClaim:
-          claimName: source-v01627
+          claimName: stalwart-rehearsal-source-v01627
           readOnly: true
       - name: target
         persistentVolumeClaim:
-          claimName: target-v1
+          claimName: stalwart-rehearsal-target-v1
           readOnly: false
       - name: state
         persistentVolumeClaim:
-          claimName: migration-state
+          claimName: stalwart-rehearsal-migration-state
           readOnly: false
       - name: config
         configMap:
-          name: migration-store-config
+          name: stalwart-rehearsal-migration-store-config
       - name: tmp
         emptyDir:
           sizeLimit: 256Mi
@@ -92,8 +93,8 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: migrate-run
-  namespace: stalwart-migration-rehearsal
+  name: stalwart-rehearsal-migrate-run
+  namespace: mail-system
 spec:
   suspend: true
   backoffLimit: 0
@@ -102,6 +103,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: stalwart-migrate
+        re8ch.com/stalwart-rehearsal: 'true'
     spec:
       restartPolicy: Never
       automountServiceAccountToken: false
@@ -154,19 +156,19 @@ spec:
       volumes:
       - name: source
         persistentVolumeClaim:
-          claimName: source-v01627
+          claimName: stalwart-rehearsal-source-v01627
           readOnly: true
       - name: target
         persistentVolumeClaim:
-          claimName: target-v1
+          claimName: stalwart-rehearsal-target-v1
           readOnly: false
       - name: state
         persistentVolumeClaim:
-          claimName: migration-state
+          claimName: stalwart-rehearsal-migration-state
           readOnly: false
       - name: config
         configMap:
-          name: migration-store-config
+          name: stalwart-rehearsal-migration-store-config
       - name: tmp
         emptyDir:
           sizeLimit: 256Mi
@@ -174,8 +176,8 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: migrate-final
-  namespace: stalwart-migration-rehearsal
+  name: stalwart-rehearsal-migrate-final
+  namespace: mail-system
 spec:
   suspend: true
   backoffLimit: 0
@@ -184,6 +186,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: stalwart-migrate
+        re8ch.com/stalwart-rehearsal: 'true'
     spec:
       restartPolicy: Never
       automountServiceAccountToken: false
@@ -238,19 +241,19 @@ spec:
       volumes:
       - name: source
         persistentVolumeClaim:
-          claimName: source-v01627
+          claimName: stalwart-rehearsal-source-v01627
           readOnly: true
       - name: target
         persistentVolumeClaim:
-          claimName: target-v1
+          claimName: stalwart-rehearsal-target-v1
           readOnly: false
       - name: state
         persistentVolumeClaim:
-          claimName: migration-state
+          claimName: stalwart-rehearsal-migration-state
           readOnly: false
       - name: config
         configMap:
-          name: migration-store-config
+          name: stalwart-rehearsal-migration-store-config
       - name: tmp
         emptyDir:
           sizeLimit: 256Mi
@@ -258,8 +261,8 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: migrate-verify
-  namespace: stalwart-migration-rehearsal
+  name: stalwart-rehearsal-migrate-verify
+  namespace: mail-system
 spec:
   suspend: true
   backoffLimit: 0
@@ -268,6 +271,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: stalwart-migrate
+        re8ch.com/stalwart-rehearsal: 'true'
     spec:
       restartPolicy: Never
       automountServiceAccountToken: false
@@ -321,19 +325,19 @@ spec:
       volumes:
       - name: source
         persistentVolumeClaim:
-          claimName: source-v01627
+          claimName: stalwart-rehearsal-source-v01627
           readOnly: true
       - name: target
         persistentVolumeClaim:
-          claimName: target-v1
+          claimName: stalwart-rehearsal-target-v1
           readOnly: true
       - name: state
         persistentVolumeClaim:
-          claimName: migration-state
+          claimName: stalwart-rehearsal-migration-state
           readOnly: false
       - name: config
         configMap:
-          name: migration-store-config
+          name: stalwart-rehearsal-migration-store-config
       - name: tmp
         emptyDir:
           sizeLimit: 256Mi
@@ -341,8 +345,8 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: migrate-rollback
-  namespace: stalwart-migration-rehearsal
+  name: stalwart-rehearsal-migrate-rollback
+  namespace: mail-system
 spec:
   suspend: true
   backoffLimit: 0
@@ -351,6 +355,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: stalwart-migrate
+        re8ch.com/stalwart-rehearsal: 'true'
     spec:
       restartPolicy: Never
       automountServiceAccountToken: false
@@ -410,23 +415,23 @@ spec:
       volumes:
       - name: source
         persistentVolumeClaim:
-          claimName: source-v01627
+          claimName: stalwart-rehearsal-source-v01627
           readOnly: true
       - name: target
         persistentVolumeClaim:
-          claimName: target-v1
+          claimName: stalwart-rehearsal-target-v1
           readOnly: true
       - name: state
         persistentVolumeClaim:
-          claimName: migration-state
+          claimName: stalwart-rehearsal-migration-state
           readOnly: false
       - name: rollback
         persistentVolumeClaim:
-          claimName: rollback-v01627
+          claimName: stalwart-rehearsal-rollback-v01627
           readOnly: false
       - name: config
         configMap:
-          name: migration-store-config
+          name: stalwart-rehearsal-migration-store-config
       - name: tmp
         emptyDir:
           sizeLimit: 256Mi
