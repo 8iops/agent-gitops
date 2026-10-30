@@ -33,6 +33,16 @@ def read(path):
     if len(raw) > MAX_BYTES: raise Invalid()
     return raw.decode('utf-8')
 
+def read_vocabulary(path=Path('/scripts/vocabulary.json')):
+    # Kubelet ConfigMap projections use ..data symlinks. This separate reader
+    # is called only for reviewed public vocabulary, never private state input.
+    with path.open('rb') as source:
+        info = os.fstat(source.fileno())
+        if not stat.S_ISREG(info.st_mode) or info.st_size > MAX_BYTES: raise Invalid()
+        raw = source.read(MAX_BYTES + 1)
+    if len(raw) > MAX_BYTES: raise Invalid()
+    return json.loads(raw.decode('utf-8'))
+
 def value(field, raw):
     v = json.loads(raw)
     if field in ('anonymousClientRegistration', 'requireClientRegistration'):
@@ -151,7 +161,7 @@ def project(directory, vocabulary):
 
 def main():
     try:
-        vocab = json.loads(read(Path('/scripts/vocabulary.json')))
+        vocab = read_vocabulary()
         output = project(Path('/state/prepare-discovery-v1/native'), vocab)
         print(json.dumps(output, sort_keys=True, separators=(',', ':')))
     except Exception:
