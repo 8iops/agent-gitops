@@ -68,3 +68,5 @@ def test_job_is_suspended_and_uses_isolated_source():
     assert claims['source']['claimName'] == 'stalwart-rehearsal-source-v01627-local'
     assert claims['source']['readOnly'] is True
     assert claims['state']['claimName'] == 'stalwart-rehearsal-migration-state-local'
+    config = next(v for v in pod['volumes'] if v['name'] == 'config')
+    assert config['configMap']['name'] == 'stalwart-rehearsal-prepare-discovery-config-hg4kmg6gkt'
