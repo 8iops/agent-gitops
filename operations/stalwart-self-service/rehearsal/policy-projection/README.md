@@ -59,3 +59,10 @@ issuer/audience/scopes against the reviewed actual consumer configuration first.
 Missing token-kind evidence, incomplete warning classification and any unknown
 field require further bounded review. This Job does not edit production or make
 an OAuth compatibility claim.
+
+`new_permissions` has no source context: official auth.rs calls ask_global,
+and engine/mod.rs::global_answer passes Vec::new() for context. Therefore the
+projection explicitly marks permissionMatches unknown. Recommended grant
+defaults are not evidence of existing enabled/disabled/credential matches. The
+same mapping can affect enabled permissions, disabled permissions and credential
+permission lists; current aggregate warning counts cannot authorize any choice.

@@ -143,6 +143,7 @@ def project(directory, vocabulary):
         'contexts': contexts,
         'tokenType': {'status': 'unknown', 'reason': 'not_recorded_in_native_source_context'},
         'durationContext': 'only_values_below_v1_minimum_are_recorded',
+        'permissionMatches': {'status': 'unknown', 'reason': 'global_prompt_has_no_source_context'},
         'droppedObjectTypes': dict(sorted(drop_counts.items())),
         'warningGroups': [{'objectType': k[0], 'property': k[1], 'changeCode': k[2], 'count': n} for k, n in sorted(warning_counts.items())],
         'unknown': {'contextFields': unknown_context, 'droppedObjects': unknown_drops,
