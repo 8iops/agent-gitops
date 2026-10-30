@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: stalwart-rehearsal-restore
+  name: stalwart-rehearsal-restore-local
   namespace: mail-system
 spec:
   suspend: true
@@ -28,10 +28,10 @@ spec:
         resources:
           requests:
             cpu: 100m
-            memory: 768Mi
+            memory: 512Mi
           limits:
             cpu: '1'
-            memory: 1280Mi
+            memory: 1536Mi
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -62,7 +62,7 @@ spec:
           readOnly: true
       - name: restore
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-source-restore
+          claimName: stalwart-rehearsal-source-restore-local
       - name: keys
         secret:
           secretName: stalwart-migration-backup-key

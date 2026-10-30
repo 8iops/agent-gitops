@@ -16,64 +16,64 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: stalwart-rehearsal-source-restore
+  name: stalwart-rehearsal-source-restore-local
   namespace: mail-system
 spec:
   accessModes:
   - ReadWriteOnce
-  storageClassName: rbd-r640
+  storageClassName: local-path
   resources:
     requests:
-      storage: 4Gi
+      storage: 2Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: stalwart-rehearsal-source-v01627
+  name: stalwart-rehearsal-source-v01627-local
   namespace: mail-system
 spec:
   accessModes:
   - ReadWriteOnce
-  storageClassName: rbd-r640
+  storageClassName: local-path
   resources:
     requests:
-      storage: 4Gi
+      storage: 2Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: stalwart-rehearsal-target-v1
+  name: stalwart-rehearsal-target-v1-local
   namespace: mail-system
 spec:
   accessModes:
   - ReadWriteOnce
-  storageClassName: rbd-r640
+  storageClassName: local-path
   resources:
     requests:
-      storage: 4Gi
+      storage: 2Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: stalwart-rehearsal-rollback-v01627
+  name: stalwart-rehearsal-rollback-v01627-local
   namespace: mail-system
 spec:
   accessModes:
   - ReadWriteOnce
-  storageClassName: rbd-r640
+  storageClassName: local-path
   resources:
     requests:
-      storage: 4Gi
+      storage: 2Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: stalwart-rehearsal-migration-state
+  name: stalwart-rehearsal-migration-state-local
   namespace: mail-system
 spec:
   accessModes:
   - ReadWriteOnce
-  storageClassName: rbd-r640
+  storageClassName: local-path
   resources:
     requests:
       storage: 1Gi

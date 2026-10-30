@@ -11,7 +11,7 @@ data:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: stalwart-rehearsal-migrate-prepare
+  name: stalwart-rehearsal-migrate-prepare-local
   namespace: mail-system
 spec:
   suspend: true
@@ -44,11 +44,11 @@ spec:
         - /state/forward
         resources:
           requests:
-            cpu: '1'
-            memory: 2Gi
+            cpu: 100m
+            memory: 512Mi
           limits:
-            cpu: '2'
-            memory: 4Gi
+            cpu: '1'
+            memory: 1536Mi
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -73,15 +73,15 @@ spec:
       volumes:
       - name: source
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-source-v01627
+          claimName: stalwart-rehearsal-source-v01627-local
           readOnly: true
       - name: target
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-target-v1
+          claimName: stalwart-rehearsal-target-v1-local
           readOnly: false
       - name: state
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-migration-state
+          claimName: stalwart-rehearsal-migration-state-local
           readOnly: false
       - name: config
         configMap:
@@ -89,11 +89,22 @@ spec:
       - name: tmp
         emptyDir:
           sizeLimit: 256Mi
+      nodeSelector:
+        kubernetes.io/hostname: overseas-flk
+      tolerations:
+      - key: dedicated
+        operator: Equal
+        value: overseas-edge
+        effect: NoSchedule
+      - key: scheduling.re8ch.com/capacity-window
+        operator: Equal
+        value: closed
+        effect: NoSchedule
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: stalwart-rehearsal-migrate-run
+  name: stalwart-rehearsal-migrate-run-local
   namespace: mail-system
 spec:
   suspend: true
@@ -127,11 +138,11 @@ spec:
         - /state/forward
         resources:
           requests:
-            cpu: '1'
-            memory: 2Gi
+            cpu: 100m
+            memory: 512Mi
           limits:
-            cpu: '2'
-            memory: 4Gi
+            cpu: '1'
+            memory: 1536Mi
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -156,15 +167,15 @@ spec:
       volumes:
       - name: source
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-source-v01627
+          claimName: stalwart-rehearsal-source-v01627-local
           readOnly: true
       - name: target
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-target-v1
+          claimName: stalwart-rehearsal-target-v1-local
           readOnly: false
       - name: state
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-migration-state
+          claimName: stalwart-rehearsal-migration-state-local
           readOnly: false
       - name: config
         configMap:
@@ -172,11 +183,22 @@ spec:
       - name: tmp
         emptyDir:
           sizeLimit: 256Mi
+      nodeSelector:
+        kubernetes.io/hostname: overseas-flk
+      tolerations:
+      - key: dedicated
+        operator: Equal
+        value: overseas-edge
+        effect: NoSchedule
+      - key: scheduling.re8ch.com/capacity-window
+        operator: Equal
+        value: closed
+        effect: NoSchedule
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: stalwart-rehearsal-migrate-final
+  name: stalwart-rehearsal-migrate-final-local
   namespace: mail-system
 spec:
   suspend: true
@@ -212,11 +234,11 @@ spec:
         - /state/forward
         resources:
           requests:
-            cpu: '1'
-            memory: 2Gi
+            cpu: 100m
+            memory: 512Mi
           limits:
-            cpu: '2'
-            memory: 4Gi
+            cpu: '1'
+            memory: 1536Mi
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -241,15 +263,15 @@ spec:
       volumes:
       - name: source
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-source-v01627
+          claimName: stalwart-rehearsal-source-v01627-local
           readOnly: true
       - name: target
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-target-v1
+          claimName: stalwart-rehearsal-target-v1-local
           readOnly: false
       - name: state
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-migration-state
+          claimName: stalwart-rehearsal-migration-state-local
           readOnly: false
       - name: config
         configMap:
@@ -257,11 +279,22 @@ spec:
       - name: tmp
         emptyDir:
           sizeLimit: 256Mi
+      nodeSelector:
+        kubernetes.io/hostname: overseas-flk
+      tolerations:
+      - key: dedicated
+        operator: Equal
+        value: overseas-edge
+        effect: NoSchedule
+      - key: scheduling.re8ch.com/capacity-window
+        operator: Equal
+        value: closed
+        effect: NoSchedule
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: stalwart-rehearsal-migrate-verify
+  name: stalwart-rehearsal-migrate-verify-local
   namespace: mail-system
 spec:
   suspend: true
@@ -296,11 +329,11 @@ spec:
         - /state/forward
         resources:
           requests:
-            cpu: '1'
-            memory: 2Gi
+            cpu: 100m
+            memory: 512Mi
           limits:
-            cpu: '2'
-            memory: 4Gi
+            cpu: '1'
+            memory: 1536Mi
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -325,15 +358,15 @@ spec:
       volumes:
       - name: source
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-source-v01627
+          claimName: stalwart-rehearsal-source-v01627-local
           readOnly: true
       - name: target
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-target-v1
+          claimName: stalwart-rehearsal-target-v1-local
           readOnly: true
       - name: state
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-migration-state
+          claimName: stalwart-rehearsal-migration-state-local
           readOnly: false
       - name: config
         configMap:
@@ -341,11 +374,22 @@ spec:
       - name: tmp
         emptyDir:
           sizeLimit: 256Mi
+      nodeSelector:
+        kubernetes.io/hostname: overseas-flk
+      tolerations:
+      - key: dedicated
+        operator: Equal
+        value: overseas-edge
+        effect: NoSchedule
+      - key: scheduling.re8ch.com/capacity-window
+        operator: Equal
+        value: closed
+        effect: NoSchedule
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: stalwart-rehearsal-migrate-rollback
+  name: stalwart-rehearsal-migrate-rollback-local
   namespace: mail-system
 spec:
   suspend: true
@@ -383,11 +427,11 @@ spec:
         - /state/forward
         resources:
           requests:
-            cpu: '1'
-            memory: 2Gi
+            cpu: 100m
+            memory: 512Mi
           limits:
-            cpu: '2'
-            memory: 4Gi
+            cpu: '1'
+            memory: 1536Mi
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -415,19 +459,19 @@ spec:
       volumes:
       - name: source
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-source-v01627
+          claimName: stalwart-rehearsal-source-v01627-local
           readOnly: true
       - name: target
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-target-v1
+          claimName: stalwart-rehearsal-target-v1-local
           readOnly: true
       - name: state
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-migration-state
+          claimName: stalwart-rehearsal-migration-state-local
           readOnly: false
       - name: rollback
         persistentVolumeClaim:
-          claimName: stalwart-rehearsal-rollback-v01627
+          claimName: stalwart-rehearsal-rollback-v01627-local
           readOnly: false
       - name: config
         configMap:
@@ -435,3 +479,14 @@ spec:
       - name: tmp
         emptyDir:
           sizeLimit: 256Mi
+      nodeSelector:
+        kubernetes.io/hostname: overseas-flk
+      tolerations:
+      - key: dedicated
+        operator: Equal
+        value: overseas-edge
+        effect: NoSchedule
+      - key: scheduling.re8ch.com/capacity-window
+        operator: Equal
+        value: closed
+        effect: NoSchedule
