@@ -3,11 +3,11 @@ set -eu
 umask 077
 unset CONFIG_PATH
 stage=/state/prepare-discovery-v1
-[ "$(cat /state/startup-v01627/ACCEPTED)" = ready-and-cleanly-stopped ]
+[ "$(cat /state/startup-v01627-v2/ACCEPTED)" = ready-and-cleanly-stopped ]
 [ ! -e "$stage" ]
-[ -s /var/lib/stalwart/database/CURRENT ]
-[ -n "$(find /var/lib/stalwart/database -maxdepth 1 -type f -name 'MANIFEST-*' -print -quit)" ]
-[ -z "$(find /var/lib/stalwart/database -type l -print -quit)" ]
+[ -s /var/lib/stalwart/startup-v2/database/CURRENT ]
+[ -n "$(find /var/lib/stalwart/startup-v2/database -maxdepth 1 -type f -name 'MANIFEST-*' -print -quit)" ]
+[ -z "$(find /var/lib/stalwart/startup-v2/database -type l -print -quit)" ]
 mkdir -m 700 "$stage"
 # Source is a read-only PVC and native adapter opens RocksDB ReadOnly.
 # A new state directory ensures no supplied answers can approve policies.

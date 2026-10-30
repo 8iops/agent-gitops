@@ -62,6 +62,6 @@ def test_container_boundary():
     assert {v['name'] for v in pod['volumes']} == {'source', 'state', 'config', 'tmp', 'scripts'}
     assert all(m['readOnly'] for m in pod['containers'][0]['volumeMounts'])
     script = (PROBE / 'prepare.sh').read_text()
-    assert 'startup-v01627/ACCEPTED' in script
+    assert 'startup-v01627-v2/ACCEPTED' in script
     assert 'stalwart-migrate prepare ' in script
     assert '--target' not in script and ' run ' not in script

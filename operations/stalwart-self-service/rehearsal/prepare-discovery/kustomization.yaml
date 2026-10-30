@@ -11,4 +11,4 @@ configMapGenerator:
   - name: stalwart-rehearsal-prepare-discovery-config
     namespace: mail-system
     literals:
-      - 'source.json={"@type":"RocksDb","path":"/var/lib/stalwart/database"}'
+      - 'source.json={"@type":"RocksDb","path":"/var/lib/stalwart/startup-v2/database"}'

@@ -1,7 +1,7 @@
 # Native prepare discovery, without approving answers
 
 Apply this directory separately after review. The Job starts suspended and is
-not part of the production root. Require the 0.16.27 startup Job Complete, its
+not part of the production root. Require the fresh-copy 0.16.27 startup-v2 Job Complete, its
 clean-stop ACCEPTED marker and no other process holding the working RocksDB.
 Do not run this alongside the older generic prepare Job in workers.yaml.
 
@@ -42,3 +42,8 @@ Validation: tests exercise secret sentinel exclusion, invalid/extra/missing
 problems, conversion failures, unreadable source, actual answers, oversized files,
 symlinks, duplicate/unknown questions and native code mismatch. These tests do
 not claim an actual provider discovery result.
+
+The v2 source is a separate fresh baseline copy at startup-v2/database, not the
+failed first attempt. Its longer observation window addresses a possible slow
+pre-telemetry startup; no root cause is claimed. This gate still requires exact
+readiness and clean stop from the separately reviewed startup-v2 phase.
