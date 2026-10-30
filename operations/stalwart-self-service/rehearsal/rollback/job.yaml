@@ -1,0 +1,125 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: stalwart-rehearsal-rollback-v1
+  namespace: mail-system
+spec:
+  suspend: true
+  backoffLimit: 0
+  activeDeadlineSeconds: 1800
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: stalwart-migrate
+        re8ch.com/stalwart-rehearsal: 'true'
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 2000
+        runAsGroup: 2000
+        fsGroup: 2000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: verify
+        image: registry.re8ch.com/functions-shared/re8ch-cloud-platform@sha256:9c373e188664449043ea68984719288d192ec383bc0ed918900205e9728f7199
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 250m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: state
+          mountPath: /state
+          readOnly: true
+        - name: rollback
+          mountPath: /var/lib/stalwart-rollback
+          readOnly: true
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+        command:
+        - python
+        - -B
+        - /scripts/verify.py
+      volumes:
+      - name: target
+        persistentVolumeClaim:
+          claimName: stalwart-rehearsal-target-v1-local
+          readOnly: true
+      - name: state
+        persistentVolumeClaim:
+          claimName: stalwart-rehearsal-migration-state-local
+          readOnly: false
+      - name: rollback
+        persistentVolumeClaim:
+          claimName: stalwart-rehearsal-rollback-v01627-local
+          readOnly: false
+      - name: config
+        configMap:
+          name: stalwart-rehearsal-migration-store-config
+      - name: tmp
+        emptyDir:
+          sizeLimit: 256Mi
+      - name: scripts
+        configMap:
+          name: stalwart-rehearsal-rollback-script
+          defaultMode: 365
+      nodeSelector:
+        kubernetes.io/hostname: overseas-flk
+      tolerations:
+      - key: dedicated
+        operator: Equal
+        value: overseas-edge
+        effect: NoSchedule
+      - key: scheduling.re8ch.com/capacity-window
+        operator: Equal
+        value: closed
+        effect: NoSchedule
+      initContainers:
+      - name: rollback
+        image: docker.io/stalwartlabs/stalwart-migrate:1.0.3@sha256:1e936a872424bb8856ac2186129266f5179e516d9dbf58853c73364e6e0fc563
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            cpu: '1'
+            memory: 1536Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: target
+          mountPath: /var/lib/stalwart-v1
+          readOnly: true
+        - name: state
+          mountPath: /state
+          readOnly: false
+        - name: rollback
+          mountPath: /var/lib/stalwart-rollback
+          readOnly: false
+        - name: config
+          mountPath: /config
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+        command:
+        - /bin/sh
+        - /scripts/rollback.sh
