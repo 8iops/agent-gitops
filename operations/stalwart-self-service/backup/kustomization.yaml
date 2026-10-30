@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - resources.yaml
+configMapGenerator:
+  - name: stalwart-backup-scripts
+    namespace: mail-system
+    files:
+      - key-init.sh
+      - archive.sh
+      - preflight.sh
