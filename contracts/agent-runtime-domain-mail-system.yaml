@@ -80,6 +80,7 @@ spec:
     - apps/Deployment/mail-system/stalwart-webmail
     - apps/StatefulSet/mail-system/stalwart-flk
     - core/ConfigMap/mail-system/stalwart-bot-access-contract
+    - core/ConfigMap/mail-system/stalwart-config
   inventory:
     digest: sha256:0ab9d21b1a88399364341e1e5ea585f36aebe8f71adb0d71808b8349bbf5e237
   lifecycle:
