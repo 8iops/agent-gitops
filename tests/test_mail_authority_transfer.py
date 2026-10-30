@@ -48,6 +48,14 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     config_patch = yaml.safe_load((ROOT / 'clusters/re8ch/stalwart-v1-config-patch.yaml').read_text())
     config = next(obj for obj in expected if obj['kind'] == 'ConfigMap' and obj['metadata']['name'] == 'stalwart-config')
     config['data'].update(config_patch['data'])
+    device_route_patch = yaml.safe_load((ROOT / 'clusters/re8ch/stalwart-device-route-patch.yaml').read_text())
+    assert device_route_patch == [{
+        'op': 'add',
+        'path': '/spec/rules/1/matches/3',
+        'value': {'path': {'type': 'PathPrefix', 'value': '/device'}},
+    }]
+    route = next(obj for obj in expected if obj['kind'] == 'HTTPRoute' and obj['metadata']['name'] == 'stalwart-idp-public')
+    route['spec']['rules'][1]['matches'].insert(3, device_route_patch[0]['value'])
     assert target == expected
     assert stalwart['spec']['replicas'] == 1
     assert 'v1.0.1@sha256:' in stalwart['spec']['template']['spec']['containers'][0]['image']
