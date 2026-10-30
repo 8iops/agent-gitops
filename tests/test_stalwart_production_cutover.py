@@ -46,6 +46,8 @@ def test_production_cutover_runs_the_native_final_chain_without_exposing_reports
     startup = next(item for item in containers if item["name"] == "verify-v1-startup")
     script = migration["args"][0]
 
+    assert '"path":"/source"' in script
+    assert '"path":"/source/database"' not in script
     assert migration["image"].endswith(
         "@sha256:1e936a872424bb8856ac2186129266f5179e516d9dbf58853c73364e6e0fc563"
     )
