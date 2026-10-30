@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 SERVICES = {"mail", "calendars", "files"}
 SCOPE_PREFIX = "urn:ietf:params:oauth:scope:"
 DEVICE_GRANT = "urn:ietf:params:oauth:grant-type:device_code"
-CLIENT_GRANTS = {"deviceCode", "refreshToken"}
+CLIENT_GRANTS = {"deviceCode"}
 CLIENT_ID = "re8ch-self-service"
 
 
@@ -32,7 +32,7 @@ def validate(schema, metadata, origin):
         raise ValueError("provider schema lacks explicit client grant selection")
     grants = {entry.get("name") for entry in schema.get("enums", {}).get("OAuthGrantType", [])}
     if not CLIENT_GRANTS <= grants:
-        raise ValueError("provider schema lacks required device and refresh grants")
+        raise ValueError("provider schema lacks required device grant")
     enum = {entry.get("name") for entry in schema.get("enums", {}).get("OAuthScope", [])}
     if not SERVICES <= enum:
         raise ValueError("provider schema lacks the required collaboration scopes")

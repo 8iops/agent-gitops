@@ -17,8 +17,7 @@ OCI image digests. Paths are `resources/schema/schema.json.gz` at the linked tag
 | [v1.0.1](https://github.com/stalwartlabs/stalwart/tree/v1.0.1) | `6b339146033eca792183bcaff209d0879c1e7b6e0c827c43b21e9f98afb4e9dd` | Explicit firstParty, OAuthScope set and OAuthGrantType set |
 
 The v1 schema requires deviceCode in grantTypes to allow device authorization.
-The non-first-party candidate therefore explicitly allows deviceCode and
-refreshToken, and only mail, calendars and files scopes. This is a candidate
+The non-first-party candidate therefore explicitly allows deviceCode, and only mail, calendars and files scopes. This is a candidate
 registration, never an instruction to apply it against the current deployment.
 
 The [v1.0.0 release](https://github.com/stalwartlabs/stalwart/releases/tag/v1.0.0)
@@ -91,7 +90,9 @@ collection can invalidate an old-store fallback. Test this path on copied data.
 After reviewed migration, run provider_preflight.py on sanitized live evidence,
 then native dry-run and apply the reviewed OAuthClient candidate through the
 platform plan/write workflow. Read back effective scopes and grantTypes.
-Perform real device consent, refresh, exact-scope enforcement, management-denial,
+The current application reauthorizes after expiration and does not retain refresh
+tokens; refreshToken is not granted. Perform real device consent, expiry and
+reauthorization, exact-scope enforcement, management-denial,
 other-user/tenant denial and revoke tests before enabling collaboration.
 
 Repository authority remains: service-backend owns integration source,

@@ -80,7 +80,7 @@ def test_candidate_registration_is_unprivileged_and_not_in_runtime_root():
     assert all("stalwart-self-service" not in name for name in root["resources"])
 
 
-@pytest.mark.parametrize("missing", ["grantTypes", "deviceCode", "refreshToken"])
+@pytest.mark.parametrize("missing", ["grantTypes", "deviceCode"])
 def test_missing_client_grant_support_is_rejected(missing):
     schema, metadata = evidence()
     if missing == "grantTypes":
