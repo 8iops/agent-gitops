@@ -73,6 +73,16 @@ and converts them in memory. `write_outputs` emits `answers.toml` and
 `prepare-report.txt`, not the complete converted settings. The answer writer
 includes contextual values and suggested defaults in comments; unanswered tables
 remain commented out (tested upstream in `unanswered_questions_are_written_commented_out`).
+Exact execution order in [commands/run.rs](https://github.com/stalwartlabs/stalwart-migrate/blob/v1.0.3/crates/migrate/src/commands/run.rs):
+load absent answers as empty, open source, collect registry objects, validate,
+print summary, `write_outputs`, then test `prepared.is_complete()` to choose
+exit 0 or 1. Thus unanswered questions do not prevent restricted output files.
+Earlier source-open errors do prevent those outputs. `PrepareArgs` has no JSON
+output option; global JSON log format is logging, not a settings export.
+`status --format json` and `report --format json` exist for migration state,
+but do not replace prepare's question inventory. Source opening calls
+`RocksDbStore::open_with_mode(..., RocksDbOpenMode::ReadOnly)` in
+[source-v016 open.rs](https://github.com/stalwartlabs/stalwart-migrate/blob/v1.0.3/crates/source-v016/src/open.rs).
 Therefore prepare is useful evidence discovery even when its expected result is
 unanswered questions. It is not the migration `run`, and recording its restricted
 state does not approve any policy. No prepare execution is authorized by this PR.
