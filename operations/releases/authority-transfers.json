@@ -8,6 +8,9 @@
     "sourcePath": "clusters/re8ch/mail-authority-resources.yaml",
     "sourceDigest": "sha256:3bd7841a954df5911f465ea9db449fb22e1bbf5f0e79eb5e653a84ee776cd01b",
     "mode": "authority-only-existing-payload",
-    "forceConflictObjects": ["apps/Deployment/mail-system/stalwart-webmail"]
+    "forceConflictObjects": [
+      "apps/Deployment/mail-system/stalwart-webmail",
+      "apps/StatefulSet/mail-system/stalwart-flk"
+    ]
   }
 }

@@ -41,7 +41,10 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     contract = yaml.safe_load((ROOT / 'contracts/agent-runtime-domain-mail-system.yaml').read_text())['spec']
     assert contract['authorization']['fieldManager'] == 're8ch-release/identity-access-domain-mail-system'
     assert contract['authorization']['requireExisting'] is True
-    assert contract['authorization']['forceConflictObjects'] == ['apps/Deployment/mail-system/stalwart-webmail']
+    assert contract['authorization']['forceConflictObjects'] == [
+        'apps/Deployment/mail-system/stalwart-webmail',
+        'apps/StatefulSet/mail-system/stalwart-flk',
+    ]
     assert contract['lifecycle']['prune'] is False
 
 
