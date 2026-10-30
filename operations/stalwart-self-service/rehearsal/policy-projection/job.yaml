@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: stalwart-rehearsal-policy-projection-v1
+  name: stalwart-rehearsal-policy-projection-v2
   namespace: mail-system
 spec:
   suspend: true
