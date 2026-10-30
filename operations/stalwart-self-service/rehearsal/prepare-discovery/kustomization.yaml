@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - job.yaml
+configMapGenerator:
+  - name: stalwart-rehearsal-prepare-discovery-script
+    namespace: mail-system
+    files:
+      - prepare.sh
+      - project.py
+  - name: stalwart-rehearsal-prepare-discovery-config
+    namespace: mail-system
+    literals:
+      - 'source.json={"@type":"RocksDb","path":"/var/lib/stalwart/startup-v2/database"}'
