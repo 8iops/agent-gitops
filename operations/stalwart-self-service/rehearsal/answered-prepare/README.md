@@ -20,5 +20,8 @@ review after actual converted target inspection.
 
 Apply only after candidate Job completion and review, no concurrent RocksDB
 user, rendered manifest review, and server dry-run. Unsuspend only this Job.
+The source ConfigMap is the immutable generated
+`stalwart-rehearsal-prepare-discovery-config-hg4kmg6gkt` from the reviewed
+discovery Kustomize output. Verify its live data and name before scheduling.
 Do not print private files or use its state for production. A separate reviewed
 PR must define target conversion, verification, and rollback rehearsal.

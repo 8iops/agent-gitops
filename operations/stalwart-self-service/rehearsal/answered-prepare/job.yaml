@@ -60,7 +60,7 @@ spec:
           readOnly: false
       - name: config
         configMap:
-          name: stalwart-rehearsal-prepare-discovery-config
+          name: stalwart-rehearsal-prepare-discovery-config-hg4kmg6gkt
       - name: tmp
         emptyDir:
           sizeLimit: 256Mi
