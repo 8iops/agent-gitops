@@ -4,9 +4,9 @@ metadata:
   name: stalwart-rehearsal-migration-store-config
   namespace: mail-system
 data:
-  source.json: '{"@type": "RocksDb", "path": "/var/lib/stalwart"}'
-  target.json: '{"@type": "RocksDb", "path": "/var/lib/stalwart-v1"}'
-  rollback.json: '{"@type": "RocksDb", "path": "/var/lib/stalwart-rollback"}'
+  source.json: '{"@type": "RocksDb", "path": "/var/lib/stalwart/database"}'
+  target.json: '{"@type": "RocksDb", "path": "/var/lib/stalwart-v1/database"}'
+  rollback.json: '{"@type": "RocksDb", "path": "/var/lib/stalwart-rollback/database"}'
 ---
 apiVersion: batch/v1
 kind: Job

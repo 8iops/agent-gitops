@@ -41,10 +41,12 @@ archive and key throughout rehearsal and the approved rollback window.
 1. Apply the reviewed resources as suspended through the authenticated platform
    path. This creates new -local claims and a new restore Job, without retrying
    the failed RBD Job. Verify overseas-flk placement and current node capacity.
-2. Resume only `stalwart-rehearsal-restore-local`. It mounts the accepted backup
-   PVC/key read-only and only the empty baseline target. It requires ACCEPTED,
+2. After the v2 synthetic preflight below passes, resume only
+   `stalwart-rehearsal-restore-local-v2`. It mounts the accepted backup
+   PVC/key read-only and only the baseline target. It requires ACCEPTED,
    verifies encrypted SHA-256, decrypts in bounded memory, verifies full plaintext
-   SHA-256 and only then extracts into the baseline. A nonempty target is rejected.
+   SHA-256 and only then extracts into its new owned database subdirectory. An existing
+   database subdirectory is rejected; earlier partial root files remain untouched.
 3. Require Complete and the two full hashes in the safe result line. Verify the
    restored database with the pinned original v0.16.18, using a distinct working
    copy for operations that can modify the store. Never mount the baseline or
@@ -103,3 +105,24 @@ acceptance, subject to backup retention review; no automatic deletion is install
 A future production cutover needs its own concrete plan, fresh final data sync,
 real OAuth client/token tests and root-coordinated approval. Logs/PRs contain only
 status, aggregate counts and hashes, never account data or secret values.
+
+## Root-owned volume directory correction (v2)
+
+The first local extraction verified ciphertext and plaintext hashes, then failed
+only while applying tar's `.` entry metadata to the root-owned PVC mount root:
+Cannot utime / Cannot change mode. It is a failed restore, not accepted data.
+Audit `audit://operations/op_20c9a475a37149b39c821a014fb11d35`. Preserve its partial
+root files for diagnosis; do not overwrite or promote them.
+
+`stalwart-rehearsal-restore-preflight-v2` contains no backup or key mount. It proves
+on the actual root-owned PVC that a synthetic archive containing `.` extracts
+correctly into a UID-2000-owned child, compares payloads and preserves root owner.
+Run this suspended Job first and require Complete plus its safe pass message.
+Only then resume the new `stalwart-rehearsal-restore-local-v2` Job. It verifies the
+same accepted archive's full hashes again, creates `/restore/database` mode 0700
+as UID 2000 and extracts there. It rejects an existing database directory.
+
+Every subsequent baseline copy must read **only source-restore-local/database**.
+Working, v1 and rollback store JSON paths likewise end in `/database`. Never use
+partial files left at the old PVC root as database input. This change needs no
+root container, source permission changes or new PVC. Production remains online.

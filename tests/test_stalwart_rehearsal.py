@@ -76,3 +76,20 @@ def test_restore_uses_only_accepted_backup_and_distinct_baseline():
     assert all(v.get('persistentVolumeClaim', {}).get('claimName') != 'stalwart-flk-local-data' for v in volumes.values())
     script = (ROOT / 'operations/stalwart-self-service/rehearsal/restore.sh').read_text()
     assert script.index('[ "$actual_plain" = "$expected_plain" ]') < script.index('tar --no-same-owner')
+
+
+def test_restore_v2_owns_destination_and_workers_use_database_subdirectory():
+    restore = yaml.safe_load((ROOT / 'operations/stalwart-self-service/rehearsal/restore-job.yaml').read_text())
+    assert restore['metadata']['name'] == 'stalwart-rehearsal-restore-local-v2'
+    script = (ROOT / 'operations/stalwart-self-service/rehearsal/restore.sh').read_text()
+    assert '[ ! -e /restore/database ]' in script
+    assert script.index('mkdir -m 700 /restore/database') < script.index('tar --no-same-owner -C /restore/database')
+    docs = list(yaml.safe_load_all((ROOT / 'operations/stalwart-self-service/rehearsal/workers.yaml').read_text()))
+    import json
+    config = next(d for d in docs if d['kind'] == 'ConfigMap')
+    assert all(json.loads(value)['path'].endswith('/database') for value in config['data'].values())
+    preflight = yaml.safe_load((ROOT / 'operations/stalwart-self-service/rehearsal/restore-preflight-job.yaml').read_text())
+    pod = preflight['spec']['template']['spec']
+    assert preflight['spec']['suspend'] is True
+    assert {v['name'] for v in pod['volumes']} == {'restore', 'script', 'work'}
+    assert not any('secret' in v for v in pod['volumes'])
