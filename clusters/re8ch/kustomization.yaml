@@ -11,3 +11,10 @@ patches:
 - path: stalwart-client-discovery-patch.yaml
 - path: stalwart-v01627-production-patch.yaml
 - path: stalwart-v1-config-patch.yaml
+- target:
+    group: gateway.networking.k8s.io
+    version: v1
+    kind: HTTPRoute
+    name: stalwart-idp-public
+    namespace: mail-system
+  path: stalwart-device-route-patch.yaml
