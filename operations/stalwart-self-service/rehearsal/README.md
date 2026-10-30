@@ -1,198 +1,105 @@
-# Isolated Stalwart migration rehearsal resource proposal
+# Isolated Stalwart restore and migration
 
-Not included in `clusters/re8ch`. Do not apply until the platform plan approves
-capacity, backup access and retention. This proposal creates only suspended restore work plus isolated storage; no
-Service, public route, production data PVC mount or new credentials. The existing cloud
-SSA executor remains the delivery mechanism; no local kubectl apply.
+Status: the encrypted cold backup completed successfully, and root restored the
+original service. The first restore attempt never started its container because
+RBD MountDevice timed out on overseas-flk. That Job reached Failed/DeadlineExceeded;
+no reader remains. Its PVC and diagnostics are retained, not deleted or reused.
 
-## Observed source, 2026-10-30
+The replacement candidate uses **new local-path PVCs and Jobs ending in -local**,
+all placed on the user-approved overseas-flk node. No worker mounts the original
+stalwart-flk-local-data. All Jobs start suspended, run one at a time and have no
+API token. Nothing is included in the production Kustomization.
 
-- `id.re8ch.com` and `collab.tools.re8ch.com` route to Service `stalwart`, whose
-  sole ready endpoint is `stalwart-flk-0`. Audits:
-  `audit://operations/op_9658c63889014ae78c4a4115fb8c74cd`,
-  `audit://operations/op_a2895092e7884b0daced6bc2af81334d`.
-- Pod imageID is `ghcr.io/stalwartlabs/stalwart@sha256:9ed1d343243b7aa72969e372a7240b7ddea07730781d4b68a0dc3d8d51c418bb`,
-  matching the declared v0.16.18 image. Audit:
-  `audit://operations/op_42007eeb350f46929aef20ef57c5e697`.
-- Current PVC `mail-system/stalwart-flk-local-data` is Bound, local-path, 2Gi;
-  mounted at `/var/lib/stalwart`. The checked-in config declares RocksDb.
-  Audit: `audit://operations/op_694128811dea4e7ba4cb92a6a2b8c2e7`.
-- No VolumeSnapshot in mail-system; no apparent Stalwart backup CronJob in the
-  cluster inventory. These observations do not exclude external backups.
-  Audits: `audit://operations/op_ab0ef41f903141cfbcb07f35b1036163`,
-  `audit://operations/op_a879501860d74d7a9b53805f11d2bffc`.
+## Placement, isolation and resources
 
-Do not touch `stalwart-idp-flk` or infer the other existing RBD claims are valid
-backups. Source image evidence now confirms the v0.16 migration prerequisite.
-The id domain's consumers must still be inventoried before any production
-maintenance: this proposal does not authorize an authentication outage.
+The existing mail-system namespace is used so the accepted archive and key can
+be mounted without cross-namespace transfer or additional credential grants.
+No Namespace, ResourceQuota or Pod Security label changes affect existing mail.
+Deny-all networking selects only `re8ch.com/stalwart-rehearsal=true` Pods.
 
-## Resource and retention plan
+Five new local-path claims request 9Gi total: four 2Gi copies (baseline restore,
+working v0.16.27, empty v1 target and empty rollback target) and 1Gi migration
+state. Together with the accepted 4Gi backup PVC, the requested working set is
+13Gi. Old failed RBD claims remain separately allocated for diagnosis; this is
+not a storageClass mutation or a destructive cleanup.
 
-Five new RBD claims request 17Gi total: four 4Gi stores (untouched restored
-v0.16.18, working v0.16.27, empty v1 target, empty rollback target) and 1Gi durable
-migration state. The 4Gi request gives headroom above the current 2Gi claim;
-actual used bytes, free pool capacity and migration amplification must be checked
-before allocation. Each Job has bounded resources and no API token. Run one Job at a time; no
-namespace-wide quota or Pod Security labels are added to the existing mail-system. No GPU, hostPath, production volume or external endpoint.
-Ingress and egress are denied only for Pods labeled
-`re8ch.com/stalwart-rehearsal=true`. Existing mail Pods are unaffected. Any temporary approved backup transfer route
-needs a separate narrow NetworkPolicy and restricted credential reference.
+Fresh read-only filesystem inspection returned 21895392 KiB available (about
+20.9GiB) on 2026-10-30, audit `audit://operations/op_d2c569d3abc043fc8d8b2eac516a87a4`.
+Each Job requests 512Mi/100m and is capped at 1536Mi/1CPU. Run **one Job at a time**;
+if memory pressure/OOM or low space occurs, stop and reassess instead of squeezing
+the online source. Local-path requests are scheduling declarations, not proof of
+disk quota enforcement. Check actual free space before each material copy.
 
-Retain baseline backup, forward state and acceptance reports through cutover
-and the approved rollback window. Proposed rehearsal expiry is seven days after
-acceptance, requiring explicit review of backup retention before PVC
-removal. Kubernetes quota and this document do not implement automatic expiry.
+Jobs use only the exact dedicated=overseas-edge and
+scheduling.re8ch.com/capacity-window=closed Equal/NoSchedule tolerations already
+used by the source. No node taints or tenant capacity windows are changed.
+The local data copies share a host fault domain; keep the accepted encrypted
+archive and key throughout rehearsal and the approved rollback window.
 
-## Backup and restore acceptance before migration
+## Restore sequence
 
-1. Locate an existing backup by opaque reference and establish its timestamp,
-   consistency method, checksum, encryption, restore procedure and coverage of
-   data/blob stores and essential config/key references. Never output key values.
-   If none exists, prepare a separately approved quiescence and cold-copy plan;
-   copying live RocksDB files with tar is not a consistent backup method.
-2. For a cold copy, inventory and pause all writers through reviewed maintenance,
-   stop the source cleanly, copy the entire current source store plus any external
-   blobs consistently, checksum the copy, and restore normal source operation.
-   This requires its own outage approval and verified recovery procedure; do not
-   execute it merely because this resource proposal was merged.
-3. Restore into source-restore only. Confirm checksums and launch the exact pinned
-   v0.16.18 in isolation with no SMTP, OAuth or external side effects. Record
-   aggregate account/message/calendar/file counts and integrity results. Do not
-   copy user contents to PRs/logs. A successful file copy is not restore acceptance.
-4. Copy accepted baseline into source-v01627. Use the pinned official v0.16.27 and stalwart-migrate v1.0.3 images
-   listed below, matching edition/architecture and the existing artifact trust
-   policy. No placeholder digest or arbitrary download-at-runtime Job is used.
-5. Upgrade only the working copy to v0.16.27. Run official prepare and run against
-   an empty target-v1, retaining state on migration-state. Map source/target paths
-   explicitly. Stop all copy writers before final; run full verification.
-6. Validate migrated v1 data and scoped client behavior in isolation. Rehearse
-   rollback into rollback-v01627 with forward state, record losses and compare
-   aggregate integrity results. Do not overwrite the baseline or production data.
+1. Apply the reviewed resources as suspended through the authenticated platform
+   path. This creates new -local claims and a new restore Job, without retrying
+   the failed RBD Job. Verify overseas-flk placement and current node capacity.
+2. Resume only `stalwart-rehearsal-restore-local`. It mounts the accepted backup
+   PVC/key read-only and only the empty baseline target. It requires ACCEPTED,
+   verifies encrypted SHA-256, decrypts in bounded memory, verifies full plaintext
+   SHA-256 and only then extracts into the baseline. A nonempty target is rejected.
+3. Require Complete and the two full hashes in the safe result line. Verify the
+   restored database with the pinned original v0.16.18, using a distinct working
+   copy for operations that can modify the store. Never mount the baseline or
+   original source in a migration worker.
+4. Copy accepted baseline into the new working v0.16.27 claim. Perform the
+   separately reviewed copied-store patch upgrade and stop it cleanly before
+   migration. Source production stays online and unchanged.
 
-Suspended worker templates are supplied below. A follow-up signed PR may enable
-individual phases and scoped test access only when the backup reference, capacity
-and operator-approved policies are known. Only then can a separate production
-cutover PR and approval be concrete.
+The cold-backup Job completed with full decrypt/compare/hash verification:
+`audit://operations/op_f3036c2c4e46458b9067d8f2618c314f` and
+`audit://operations/op_21038d9b68da4967a8e074bb7bc403eb`.
+Failed first restore evidence: RBD DeadlineExceeded/operation already exists
+`audit://operations/op_6ca3bc5bddb94b11b87dac03c6036e53`, terminal failure
+`audit://operations/op_9e3537bc8b51462cb96832c9d67f2e35`, no remaining reader
+`audit://operations/op_fb29fefa038f41b2b4d1e479d660d0b8`.
 
-## Pinned workers, source upgrade and precise execution order
+## Official migration workers
 
-`upstream-artifacts.json` records public registry manifest digests independently
-hashed on 2026-10-30. The official migration container exists as
-`docker.io/stalwartlabs/stalwart-migrate:1.0.3` (without a `v` prefix). Reuse it;
-no custom build, downloader or second publishing service is needed. Registry
-hash verification proves immutable bytes, not publisher-signature verification;
-check the existing release artifact trust policy before admitting these images.
+`upstream-artifacts.json` records official Stalwart v0.16.27/v1.0.1 and
+stalwart-migrate 1.0.3 registry manifests whose response bytes were independently
+SHA-256 checked. These are immutable digests, not claims of publisher-signature
+verification. Apply the existing artifact-trust requirements before admission.
+There is an official migration image; no custom build or runtime download is needed.
 
-`workers.yaml` contains an exact RocksDB config and five **suspended** Jobs,
-separate from the resource Kustomization. They use the pinned official migration
-image, UID/GID 2000, no API token, dropped capabilities, read-only root filesystem,
-bounded resources/time and no retries. Every source is a copy, mounted read-only.
-No Job is permitted to mount the baseline or a production PVC.
+The [official v1.0.3 README](https://github.com/stalwartlabs/stalwart-migrate/blob/v1.0.3/README.md)
+requires v0.16.27 and explicitly says earlier versions must be upgraded first.
+Do not run the converter directly on v0.16.18. A copied-store rehearsal must prove
+whether a later production cutover can use a stopped copied-store upgrade; no
+production upgrade or route cutover is part of this restore operation.
 
-The official v1.0.3 README expressly requires v0.16.27 and says earlier versions
-must first be upgraded. Its converter vendors the v0.16.27 schema. Do not run it
-directly on v0.16.18. Rehearsal upgrades the copied store first; whether production
-needs an intermediate online upgrade or a stopped copied-store upgrade is a
-separate decision after the copy rehearsal proves integrity and downtime.
+`workers.yaml` stays separate from the resource Kustomization. Its five suspended
+Jobs use exact configs, copied stores, durable state, no retries and a 30-minute
+per-phase deadline. Source mounts are read-only. Execute strictly in order:
 
-Execute these reviewed phases, through the platform plan/write path:
+1. `stalwart-rehearsal-migrate-prepare-local`: prepare --non-interactive. It fails
+   until required conversion policy answers are reviewed and present in state.
+   Do not weaken OIDC audience/scope or proxy trust settings to make it pass.
+2. `stalwart-rehearsal-migrate-run-local`: incremental copy to empty target-v1.
+3. `stalwart-rehearsal-migrate-final-local`: run --final --yes, only after every
+   copied-source writer is stopped. This confirmation never applies to production.
+4. `stalwart-rehearsal-migrate-verify-local`: verify --full. Review all conversion
+   warnings and require no unexplained mismatches before isolated v1 testing.
+5. `stalwart-rehearsal-migrate-rollback-local`: rollback --verify-full --yes into
+   the empty rollback copy, retaining forward state and with v1 stopped. Compare
+   aggregate integrity and documented v1-only losses before calling rollback valid.
 
-1. Restore the accepted v0.16.18 archive into baseline, verify it, then copy to
-   source-v01627. Start the pinned v0.16.27 server against only that working copy
-   using `/config/source.json` and deny-all networking. Preserve UID/GID 2000.
-   Confirm upgrade completion from restricted startup evidence and stop cleanly.
-   No real SMTP, OAuth, replication or external OIDC access is allowed.
-2. Apply worker configurations as suspended, then resume `migrate-prepare` only.
-   Its `prepare --non-interactive --source /config/source.json --state
-   /state/forward` intentionally fails until required policy answers are reviewed
-   and supplied to durable state. A failed Job is inspected and explicitly
-   recreated after correcting the cause; automatic retries remain disabled.
-3. Resume `migrate-run` only after answers are accepted. It copies to the empty
-   target-v1 store. Keep all copied-source server processes stopped before
-   `migrate-final`, whose explicit `--yes` is authorized only for this isolated
-   stopped copy. Do not execute the same arguments against live production.
-4. Resume `migrate-verify` (`verify --full`). Require success, no unexplained
-   mismatches and reviewed conversion warnings. Start pinned v1.0.1 against the
-   target copy for isolated integrity and OAuth tests, then stop it cleanly.
-5. Resume `migrate-rollback` with `--verify-full`, targeting only the empty rollback-v01627 claim and
-   retaining `/state/forward`. Require success before starting v0.16.27 on that
-   copy. Compare data counts and documented v1-only losses.
+Do not use --allow-errors, --allow-mass-removal or --force-after-final as shortcuts.
+Retain state after failures and diagnose before any explicit retry. A copy or
+mock test is not database acceptance or real scoped-token isolation evidence.
 
-No worker runs before backup restoration, source upgrade and operator policy
-answers. The activeDeadlineSeconds limit is 30 minutes per phase, not a claimed
-migration time. Retain state when interrupted and diagnose before resuming.
+## Retention and next gate
 
-## Concrete cold-backup approval scope
-
-Read-only `du -sk /var/lib/stalwart` returned **265888 KiB (about 260 MiB)** on
-2026-10-30 (`audit://operations/op_328e5eba2ddd4d2e859129ba87bf2d73`). This is
-allocated filesystem size, not an integrity check or elapsed-time estimate.
-The running official image has tar, cp, sha256sum and du
-(`audit://operations/op_475abe331aa14e48904b56ecace4b926`).
-
-If no accepted external backup exists, request one controlled backup-only
-maintenance window, provisionally 10 minutes with a 5-minute copy abort threshold
-and remaining time for source restart/health verification. Pre-stage storage and
-images first. Confirm actual read throughput before accepting this estimate.
-Impact: mail, DAV and the `id.re8ch.com` OAuth provider served by stalwart-flk may
-be unavailable; users may be unable to sign in, and queued mail must be retained.
-Do not touch stalwart-idp-flk. The proposed actions are:
-
-1. Record exact StatefulSet UID/resourceVersion/replicas, source PVC binding,
-   ready endpoint, imageID, relevant writer CronJob suspension states and queue
-   status. Confirm all external blob dependencies and snapshot consistency.
-2. Through a reviewed maintenance release, stop source write traffic and suspend
-   the three Stalwart writer/reloader CronJobs, retaining previous states. Wait
-   for in-flight Jobs to finish; do not delete an active writer blindly. Scale
-   only stalwart-flk from 1 to 0 and wait for pod termination and clean shutdown.
-3. In mail-system, run a separately reviewed one-shot backup Job using the exact
-   current official image, read-only source PVC, UID/GID 2000, no API token or
-   network, and a new 4Gi staging PVC. Archive the whole store to
-   `/backup/stalwart-v01618.tar`, compute SHA-256 to a sidecar manifest, sync and
-   verify the checksum. Neither file names nor data contents belong in job logs.
-   Local-path affinity keeps that reader on the source volume's node. No hostPath.
-4. On success or copy timeout, terminate the backup reader first, then restore
-   original replicas, CronJob states and traffic. Verify ready endpoint, original
-   imageID, OAuth metadata and mail/DAV health. No source image or DB upgrade is
-   part of this window. If source cannot restart, hold traffic and recover from
-   the unchanged source using the recorded desired state; escalate before any
-   replacement or destructive restore.
-5. Retain the staging copy and transfer its checksum-verified archive to the
-   approved encrypted independent backup destination, using broker-held access.
-   Resolve that destination and retention before approving the window. A single
-   RBD staging copy is not a durable disaster-recovery backup. Restore the archive
-   into rehearsal baseline and require integrity acceptance before migration.
-
-Fresh native CephCluster evidence at 2026-10-30T09:19:48Z reports approximately
-2.15 TB available, but HEALTH_WARN: one BlueStore OSD has slow operations and five
-pools lack replicas. Audits `audit://operations/op_10f1dde000dc4229a5b20c08d094d93b`
-and `audit://operations/op_ee564ff660c543d285a03a5846013dae`. The 17Gi rehearsal plus
-4Gi backup staging request needs **21Gi** and an explicit storage-risk acceptance;
-these raw capacity figures do not prove pool replication or restore performance.
-No production freeze, backup Job, claim or worker has been executed.
-
-Backup destination discovery remains unresolved: the global ObjectBucketClaim
-inventory is empty (`audit://operations/op_e9b3ac6a01384ba8b75bc049a0267f83`).
-The existing Harbor S3 backup uses a Harbor-owned Secret reference and its last
-success was 2026-06-20 (`audit://operations/op_3341b079f5f24a139a38138754fe3f8e`).
-That is neither current backup-health evidence nor permission to reuse Harbor
-credentials for Stalwart. Obtain a platform-approved opaque backup accessRef,
-encryption and retention policy before requesting the cold-copy outage.
-
-## Same-namespace restore placement
-
-The previously un-applied namespace/quota candidate is replaced with five
-`stalwart-rehearsal-*` RBD claims in mail-system. No Namespace object, namespace-wide
-quota or Pod Security label changes apply to existing services. All migration
-workers carry a dedicated label selected by deny-all networking and remain
-suspended. They can mount only the copied stores, never stalwart-flk-local-data.
-
-The separately suspended `stalwart-rehearsal-restore` Job mounts the accepted
-local backup PVC read-only, the existing key Secret read-only and only the empty
-RBD baseline target. It is pinned to overseas-flk (the local archive's affinity),
-uses exact maintenance taint tolerations, no API token and bounded memory scratch.
-It checks ACCEPTED, encrypted SHA-256 and full decrypted SHA-256 before extraction.
-It refuses a nonempty target. Run it only after root has restored the source
-service; then validate baseline and copy to the working v0.16.27 store. All phases
-run sequentially; admission does not itself enforce that operator sequencing.
+Keep baseline archive/key, original source and migration state through acceptance
+and the reviewed rollback window. Proposed rehearsal cleanup is seven days after
+acceptance, subject to backup retention review; no automatic deletion is installed.
+A future production cutover needs its own concrete plan, fresh final data sync,
+real OAuth client/token tests and root-coordinated approval. Logs/PRs contain only
+status, aggregate counts and hashes, never account data or secret values.
