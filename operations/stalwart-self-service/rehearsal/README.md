@@ -1,8 +1,8 @@
 # Isolated Stalwart migration rehearsal resource proposal
 
 Not included in `clusters/re8ch`. Do not apply until the platform plan approves
-capacity, backup access and retention. This proposal allocates no workload,
-Service, public route, production PVC mount or credentials. The existing cloud
+capacity, backup access and retention. This proposal creates only suspended restore work plus isolated storage; no
+Service, public route, production data PVC mount or new credentials. The existing cloud
 SSA executor remains the delivery mechanism; no local kubectl apply.
 
 ## Observed source, 2026-10-30
@@ -33,14 +33,15 @@ Five new RBD claims request 17Gi total: four 4Gi stores (untouched restored
 v0.16.18, working v0.16.27, empty v1 target, empty rollback target) and 1Gi durable
 migration state. The 4Gi request gives headroom above the current 2Gi claim;
 actual used bytes, free pool capacity and migration amplification must be checked
-before allocation. Quota caps two pods, aggregate requests 2 CPU / 4Gi RAM and
-limits 4 CPU / 8Gi RAM. No GPU, hostPath, production volume or external endpoint.
-All ingress and egress are denied. Any temporary approved backup transfer route
+before allocation. Each Job has bounded resources and no API token. Run one Job at a time; no
+namespace-wide quota or Pod Security labels are added to the existing mail-system. No GPU, hostPath, production volume or external endpoint.
+Ingress and egress are denied only for Pods labeled
+`re8ch.com/stalwart-rehearsal=true`. Existing mail Pods are unaffected. Any temporary approved backup transfer route
 needs a separate narrow NetworkPolicy and restricted credential reference.
 
 Retain baseline backup, forward state and acceptance reports through cutover
 and the approved rollback window. Proposed rehearsal expiry is seven days after
-acceptance, requiring explicit review of backup retention before namespace/PVC
+acceptance, requiring explicit review of backup retention before PVC
 removal. Kubernetes quota and this document do not implement automatic expiry.
 
 ## Backup and restore acceptance before migration
@@ -178,3 +179,20 @@ success was 2026-06-20 (`audit://operations/op_3341b079f5f24a139a38138754fe3f8e`
 That is neither current backup-health evidence nor permission to reuse Harbor
 credentials for Stalwart. Obtain a platform-approved opaque backup accessRef,
 encryption and retention policy before requesting the cold-copy outage.
+
+## Same-namespace restore placement
+
+The previously un-applied namespace/quota candidate is replaced with five
+`stalwart-rehearsal-*` RBD claims in mail-system. No Namespace object, namespace-wide
+quota or Pod Security label changes apply to existing services. All migration
+workers carry a dedicated label selected by deny-all networking and remain
+suspended. They can mount only the copied stores, never stalwart-flk-local-data.
+
+The separately suspended `stalwart-rehearsal-restore` Job mounts the accepted
+local backup PVC read-only, the existing key Secret read-only and only the empty
+RBD baseline target. It is pinned to overseas-flk (the local archive's affinity),
+uses exact maintenance taint tolerations, no API token and bounded memory scratch.
+It checks ACCEPTED, encrypted SHA-256 and full decrypted SHA-256 before extraction.
+It refuses a nonempty target. Run it only after root has restored the source
+service; then validate baseline and copy to the working v0.16.27 store. All phases
+run sequentially; admission does not itself enforce that operator sequencing.
