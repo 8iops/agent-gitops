@@ -12,7 +12,9 @@
       "apps/Deployment/mail-system/stalwart-webmail",
       "apps/StatefulSet/mail-system/stalwart-flk",
       "core/ConfigMap/mail-system/stalwart-bot-access-contract",
-      "core/ConfigMap/mail-system/stalwart-config"
+      "core/ConfigMap/mail-system/stalwart-config",
+      "core/ConfigMap/mail-system/stalwart-unified-identity-bootstrap-plan-v2",
+      "core/ConfigMap/mail-system/stalwart-userhub-oauth-plan-v1"
     ]
   }
 }
