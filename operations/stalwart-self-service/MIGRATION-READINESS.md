@@ -36,7 +36,10 @@ endpoint `/auth/token`, and authorization_code, refresh_token and device_code
 (the standard URN) grants. Advertised scopes were openid, offline_access and
 service URNs for mail, contacts and calendars; **files was absent**. The current
 three-service gate therefore fails. Discovery does not identify the binary
-version or prove token isolation. Do not infer upgrade completion from this
+version or prove token isolation. The missing files scope may reflect disabled
+file service on a newer runtime, rather than an old binary; inspect runtime
+version and enabled services before deciding whether migration is needed.
+The version sequence below applies only if runtime inspection confirms v0.16. Do not infer upgrade completion from this
 response or omit the files scope to bypass the gate.
 
 ## Required evidence and reviewed sequence
