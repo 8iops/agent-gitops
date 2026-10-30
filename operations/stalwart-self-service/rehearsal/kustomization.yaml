@@ -3,8 +3,10 @@ kind: Kustomization
 resources:
   - resources.yaml
   - restore-job.yaml
+  - restore-preflight-job.yaml
 configMapGenerator:
   - name: stalwart-rehearsal-restore-script
     namespace: mail-system
     files:
       - restore.sh
+      - restore-preflight.sh
