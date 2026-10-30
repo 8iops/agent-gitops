@@ -35,6 +35,15 @@ def test_pre_summary_failure_and_malformed_count(tmp_path):
         module.diagnose()
 
 
+def test_fixed_open_error_signals_never_echo_private_log(tmp_path):
+    fixture(tmp_path / 'state', 'error: cannot open the v1 target: Read-only file system at SENTINEL_SECRET')
+    result = module.diagnose()
+    assert result['nativeSummaryPresent'] is False
+    assert result['fixedFailureSignals']['targetOpen'] is True
+    assert result['fixedFailureSignals']['readOnlyFilesystem'] is True
+    assert 'SENTINEL_SECRET' not in str(result)
+
+
 def test_job_has_only_readonly_state_and_no_token():
     job = yaml.safe_load((BASE / 'job.yaml').read_text())
     pod = job['spec']['template']['spec']
