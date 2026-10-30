@@ -31,11 +31,13 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     # converter-required v0.16.27 image before the bounded v1 cutover.
     source_upgrade = yaml.safe_load((ROOT / 'clusters/re8ch/stalwart-v01627-production-patch.yaml').read_text())
     stalwart = next(obj for obj in expected if obj['kind'] == 'StatefulSet' and obj['metadata']['name'] == 'stalwart-flk')
+    stalwart['spec']['replicas'] = source_upgrade['spec']['replicas']
     stalwart['spec']['template']['metadata']['annotations'].update(
         source_upgrade['spec']['template']['metadata']['annotations'])
     stalwart['spec']['template']['spec']['containers'][0]['image'] = (
         source_upgrade['spec']['template']['spec']['containers'][0]['image'])
     assert target == expected
+    assert stalwart['spec']['replicas'] == 0
     assert len(target) == 45
     assert not {'Secret', 'Role', 'RoleBinding', 'Job'} & {obj['kind'] for obj in target}
     contract = yaml.safe_load((ROOT / 'contracts/agent-runtime-domain-mail-system.yaml').read_text())['spec']

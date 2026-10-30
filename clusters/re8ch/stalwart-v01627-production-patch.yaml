@@ -4,10 +4,11 @@ metadata:
   name: stalwart-flk
   namespace: mail-system
 spec:
+  replicas: 0
   template:
     metadata:
       annotations:
-        governance.re8ch.com/stalwart-migration-phase: source-v0.16.27
+        governance.re8ch.com/stalwart-migration-phase: production-cutover-stopped
     spec:
       containers:
       - name: stalwart
