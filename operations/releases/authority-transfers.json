@@ -11,12 +11,20 @@
     "forceConflictObjects": [
       "apps/Deployment/mail-system/stalwart-webmail",
       "apps/StatefulSet/mail-system/stalwart-flk",
+      "cert-manager.io/Certificate/mail-system/stalwart-phonaid-mta-sts",
+      "cert-manager.io/Issuer/mail-system/stalwart-phonaid-cloudflare-dns01",
       "core/ConfigMap/mail-system/stalwart-bootstrap-plan",
       "core/ConfigMap/mail-system/stalwart-bot-access-contract",
       "core/ConfigMap/mail-system/stalwart-config",
+      "core/ConfigMap/mail-system/stalwart-metrics-secret-bootstrap",
       "core/ConfigMap/mail-system/stalwart-unified-identity-bootstrap-plan-v2",
       "core/ConfigMap/mail-system/stalwart-userhub-oauth-plan-v1",
-      "gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-idp-public"
+      "core/ServiceAccount/mail-system/stalwart-metrics-secret-bootstrap",
+      "gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-idp-public",
+      "gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-mta-sts-phonaid",
+      "gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-mta-sts-re8ch",
+      "gateway.networking.k8s.io/ReferenceGrant/mail-system/stalwart-phonaid-mta-sts-certificate",
+      "operator.victoriametrics.com/VMServiceScrape/mail-system/stalwart-mail"
     ]
   }
 }
