@@ -6,4 +6,5 @@ metadata:
 data:
   plan.ndjson: |
     {"@type":"upsert","object":"Directory","matchOn":["description"],"value":{"re8ch-enterprise-sso":{"@type":"Oidc","description":"RE8CH Enterprise SSO broker","issuerUrl":"https://auth.re8ch.com","acceptedAudiences":{"stalwart-webui":true},"unscopedTokens":"interoperable","claimUsername":"email","claimName":"name","claimGroups":"groups"}}}
+    {"@type":"upsert","object":"Domain","matchOn":["name"],"value":{"re8ch-domain":{"name":"re8ch.com","enable":true,"aliases":{},"certificateManagement":{"@type":"Manual"},"dkimManagement":{"@type":"Automatic"},"dnsManagement":{"@type":"Manual"},"subAddressing":{"@type":"Enabled"},"directoryId":"#re8ch-enterprise-sso"}}}
     {"@type":"update","object":"Authentication","value":{"directoryId":"#re8ch-enterprise-sso"}}
