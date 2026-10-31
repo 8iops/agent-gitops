@@ -99,6 +99,7 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     assert contract['authorization']['forceConflictObjects'] == [
         'apps/Deployment/mail-system/stalwart-webmail',
         'apps/StatefulSet/mail-system/stalwart-flk',
+        'core/ConfigMap/mail-system/stalwart-bootstrap-plan',
         'core/ConfigMap/mail-system/stalwart-bot-access-contract',
         'core/ConfigMap/mail-system/stalwart-config',
         'core/ConfigMap/mail-system/stalwart-unified-identity-bootstrap-plan-v2',
