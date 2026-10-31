@@ -76,6 +76,8 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
         assert '"issuerUrl":"https://auth.re8ch.com"' in plan
         assert '"acceptedAudiences":{"stalwart-webui":true}' in plan
         assert '"unscopedTokens":"interoperable"' in plan
+        assert '"name":"re8ch.com"' in plan
+        assert '"directoryId":"#re8ch-enterprise-sso"' in plan
         assert '"requireAudience"' not in plan
         assert '"requireScopes"' not in plan
         assert 'https://db-rw.re8ch.com/auth/v1' not in plan
