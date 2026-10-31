@@ -67,7 +67,17 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     }]
     route = next(obj for obj in expected if obj['kind'] == 'HTTPRoute' and obj['metadata']['name'] == 'stalwart-idp-public')
     route['spec']['rules'][1]['matches'].insert(3, device_route_patch[0]['value'])
-    assert target == expected
+    identity = lambda obj: (
+        obj['apiVersion'].split('/')[0] if '/' in obj['apiVersion'] else 'core',
+        obj['kind'],
+        obj['metadata']['namespace'],
+        obj['metadata']['name'],
+    )
+    # The accepted source is grouped for review while the compiler emits a
+    # deterministic identity order. Compare the exact objects, not file order.
+    assert {identity(obj): obj for obj in target} == {
+        identity(obj): obj for obj in expected
+    }
     assert stalwart['spec']['replicas'] == 1
     assert 'v1.0.1@sha256:' in stalwart['spec']['template']['spec']['containers'][0]['image']
     assert config['data']['config.json'] == '{"@type":"RocksDb","path":"/var/lib/stalwart/database"}'
@@ -81,7 +91,7 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
         assert '"requireAudience"' not in plan
         assert '"requireScopes"' not in plan
         assert 'https://db-rw.re8ch.com/auth/v1' not in plan
-    assert len(target) == 45
+    assert len(target) == 53
     assert not {'Secret', 'Role', 'RoleBinding', 'Job'} & {obj['kind'] for obj in target}
     contract = yaml.safe_load((ROOT / 'contracts/agent-runtime-domain-mail-system.yaml').read_text())['spec']
     assert contract['authorization']['fieldManager'] == 're8ch-release/identity-access-domain-mail-system'
@@ -95,6 +105,46 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
         'core/ConfigMap/mail-system/stalwart-userhub-oauth-plan-v1',
     ]
     assert contract['lifecycle']['prune'] is False
+
+
+def test_mail_security_profile_and_transport_resources_are_release_owned():
+    documents = list(yaml.safe_load_all(
+        (ROOT / 'releases/agent-runtime-domain-mail-system/resources.yaml').read_text()
+    ))
+    by_key = {
+        (obj['kind'], obj['metadata']['name']): obj
+        for obj in documents
+    }
+    plan = by_key[('ConfigMap', 'stalwart-bootstrap-plan')]['data']['plan.ndjson']
+    assert '"arcVerify":{"else":"relaxed"}' in plan
+    assert '"object":"SpamSettings"' in plan
+    assert '"enable":true' in plan
+    assert '"scoreSpam":5.0' in plan
+    assert '"scoreReject":15.0' in plan
+    assert '"scoreDiscard":0.0' in plan
+    assert '"mode":"testing"' in plan
+    assert '"tlsRpt":true' in plan
+    assert '"metricsPolicy":"exclude"' in plan
+
+    stalwart = by_key[('StatefulSet', 'stalwart-flk')]
+    container = stalwart['spec']['template']['spec']['containers'][0]
+    assert 'v1.0.1@sha256:' in container['image']
+    metrics_mount = next(mount for mount in container['volumeMounts']
+                         if mount['name'] == 'metrics-auth')
+    assert metrics_mount['mountPath'] == '/var/run/stalwart-secrets/metrics'
+    assert metrics_mount['readOnly'] is True
+    assert next(volume for volume in stalwart['spec']['template']['spec']['volumes']
+                if volume['name'] == 'metrics-auth')['secret']['secretName'] == 'stalwart-metrics-auth'
+
+    for key in (
+        ('Certificate', 'stalwart-phonaid-mta-sts'),
+        ('Issuer', 'stalwart-phonaid-cloudflare-dns01'),
+        ('HTTPRoute', 'stalwart-mta-sts-phonaid'),
+        ('HTTPRoute', 'stalwart-mta-sts-re8ch'),
+        ('ReferenceGrant', 'stalwart-phonaid-mta-sts-certificate'),
+        ('VMServiceScrape', 'stalwart-mail'),
+    ):
+        assert key in by_key
 
 
 def test_collaboration_contract_uses_provider_discovery_without_new_authority():
