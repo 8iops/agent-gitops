@@ -74,7 +74,9 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     for name in ('stalwart-unified-identity-bootstrap-plan-v2', 'stalwart-userhub-oauth-plan-v1'):
         plan = next(obj for obj in target if obj['kind'] == 'ConfigMap' and obj['metadata']['name'] == name)['data']['plan.ndjson']
         assert '"issuerUrl":"https://auth.re8ch.com"' in plan
-        assert '"requireAudience":"stalwart-webui"' in plan
+        assert '"acceptedAudiences":{"stalwart-webui":true}' in plan
+        assert '"requireAudience"' not in plan
+        assert '"requireScopes"' not in plan
         assert 'https://db-rw.re8ch.com/auth/v1' not in plan
     assert len(target) == 45
     assert not {'Secret', 'Role', 'RoleBinding', 'Job'} & {obj['kind'] for obj in target}
