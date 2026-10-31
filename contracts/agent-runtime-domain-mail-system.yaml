@@ -27,13 +27,16 @@ spec:
     - apps/StatefulSet
     - batch/CronJob
     - cert-manager.io/Certificate
+    - cert-manager.io/Issuer
     - core/ConfigMap
     - core/PersistentVolumeClaim
     - core/Service
     - core/ServiceAccount
     - gateway.networking.k8s.io/HTTPRoute
+    - gateway.networking.k8s.io/ReferenceGrant
     - gateway.networking.k8s.io/TCPRoute
     - networking.k8s.io/Ingress
+    - operator.victoriametrics.com/VMServiceScrape
     objectNames:
     - stalwart
     - stalwart-admin-public
@@ -61,9 +64,16 @@ spec:
     - stalwart-idp-public-dns
     - stalwart-idp-redirect
     - stalwart-imaps-public-v2
+    - stalwart-mail
     - stalwart-mail-re8ch
     - stalwart-mailbox-provisioner
+    - stalwart-metrics-secret-bootstrap
+    - stalwart-mta-sts-phonaid
+    - stalwart-mta-sts-re8ch
+    - stalwart-phonaid-cloudflare-dns01
     - stalwart-phonaid-domain-plan
+    - stalwart-phonaid-mta-sts
+    - stalwart-phonaid-mta-sts-certificate
     - stalwart-sieve-public-v2
     - stalwart-smtp-public-v2
     - stalwart-smtps-public-v2
@@ -84,7 +94,7 @@ spec:
     - core/ConfigMap/mail-system/stalwart-unified-identity-bootstrap-plan-v2
     - core/ConfigMap/mail-system/stalwart-userhub-oauth-plan-v1
   inventory:
-    digest: sha256:0ab9d21b1a88399364341e1e5ea585f36aebe8f71adb0d71808b8349bbf5e237
+    digest: sha256:a07b801be81491f49065c95152eee036950bafe1f75298845a8bd0cc37c42c42
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

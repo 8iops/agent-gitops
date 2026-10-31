@@ -1,11 +1,14 @@
 {
   "cert-manager.io/Certificate": "certificates",
+  "cert-manager.io/Issuer": "issuers",
   "conformance.re8ch.com/APIConformanceTarget": "apiconformancetargets",
   "gateway.networking.k8s.io/TCPRoute": "tcproutes",
+  "gateway.networking.k8s.io/ReferenceGrant": "referencegrants",
   "governance.re8ch.com/GitAccount": "gitaccounts",
   "governance.re8ch.com/GitWorkspace": "gitworkspaces",
   "toolhive.stacklok.dev/MCPExternalAuthConfig": "mcpexternalauthconfigs",
   "toolhive.stacklok.dev/MCPGroup": "mcpgroups",
   "toolhive.stacklok.dev/MCPTelemetryConfig": "mcptelemetryconfigs",
-  "toolhive.stacklok.dev/MCPToolConfig": "mcptoolconfigs"
+  "toolhive.stacklok.dev/MCPToolConfig": "mcptoolconfigs",
+  "operator.victoriametrics.com/VMServiceScrape": "vmservicescrapes"
 }
