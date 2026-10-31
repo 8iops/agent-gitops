@@ -267,7 +267,7 @@ jobs:
     if: always() && inputs.execute && github.ref == 'refs/heads/main' && needs.validate.result == 'success' && (needs.compile-sign.result == 'success' || (inputs.mode == 'reconcile' && needs.compile-sign.result == 'skipped'))
     needs: [validate, compile-sign]
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ inputs.contract == 'contracts/agent-runtime-domain-git-workspaces.yaml' && 30 || 15 }}
+    timeout-minutes: ${{ (inputs.contract == 'contracts/agent-runtime-domain-git-workspaces.yaml' || inputs.contract == 'contracts/agent-runtime-domain-mail-system.yaml') && 30 || 15 }}
     environment: ${{ needs.validate.outputs.environment }}
     permissions: {contents: read, id-token: write, packages: read}
     steps:
