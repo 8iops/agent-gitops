@@ -94,8 +94,7 @@ spec:
     - core/ConfigMap/mail-system/stalwart-config
     - core/ConfigMap/mail-system/stalwart-unified-identity-bootstrap-plan-v2
     - core/ConfigMap/mail-system/stalwart-userhub-oauth-plan-v1
-    - gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-mta-sts-phonaid
-    - gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-mta-sts-re8ch
+    - gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-idp-public
   inventory:
     digest: sha256:a07b801be81491f49065c95152eee036950bafe1f75298845a8bd0cc37c42c42
   lifecycle:

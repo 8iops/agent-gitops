@@ -104,8 +104,7 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
         'core/ConfigMap/mail-system/stalwart-config',
         'core/ConfigMap/mail-system/stalwart-unified-identity-bootstrap-plan-v2',
         'core/ConfigMap/mail-system/stalwart-userhub-oauth-plan-v1',
-        'gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-mta-sts-phonaid',
-        'gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-mta-sts-re8ch',
+        'gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-idp-public',
     ]
     assert contract['lifecycle']['prune'] is False
 
