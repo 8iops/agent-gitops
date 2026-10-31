@@ -6,7 +6,7 @@
     "previousSourceCommit": "35eabf6a46a17f173a7fd2856cd170bb5ebeea64",
     "fieldManager": "re8ch-release/identity-access-domain-mail-system",
     "sourcePath": "clusters/re8ch/mail-authority-resources.yaml",
-    "sourceDigest": "sha256:5cc0bb55daa1b9e5e9af13758cb2f3bf76963f2500308d58d4a55d13fa15fe6b",
+    "sourceDigest": "sha256:505052b0b9d1ff5544efc91881de439ed2dc553d09bca5dc547dc936d066b035",
     "mode": "authority-only-existing-payload",
     "forceConflictObjects": [
       "apps/Deployment/mail-system/stalwart-webmail",
