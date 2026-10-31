@@ -67,6 +67,8 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     }]
     route = next(obj for obj in expected if obj['kind'] == 'HTTPRoute' and obj['metadata']['name'] == 'stalwart-idp-public')
     route['spec']['rules'][1]['matches'].insert(3, device_route_patch[0]['value'])
+    id_dns = next(obj for obj in expected if obj['kind'] == 'Ingress' and obj['metadata']['name'] == 'stalwart-idp-public-dns')
+    assert id_dns['metadata']['annotations']['external-dns.alpha.kubernetes.io/target'] == '2.28.106.230'
     identity = lambda obj: (
         obj['apiVersion'].split('/')[0] if '/' in obj['apiVersion'] else 'core',
         obj['kind'],
