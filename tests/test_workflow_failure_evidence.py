@@ -7,6 +7,13 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_mail_release_execute_allows_for_public_api_latency():
+    workflow = yaml.safe_load((ROOT / '.github/workflows/static-release.yml').read_text())
+    timeout = workflow['jobs']['execute']['timeout-minutes']
+    assert 'contracts/agent-runtime-domain-mail-system.yaml' in timeout
+    assert '&& 30 || 15' in timeout
+
+
 def test_release_job_failures_keep_separate_redacted_evidence(tmp_path):
     for path in (ROOT / '.github/workflows').glob('*.yml'):
         if path.name == 'validate.yml':
