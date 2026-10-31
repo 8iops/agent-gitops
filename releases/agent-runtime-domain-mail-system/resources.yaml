@@ -760,7 +760,7 @@ data:
 
     {"@type":"update","object":"SystemSettings","value":{"defaultHostname":"mail.re8ch.com","defaultCertificateId":"#mail-re8ch-com","mailExchangers":{"0":{"hostname":"mail.re8ch.com","priority":10}},"services":{"caldav":{"hostname":"mail.re8ch.com","cleartext":false},"carddav":{"hostname":"mail.re8ch.com","cleartext":false},"imap":{"hostname":"mail.re8ch.com","cleartext":false},"jmap":{"hostname":"mail.re8ch.com","cleartext":false},"managesieve":{"hostname":"mail.re8ch.com","cleartext":false},"pop3":{"hostname":"mail.re8ch.com","cleartext":false},"smtp":{"hostname":"mail.re8ch.com","cleartext":false},"webdav":{"hostname":"mail.re8ch.com","cleartext":false}}}}
 
-    {"@type":"upsert","object":"NetworkListener","matchOn":["name"],"value":{"submission":{"name":"submission","protocol":"smtp","bind":{"[::]:587":true},"tlsImplicit":false},"imap":{"name":"imap","protocol":"imap","bind":{"[::]:143":true},"tlsImplicit":false}}}
+    {"@type":"upsert","object":"NetworkListener","matchOn":["name"],"value":{"submission":{"name":"submission","protocol":"smtp","bind":{"[::]:587":true}},"imap":{"name":"imap","protocol":"imap","bind":{"[::]:143":true}}}}
 
     {"@type":"update","object":"SenderAuth","value":{"dkimStrict":true,"dkimVerify":{"else":"relaxed"},"spfEhloVerify":{"match":{"0":{"if":"local_port
     == 25","then":"relaxed"}},"else":"disable"},"spfFromVerify":{"match":{"0":{"if":"local_port

@@ -128,6 +128,8 @@ def test_mail_security_profile_and_transport_resources_are_release_owned():
         for obj in documents
     }
     plan = by_key[('ConfigMap', 'stalwart-bootstrap-plan')]['data']['plan.ndjson']
+    assert '"object":"NetworkListener"' in plan
+    assert '"tlsImplicit"' not in plan
     assert '"arcVerify":{"else":"relaxed"}' in plan
     assert '"object":"SpamSettings"' in plan
     assert '"enable":true' in plan
