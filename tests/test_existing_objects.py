@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 import pytest
 from test_ssa_release_executor import prepare,executor,NOW,Runner,compile_bundle,canonical,digest,operation_for
+from ssa_preflight import preflight
 
 class ExistingRunner(Runner):
     def __init__(self,fault=None):super().__init__();self.fault=fault;self.written=False
@@ -123,6 +124,19 @@ def test_bounded_get_retry_handles_transient_public_edge_reset():
     instance = executor.Executor(runner=runner, sleeper=lambda _: None)
     assert instance.kube_get(['kubectl', 'get', 'deployment', 'demo']).stdout == 'ok'
     assert len(calls) == 2
+
+
+def test_preflight_refreshes_a_moving_existing_resource_version(tmp_path):
+    value, op, path = fixture(tmp_path)
+    runner = MovingVersionRunner('once')
+    result = preflight(
+        executor.Executor(runner=runner, now=lambda: NOW, sleeper=lambda _: None),
+        value, op, path, tmp_path/'state',
+    )
+    assert result['preflight'] == 'accepted'
+    assert runner.reads == 3
+    assert runner.applies == 2
+    assert runner.writes == 0
 
 
 @pytest.mark.parametrize('fault,expected_applies', [

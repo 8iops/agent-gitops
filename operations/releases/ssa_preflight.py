@@ -18,7 +18,13 @@ def preflight(executor,contract,operation,bundle,state_dir):
         raise Rejected('protected objects cannot use force-conflicts')
     audited=executor.with_audit(objects,operation)
     if contract["spec"]["authorization"].get("requireExisting",False):audited=executor.with_existing_versions(audited)
-    executor.apply(audited,contract['spec']['authorization']['fieldManager'],dry_run=True,force_objects=requested)
+    executor.apply(
+        audited,
+        contract['spec']['authorization']['fieldManager'],
+        dry_run=True,
+        force_objects=requested,
+        require_existing=contract['spec']['authorization'].get('requireExisting', False),
+    )
     return {'releaseId':operation['releaseId'],'preflight':'accepted','inventory':[object_identity(o) for o in objects]}
 
 def main():
