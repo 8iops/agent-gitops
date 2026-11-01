@@ -264,6 +264,10 @@ jobs:
           retention-days: 30
           if-no-files-found: error
   execute:
+    concurrency:
+      group: agent-runtime-runtime-write
+      queue: max
+      cancel-in-progress: false
     if: always() && inputs.execute && github.ref == 'refs/heads/main' && needs.validate.result == 'success' && (needs.compile-sign.result == 'success' || (inputs.mode == 'reconcile' && needs.compile-sign.result == 'skipped'))
     needs: [validate, compile-sign]
     runs-on: ubuntu-24.04
