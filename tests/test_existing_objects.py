@@ -158,7 +158,7 @@ def test_version_retries_are_bounded_and_never_adopt_replacements(tmp_path, faul
     assert not (tmp_path/'state/state/demo.json').exists()
 
 
-def test_health_failure_cannot_rollback_onto_replacement_uid(tmp_path, monkeypatch):
+def test_health_failure_never_rolls_back_onto_replacement_uid(tmp_path, monkeypatch):
     value, op, path = fixture(tmp_path)
     runner = MovingVersionRunner()
     instance = executor.Executor(runner=runner, now=lambda: NOW)
@@ -170,8 +170,9 @@ def test_health_failure_cannot_rollback_onto_replacement_uid(tmp_path, monkeypat
         runner.fault = "replaced-before-write"
         return False, "object replaced during health wait"
     monkeypatch.setattr(instance, "wait_healthy", replaced_during_health)
-    with pytest.raises(executor.Rejected, match="rollback failed.*missing or replaced"):
-        instance.reconcile(value, next_op, path, root)
+    result = instance.reconcile(value, next_op, path, root)
+    assert result["outcome"] == "failed"
+    assert result["health"]["reason"] == "automatic rollback disabled; object replaced during health wait"
     assert runner.writes == 2  # Initial publish + attempted update; no rollback write.
     assert runner.applies == 4
     assert executor.Store(root, "demo").state()["blocked"] is True

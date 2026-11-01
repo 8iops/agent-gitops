@@ -470,7 +470,7 @@ def test_state_patch_persists_new_result_with_original_version(tmp_path):
     assert json.loads(patch["data"]["last-result.json"]) == result
 
 
-def test_failed_rollback_remains_blocked_on_next_cloud_worker(tmp_path, monkeypatch):
+def test_unhealthy_reconcile_preserves_runtime_and_blocks_next_worker(tmp_path, monkeypatch):
     value, operation, bundle_path = prepare(tmp_path)
     state_root = tmp_path / "state"
     instance = executor.Executor(runner=Runner(), now=lambda: NOW, sleeper=lambda _: None)
@@ -482,26 +482,26 @@ def test_failed_rollback_remains_blocked_on_next_cloud_worker(tmp_path, monkeypa
     cm_path.write_text(json.dumps(cm))
     _, replay, _ = prepare(tmp_path, sequence=2, previous=previous["appliedDigest"])
     monkeypatch.setattr(instance, "wait_healthy", lambda *args: (False, "not ready"))
-    def failed_rollback(*args):
-        raise executor.Rejected("previous artifact could not recover health")
-    monkeypatch.setattr(instance, "rollback", failed_rollback)
-    with pytest.raises(executor.Rejected, match="rollback failed"):
-        instance.reconcile(value, replay, bundle_path, state_root, verify_signature=False)
+    monkeypatch.setattr(instance, "rollback", lambda *args: pytest.fail("automatic rollback must not run"))
+    result = instance.reconcile(value, replay, bundle_path, state_root, verify_signature=False)
+    assert result["outcome"] == "failed"
+    assert result["health"]["reason"] == "automatic rollback disabled; not ready"
     result_path = tmp_path / "result.json"
-    result_path.write_text("")  # CLI failed before producing a successful result.
+    result_path.write_text(json.dumps(result))
     patch_path = tmp_path / "patch.json"
     materialize.state_patch(cm_path, state_root, "demo", result_path, patch_path)
     patch = json.loads(patch_path.read_text())
     assert patch["metadata"] == {"resourceVersion": "71"}
-    assert set(patch["data"]) == {"accepted-state.json"}
+    assert set(patch["data"]) == {"accepted-state.json", "last-result.json"}
     assert json.loads(patch["data"]["accepted-state.json"])["blocked"] is True
     assert json.loads(patch["data"]["accepted-state.json"])["blockedReason"] == (
-        "release failed: not ready; rollback failed: previous artifact could not recover health")
+        "release failed: not ready; automatic rollback disabled")
     cm["data"].update(patch["data"])
     cm_path.write_text(json.dumps(cm))
     next_root = tmp_path / "fresh-cloud-worker"
     materialize.hydrate(cm_path, next_root, "demo")
     runner = Runner()
+    _, next_operation, _ = prepare(tmp_path, sequence=2, previous=previous["appliedDigest"])
     with pytest.raises(executor.Rejected, match="release is blocked"):
-        executor.Executor(runner=runner, now=lambda: NOW).reconcile(value, replay, bundle_path, next_root)
+        executor.Executor(runner=runner, now=lambda: NOW).reconcile(value, next_operation, bundle_path, next_root)
     assert runner.calls == []
