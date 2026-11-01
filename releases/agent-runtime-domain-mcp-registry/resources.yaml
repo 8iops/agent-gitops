@@ -81,6 +81,75 @@ spec:
             drop:
             - ALL
 ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-registry-postgresql
+  namespace: mcp-registry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mcp-registry-postgresql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mcp-registry-postgresql
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - a1-wsl-zt
+                - b1-wsl-zt
+      containers:
+      - env:
+        - name: POSTGRES_DB
+          value: mcp-registry
+        - name: POSTGRES_USER
+          value: mcpregistry
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: POSTGRES_PASSWORD
+              name: mcp-registry-runtime
+        image: postgres:16.9-alpine@sha256:7c688148e5e156d0e86df7ba8ae5a05a2386aaec1e2ad8e6d11bdf10504b1fb7
+        name: postgresql
+        ports:
+        - containerPort: 5432
+          name: postgresql
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -ec
+            - pg_isready -U mcpregistry -d mcp-registry
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: data
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        operator: Exists
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mcp-registry-postgresql-ab
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

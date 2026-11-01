@@ -30,6 +30,7 @@ spec:
     - policy/PodDisruptionBudget
     objectNames:
     - mcp-registry
+    - mcp-registry-postgresql
     - mcp-registry-postgresql-ab
     - mcp-registry-postgresql-r640
     - postgresql
@@ -39,13 +40,14 @@ spec:
     requireExisting: true
     forceConflictObjects:
     - apps/Deployment/mcp-registry/mcp-registry
+    - apps/Deployment/mcp-registry/mcp-registry-postgresql
     - core/Service/mcp-registry/mcp-registry
     - core/Service/mcp-registry/postgresql
     - networking.k8s.io/NetworkPolicy/mcp-registry/postgresql-ingress
     - networking.k8s.io/NetworkPolicy/mcp-registry/postgresql-toolhive-registry-ingress
     - policy/PodDisruptionBudget/mcp-registry/mcp-registry
   inventory:
-    digest: sha256:d9cf23cb74d2a00b018cbaabab49ff284cdac267dc091c1e443277d24cf8264f
+    digest: sha256:1c139613a4cc36a9aeaeff695e87850289cecd2f7a7bcce6964ce5d0aca2da9f
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

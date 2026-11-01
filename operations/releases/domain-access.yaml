@@ -1132,6 +1132,7 @@ rules:
   - deployments
   resourceNames:
   - mcp-registry
+  - mcp-registry-postgresql
   verbs:
   - get
   - patch
