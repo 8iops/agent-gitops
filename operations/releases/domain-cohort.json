@@ -71,7 +71,7 @@
     {
       "name": "agent-runtime-domain-mcp-registry",
       "namespace": "mcp-registry",
-      "objects": 8,
+      "objects": 9,
       "contract": "contracts/agent-runtime-domain-mcp-registry.yaml"
     },
     {
@@ -81,12 +81,8 @@
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 282,
+  "publishableObjects": 283,
   "deferred": [
-    {
-      "identity": "apps/Deployment/mcp-registry/mcp-registry-postgresql",
-      "reason": "image-digest-required"
-    },
     {
       "identity": "batch/Job/ai-operations/re8ch-owner-pilot-workspace-v4",
       "reason": "one-shot-job-platform-owned"
