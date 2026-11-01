@@ -628,35 +628,31 @@ class Executor:
         outcome = "healthy"
         rollback_digest = None
         if not healthy:
-            if not previous:
-                complete = not command_timed_out and set(applied_inventory) == set(manifest["inventory"])
-                result = {
+            if not finalize:
+                raise Rejected(f"partial stage health failed: {reason}")
+            # Preserve the failed runtime for diagnosis. Automatic rollback can
+            # change objects after the reviewed bundle has been applied.
+            if previous:
+                blocked = {**previous, "blocked": True,
+                           "blockedReason": f"release failed: {reason}; automatic rollback disabled"[:512],
+                           "updatedAt": self.now().isoformat()}
+                store.accept(blocked)
+            complete = not command_timed_out and set(applied_inventory) == set(manifest["inventory"])
+            result = {
                     "apiVersion": "delivery.re8ch.com/release-result/v1alpha1",
                     "operationId": operation["operationId"], "releaseId": operation["releaseId"],
                     "requestDigest": request_digest, "approvedDigest": operation["bundle"]["digest"],
                     "observedDigest": operation["bundle"]["digest"] if complete else None,
                     "inventoryDigest": manifest["inventoryDigest"], "startedAt": started.isoformat(),
                     "finishedAt": self.now().isoformat(), "outcome": "failed",
-                    "health": {"status": "unknown" if command_timed_out else "unhealthy", "reason": ("no accepted rollback bundle; " + reason)[:512]},
+                    "health": {"status": "unknown" if command_timed_out else "unhealthy", "reason": ("automatic rollback disabled; " + reason)[:512]},
                     "application": {"status": "complete" if complete else "partial-or-unknown",
                                     "attemptedInventory": sorted(set(attempted_inventory)),
                                     "appliedInventory": sorted(set(applied_inventory))},
-                }
-                validate_schema(result, "release-operation-result.schema.json")
-                store.save_result(result)
-                return result
-            if not finalize:
-                raise Rejected(f"partial stage health failed: {reason}")
-            try:
-                rollback_digest, reason = self.rollback(
-                    previous, manifest, selected_objects, contract, operation, manager, store, reason)
-                outcome, healthy = "rolled-back", True
-            except Rejected as error:
-                blocked = {**previous, "blocked": True,
-                           "blockedReason": f"release failed: {reason}; rollback failed: {error}"[:512],
-                           "updatedAt": self.now().isoformat()}
-                store.accept(blocked)
-                raise Rejected(blocked["blockedReason"]) from error
+            }
+            validate_schema(result, "release-operation-result.schema.json")
+            store.save_result(result)
+            return result
         elif finalize:
             self.prune(previous, set(manifest["inventory"]), contract, manager)
             store.cache_bundle(bundle_path, operation["bundle"]["digest"])
