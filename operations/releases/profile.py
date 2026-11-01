@@ -18,6 +18,9 @@ ENVIRONMENT = "release-executor-agent-runtime"
 AUDIENCE = "https://kube-api.re8ch.com/release-executor-agent-runtime"
 GROUP = "re8ch:release-executor:agent-runtime"
 SIGNER = f"https://github.com/{REPOSITORY}/{WORKFLOW}@refs/heads/main"
+REPLAY_WORKFLOW = ".github/workflows/agent-runtime-reconcile.yml"
+REPLAY_ENVIRONMENT = "release-reconciler-agent-runtime"
+REPLAY_AUDIENCE = "https://kube-api.re8ch.com/release-reconciler-agent-runtime"
 
 
 def sha256(path: Path) -> str:
@@ -77,11 +80,36 @@ def validate_contract(path: Path) -> dict[str, str]:
     }
 
 
+def replay_provenance(contract: dict) -> dict[str, str] | None:
+    spec = contract["spec"]
+    expected = {"repository": REPOSITORY, "workflow": WORKFLOW, "ref": "refs/heads/main",
+                "environment": ENVIRONMENT, "audience": AUDIENCE, "signer": SIGNER}
+    if spec.get("authorityDomain") != "agent-runtime" or any(spec.get("provenance", {}).get(k) != v for k, v in expected.items()):
+        return None
+    return {"repository": REPOSITORY, "workflow": REPLAY_WORKFLOW, "ref": "refs/heads/main",
+            "environment": REPLAY_ENVIRONMENT, "audience": REPLAY_AUDIENCE}
+
+
+def replay_matrix() -> list[dict[str, str]]:
+    result = []
+    for path in sorted(CONTRACT_ROOT.glob("agent-runtime-*.yaml")):
+        profile = validate_contract(path.relative_to(ROOT))
+        result.append({**profile, "contract": str(path.relative_to(ROOT)),
+                       "environment": REPLAY_ENVIRONMENT, "audience": REPLAY_AUDIENCE})
+    return result
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--contract", type=Path, required=True)
+    parser.add_argument("--contract", type=Path)
+    parser.add_argument("--replay-matrix", action="store_true")
     parser.add_argument("--github-output", type=Path)
     args = parser.parse_args()
+    if args.replay_matrix:
+        print(json.dumps({"include": replay_matrix()}, separators=(",", ":")))
+        return 0
+    if args.contract is None:
+        parser.error("--contract is required unless --replay-matrix is used")
     result = validate_contract(args.contract)
     if args.github_output:
         with args.github_output.open("a") as output:
