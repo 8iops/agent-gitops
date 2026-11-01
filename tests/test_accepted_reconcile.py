@@ -42,7 +42,7 @@ def test_matrix_and_workflow_have_no_publishing_inputs(monkeypatch):
     workflow=yaml.safe_load(text)
     triggers=workflow.get('on',workflow.get(True))
     assert triggers['workflow_dispatch'] is None
-    assert triggers['schedule']
+    assert set(triggers)=={'workflow_dispatch'}
     assert '--replay-only' in text and 'accepted-bundle' in text
     publisher=yaml.safe_load((ROOT/'.github/workflows/static-release.yml').read_text())
     assert publisher['concurrency']['group']=='agent-runtime-static-release-${{ inputs.contract }}'

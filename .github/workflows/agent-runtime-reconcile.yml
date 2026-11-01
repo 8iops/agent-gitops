@@ -1,15 +1,6 @@
 name: agent-runtime-reconcile
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '13,43 * * * *'
-  push:
-    branches: [main]
-    paths:
-      - contracts/agent-runtime-*.yaml
-      - releases/**
-      - operations/releases/**
-      - .github/workflows/agent-runtime-reconcile.yml
 permissions:
   contents: read
 concurrency:
