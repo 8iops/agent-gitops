@@ -1,6 +1,6 @@
 {
   "domain": "agent-runtime",
-  "sourceObjects": 343,
+  "sourceObjects": 369,
   "releases": [
     {
       "name": "agent-runtime-domain-ai-operations",
@@ -75,13 +75,19 @@
       "contract": "contracts/agent-runtime-domain-mcp-registry.yaml"
     },
     {
+      "name": "agent-runtime-domain-tenant-infrastructure",
+      "namespace": "tenant-infrastructure",
+      "objects": 25,
+      "contract": "contracts/agent-runtime-domain-tenant-infrastructure.yaml"
+    },
+    {
       "name": "agent-runtime-domain-toolhive-system",
       "namespace": "toolhive-system",
-      "objects": 34,
+      "objects": 35,
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 283,
+  "publishableObjects": 309,
   "deferred": [
     {
       "identity": "batch/Job/ai-operations/re8ch-owner-pilot-workspace-v4",

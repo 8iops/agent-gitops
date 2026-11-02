@@ -1,0 +1,1363 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: tenant-runtime-image-cache
+  namespace: tenant-infrastructure
+spec:
+  selector:
+    matchLabels:
+      app: tenant-runtime-image-cache
+  template:
+    metadata:
+      labels:
+        app: tenant-runtime-image-cache
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - r640
+      imagePullSecrets:
+      - name: harbor-registry-pull
+      automountServiceAccountToken: false
+      initContainers:
+      - name: pull
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f751479965f23bbb102e6637cfefd2791004c962c15acb928dcd6d42949967d8
+        imagePullPolicy: IfNotPresent
+        command:
+        - sh
+        - -c
+        - 'true'
+      containers:
+      - name: hold
+        image: registry.k8s.io/pause@sha256:278fb9dbcca9518083ad1e11276933a2e96f23de604a3a08cc3c80002767d24c
+        resources:
+          requests:
+            cpu: 1m
+            memory: 2Mi
+          limits:
+            cpu: 5m
+            memory: 8Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-api
+  namespace: tenant-infrastructure
+  labels:
+    re8ch.com/publication-stage: release-gated
+    ai.connectool.io/mcp-backend: 'true'
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: admin-api
+  template:
+    metadata:
+      labels:
+        app: admin-api
+        tenant-runtime: 'true'
+        saas.re8ch.com/tenant: platform
+        ai.connectool.io/mcp-backend: 'true'
+    spec:
+      serviceAccountName: admin-api
+      automountServiceAccountToken: false
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+        - 10.43.0.53
+        searches:
+        - observability-ai.svc.cluster.local
+        - tenant-infrastructure.svc.cluster.local
+        - svc.cluster.local
+        - cluster.local
+        options:
+        - name: ndots
+          value: '5'
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - r640
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: tenant-api
+              topologyKey: kubernetes.io/hostname
+      tolerations:
+      - operator: Exists
+      imagePullSecrets:
+      - name: harbor-registry-pull
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        runAsGroup: 101
+        fsGroup: 101
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: runtime
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f751479965f23bbb102e6637cfefd2791004c962c15acb928dcd6d42949967d8
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: RE8CH_TOOL_PROFILE
+          value: admin
+        - name: RE8CH_TOOL_AUDIENCE
+          value: re8ch-platform-admin
+        - name: SERVICE_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: admin-vmcp-backend-auth
+              key: token
+        - name: LISTEN_PORT
+          value: '19449'
+        - name: PUBLIC_MCP_URL
+          value: https://admin.re8ch.com:8443/mcp
+        - name: PUBLIC_RESOURCE_METADATA_URL
+          value: https://admin.re8ch.com:8443/.well-known/oauth-protected-resource/mcp
+        - name: TENANT_CONTROL_URL
+          value: http://tenant-control-controller.tenant-infrastructure.svc
+        - name: AUTH_DISCOVERY_URL
+          value: http://re8ch-auth-gateway.auth.svc:8080/auth/.well-known/openid-configuration
+        - name: DEX_USERINFO_URL
+          value: https://api.re8ch.com/auth/userinfo
+        - name: TENANT_SERVICE_DB
+          value: /var/lib/tenant-platform/tenant-services.db
+        - name: DEVICE_REGISTRY_PATH
+          value: /var/lib/tenant-platform/admin-devices.db
+        - name: DYNAMIC_SKILL_ADMIN_URL
+          value: http://tenant-api.tenant-infrastructure.svc:19450/internal/dynamic-skills
+        envFrom:
+        - secretRef:
+            name: tenant-claim-internal-auth
+            optional: false
+        ports:
+        - name: http
+          containerPort: 19449
+        startupProbe:
+          httpGet:
+            path: /livez
+            port: http
+          failureThreshold: 30
+          periodSeconds: 2
+          timeoutSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: http
+          failureThreshold: 3
+          periodSeconds: 5
+          timeoutSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: http
+          failureThreshold: 3
+          periodSeconds: 15
+          timeoutSeconds: 3
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: runtime-state
+          mountPath: /var/lib/tenant-platform
+      volumes:
+      - name: runtime-state
+        persistentVolumeClaim:
+          claimName: tenant-platform-state
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tenant-api
+  namespace: tenant-infrastructure
+  labels:
+    re8ch.com/publication-stage: release-gated
+    ai.connectool.io/mcp-backend: 'true'
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: tenant-api
+  template:
+    metadata:
+      labels:
+        app: tenant-api
+        tenant-runtime: 'true'
+        saas.re8ch.com/tenant: platform
+        ai.connectool.io/mcp-backend: 'true'
+    spec:
+      terminationGracePeriodSeconds: 75
+      serviceAccountName: tenant-api
+      automountServiceAccountToken: true
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+        - 10.43.0.53
+        searches:
+        - observability-ai.svc.cluster.local
+        - tenant-infrastructure.svc.cluster.local
+        - svc.cluster.local
+        - cluster.local
+        options:
+        - name: ndots
+          value: '5'
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - r640
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: admin-api
+            topologyKey: kubernetes.io/hostname
+      tolerations:
+      - operator: Exists
+      imagePullSecrets:
+      - name: harbor-registry-pull
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        runAsGroup: 101
+        fsGroup: 101
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: runtime
+        image: registry.re8ch.com/image/re8ch-tenant-mcp@sha256:b2b2e416e1e1eb6ca783d890dd057a9efea4a6c60fe6081d1d7cb0055399a674
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - secretRef:
+            name: tenant-claim-internal-auth
+            optional: false
+        - secretRef:
+            name: tenant-registry-supply-chain
+            optional: true
+        - secretRef:
+            name: tenant-grafana-credentials
+            optional: true
+        env:
+        - name: KUBERNETES_SERVICE_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: KUBERNETES_SERVICE_PORT
+          value: '6443'
+        - name: KUBERNETES_SERVICE_PORT_HTTPS
+          value: '6443'
+        - name: RE8CH_TOOL_PROFILE
+          value: tenant
+        - name: RE8CH_TOOL_AUDIENCE
+          value: re8ch-tenant
+        - name: SERVICE_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: admin-vmcp-backend-auth
+              key: token
+        - name: ALLOW_AUTHENTICATED_DEX
+          value: 'true'
+        - name: LISTEN_PORT
+          value: '19448'
+        - name: PUBLIC_MCP_URL
+          value: https://tools.service.re8ch.com/tenant-native/mcp
+        - name: OPENAI_APPS_CHALLENGE_TOKEN
+          value: 6n3O48vy3O89euYVrri4aHJMeUJ_vkofxLpzxv-6TTE
+        - name: PUBLIC_ORIGIN
+          value: https://tools.service.re8ch.com
+        - name: PUBLIC_RESOURCE_METADATA_URL
+          value: https://tools.service.re8ch.com/.well-known/oauth-protected-resource/tenant-native/mcp
+        - name: TENANT_CONTROL_URL
+          value: http://tenant-control-controller.tenant-infrastructure.svc
+        - name: AUTH_DISCOVERY_URL
+          value: http://supabase-identity-auth.supabase-identity.svc:9999/.well-known/oauth-authorization-server
+        - name: DEX_USERINFO_URL
+          value: https://api.re8ch.com/auth/userinfo
+        - name: SUPABASE_USER_URL
+          value: http://supabase-identity-auth.supabase-identity.svc:9999/user
+        - name: HARBOR_SUPPLY_CHAIN_URL
+          value: http://harbor-supply-chain.tenant-infrastructure.svc
+        - name: HARBOR_SUPPLY_CHAIN_REQUIRED
+          value: 'false'
+        - name: TENANT_SERVICE_DB
+          value: /var/lib/tenant-platform/tenant-services.db
+        - name: TENANT_USAGE_CLIENT
+          value: system:serviceaccount:observability-ai:birfucate-metering
+        - name: DEVICE_REGISTRY_PATH
+          value: /var/lib/tenant-platform/tenant-devices.db
+        - name: PLATFORM_USERS_URL
+          value: https://api.re8ch.com/auth/v2/users
+        - name: PLATFORM_ORGANIZATIONS_URL
+          value: https://api.re8ch.com/auth/v2/organizations
+        - name: COLLABORATION_ENABLED
+          value: 'true'
+        - name: COLLABORATION_CREDENTIAL_NAMESPACE
+          value: stalwart-credentials
+        - name: STALWART_URL
+          value: https://id.re8ch.com
+        - name: STALWART_CONNECT_URL
+          value: http://stalwart.mail-system.svc.cluster.local:8080
+        - name: STALWART_CLIENT_ID
+          value: stalwart-webui
+        - name: COLLABORATION_AUTH_MODE
+          value: auth-hub-pkce
+        - name: STALWART_AUTHORIZATION_URL
+          value: https://auth.re8ch.com/authorize
+        - name: STALWART_TOKEN_URL
+          value: https://auth.re8ch.com/token
+        - name: STALWART_REDIRECT_URI
+          value: https://tools.service.re8ch.com/collaboration/oauth/callback
+        - name: PLATFORM_MODULE_REGISTRY
+          value: /etc/re8ch/modules/modules.json
+        - name: DYNAMIC_SKILL_DB
+          value: /var/lib/tenant-platform/dynamic-skills.db
+        - name: DYNAMIC_SKILL_ADMIN_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: admin-vmcp-backend-auth
+              key: token
+        - name: ADMIN_LISTEN_PORT
+          value: '19450'
+        ports:
+        - name: http
+          containerPort: 19448
+        - name: skill-admin
+          containerPort: 19450
+        startupProbe:
+          httpGet:
+            path: /livez
+            port: http
+          failureThreshold: 30
+          periodSeconds: 2
+          timeoutSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: http
+          failureThreshold: 3
+          periodSeconds: 5
+          timeoutSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: http
+          failureThreshold: 3
+          periodSeconds: 15
+          timeoutSeconds: 3
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: '1'
+            memory: 512Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: runtime-state
+          mountPath: /var/lib/tenant-platform
+        - name: platform-modules
+          mountPath: /etc/re8ch/modules
+          readOnly: true
+      volumes:
+      - name: runtime-state
+        persistentVolumeClaim:
+          claimName: tenant-platform-state
+      - name: platform-modules
+        configMap:
+          name: tenant-platform-modules
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tenant-control-controller
+  namespace: tenant-infrastructure
+spec:
+  replicas: 1
+  progressDeadlineSeconds: 180
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+  selector:
+    matchLabels:
+      app: tenant-control-controller
+  template:
+    metadata:
+      labels:
+        app: tenant-control-controller
+        saas.re8ch.com/tenant: platform
+    spec:
+      serviceAccountName: tenant-control-controller
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+        - 10.43.0.53
+        searches:
+        - observability-ai.svc.cluster.local
+        - tenant-infrastructure.svc.cluster.local
+        - svc.cluster.local
+        - cluster.local
+        options:
+        - name: ndots
+          value: '5'
+      tolerations:
+      - operator: Exists
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - r640
+      imagePullSecrets:
+      - name: harbor-registry-pull
+      containers:
+      - name: controller
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f751479965f23bbb102e6637cfefd2791004c962c15acb928dcd6d42949967d8
+        command:
+        - python
+        - /app/tenant_control_controller.py
+        envFrom:
+        - secretRef:
+            name: tenant-registry-supply-chain
+            optional: true
+        - secretRef:
+            name: tenant-claim-internal-auth
+            optional: true
+        env:
+        - name: KUBERNETES_SERVICE_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: KUBERNETES_SERVICE_PORT
+          value: '6443'
+        - name: KUBERNETES_SERVICE_PORT_HTTPS
+          value: '6443'
+        - name: LISTEN_PORT
+          value: '19447'
+        - name: IMAGE_POLICY_URL
+          value: http://harbor-supply-chain.tenant-infrastructure.svc
+        - name: IDENTITY_REST_URL
+          value: http://supabase-identity-rest.supabase-identity.svc:3000
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        ports:
+        - name: http
+          containerPort: 19447
+        startupProbe:
+          httpGet:
+            path: /livez
+            port: http
+          failureThreshold: 30
+          periodSeconds: 2
+          timeoutSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: http
+          failureThreshold: 3
+          periodSeconds: 5
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: http
+          failureThreshold: 3
+          periodSeconds: 15
+          timeoutSeconds: 3
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tenant-provider-reconciler
+  namespace: tenant-infrastructure
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: tenant-provider-reconciler
+  template:
+    metadata:
+      labels:
+        app: tenant-provider-reconciler
+        saas.re8ch.com/tenant: platform
+    spec:
+      serviceAccountName: tenant-provider-reconciler
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+        - 10.43.0.53
+        searches:
+        - observability-ai.svc.cluster.local
+        - tenant-infrastructure.svc.cluster.local
+        - svc.cluster.local
+        - cluster.local
+        options:
+        - name: ndots
+          value: '5'
+      imagePullSecrets:
+      - name: harbor-registry-pull
+      tolerations:
+      - operator: Exists
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - r640
+      containers:
+      - name: reconciler
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f751479965f23bbb102e6637cfefd2791004c962c15acb928dcd6d42949967d8
+        command:
+        - python
+        - /app/tenant_provider_reconciler.py
+        env:
+        - name: KUBERNETES_SERVICE_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: KUBERNETES_SERVICE_PORT
+          value: '6443'
+        - name: KUBERNETES_SERVICE_PORT_HTTPS
+          value: '6443'
+        - name: IDENTITY_REST_URL
+          value: http://supabase-identity-rest.supabase-identity.svc:3000
+        - name: IDENTITY_SERVICE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: tenant-provider-identity
+              key: service-role-key
+        - name: GRAFANA_DATABASE_BINDINGS_JSON
+          value: '[{"database":"anysite","namespace":"re8ch-anysite","secretName":"anysite-db-credentials","secretUID":"ecb4edf3-eb40-4b0e-ab28-7bf3dab490c4","tenantRef":"re8ch"},{"database":"secretary","namespace":"re8ch-secretary","secretName":"secretary-db-credentials","secretUID":"e31d554c-5cf8-4663-adcd-811849a31b3c","tenantRef":"re8ch"}]'
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: tenant-api-gateway
+  namespace: tenant-infrastructure
+spec:
+  endpointSelector:
+    matchLabels:
+      app: tenant-api
+  ingress:
+  - fromEntities:
+    - ingress
+    toPorts:
+    - ports:
+      - port: '19448'
+        protocol: TCP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tenant-platform-modules
+  namespace: tenant-infrastructure
+data:
+  modules.json: "{\n  \"version\": 1,\n  \"backends\": {\n    \"cloud\": {\n     \
+    \ \"namespace\": \"toolhive-system\",\n      \"secret\": \"ops-mcp-observe-upstream\"\
+    ,\n      \"secretKey\": \"x-ops-token\",\n      \"header\": \"X-Ops-Token\",\n\
+    \      \"url\": \"http://mcp-ops-observe-vmcp-internal.toolhive-system.svc.cluster.local:8088/mcp\"\
+    ,\n      \"allowed\": {\n        \"get_usage_guide\": true,\n        \"get_tenant_context\"\
+    : true,\n        \"list_k8s_resources\": true,\n        \"get_registry_info\"\
+    : true,\n        \"get_tenant_resource_catalog\": true,\n        \"get_grafana_links\"\
+    : true,\n        \"get_tenant_metrics_summary\": true,\n        \"get_platform_service_health\"\
+    : true,\n        \"get_platform_service_catalog\": true,\n        \"get_platform_permission_coverage\"\
+    : true,\n        \"get_platform_access_posture\": true,\n        \"get_ceph_storage_status\"\
+    : true,\n        \"get_ready_node_storage_inventory\": true,\n        \"get_runtime_storage_analyses\"\
+    : true,\n        \"get_nuclio_function_status\": true,\n        \"diagnose_nuclio_function\"\
+    : true,\n        \"get_nuclio_capacity_status\": true,\n        \"get_litellm_gateway_status\"\
+    : true,\n        \"get_supabase_platform_status\": true,\n        \"get_neo4j_platform_status\"\
+    : true,\n        \"get_identity_platform_status\": true,\n        \"get_agent_runtime_status\"\
+    : true,\n        \"get_observability_platform_status\": true,\n        \"get_artifact_platform_status\"\
+    : true,\n        \"get_database_routing_status\": true,\n        \"get_external_publication_readiness\"\
+    : true\n      }\n    },\n    \"infra\": {\n      \"namespace\": \"toolhive-system\"\
+    ,\n      \"secret\": \"ops-mcp-admin-upstream\",\n      \"secretKey\": \"x-ops-token\"\
+    ,\n      \"header\": \"X-Ops-Token\",\n      \"url\": \"http://mcp-ops-operate-vmcp-internal.toolhive-system.svc.cluster.local:8088/mcp\"\
+    ,\n      \"allowed\": {\n        \"get_managed_platform_operation_status\": true,\n\
+    \        \"restart_managed_platform_deployment\": true,\n        \"scale_managed_platform_deployment\"\
+    : true,\n        \"get_ceph_recovery_status\": true,\n        \"restart_ceph_osd_1\"\
+    : true\n      }\n    },\n    \"admin\": {\n      \"namespace\": \"toolhive-system\"\
+    ,\n      \"secret\": \"ops-mcp-admin-upstream\",\n      \"secretKey\": \"x-ops-token\"\
+    ,\n      \"header\": \"X-Ops-Token\",\n      \"url\": \"http://mcp-ops-admin-vmcp-internal.toolhive-system.svc.cluster.local:8088/mcp\"\
+    ,\n      \"allowed\": {\n        \"list_dex_users\": true,\n        \"get_dex_hash_instructions\"\
+    : true,\n        \"create_dex_user\": true,\n        \"grant_user_namespace\"\
+    : true,\n        \"get_tenancy_admin_workflow\": true,\n        \"generate_pg_tenant_database_plan\"\
+    : true,\n        \"ensure_tenant_database_secrets\": true,\n        \"ensure_tenant_database_bundle\"\
+    : true,\n        \"postgres_admin_sql\": true,\n        \"ensure_tenant_access\"\
+    : true,\n        \"ensure_harbor_tenant\": true,\n        \"set_tool_publication_stage\"\
+    : true,\n        \"get_tenant_secret_refs\": true\n      }\n    },\n    \"native\"\
+    : {\n      \"namespace\": \"ai-operations\",\n      \"secret\": \"cluster-infra-service-auth\"\
+    ,\n      \"secretKey\": \"token\",\n      \"header\": \"Authorization\",\n   \
+    \   \"url\": \"http://re8ch-cloud-platform.ai-operations.svc.cluster.local:19443/mcp\"\
+    ,\n      \"allowed\": {\n        \"nodes.list\": true,\n        \"nodes.get\"\
+    : true,\n        \"nodes.reachability\": true,\n        \"node.ssh.exec\": true,\n\
+    \        \"kubectl.exec\": true,\n        \"kube.nodes\": true,\n        \"kube.namespaces\"\
+    : true,\n        \"kube.pods\": true,\n        \"kube.deployments\": true,\n \
+    \       \"kube.services\": true,\n        \"kube.endpoints\": true,\n        \"\
+    kube.secrets\": true,\n        \"kube.resource.get\": true,\n        \"kube.resource.list\"\
+    : true,\n        \"kube.resource.watch\": true,\n        \"kube.resource.apply\"\
+    : true,\n        \"kube.resource.patch\": true,\n        \"kube.resource.delete\"\
+    : true,\n        \"kube.events.query\": true,\n        \"kube.events.watch\":\
+    \ true,\n        \"workspace.list\": true,\n        \"workspace.status\": true,\n\
+    \        \"workspace.scan\": true,\n        \"workspace.doctor\": true,\n    \
+    \    \"workspace.index\": true,\n        \"workspace.sync\": true,\n        \"\
+    workspace.context\": true,\n        \"workspace.memory-audit\": true,\n      \
+    \  \"plugin.capabilities.list\": true,\n        \"plugin.openapi.get\": true,\n\
+    \        \"plugin.operations.list\": true,\n        \"plugin.operation.read\"\
+    : true,\n        \"plugin.operation.http-check\": true,\n        \"advfab-legacy.advancedfabric.get.98c75b6bc14f\"\
+    : true,\n        \"advfab-legacy.advancedfabric.get.caad28e28f90\": true,\n  \
+    \      \"advfab-legacy.advancedfabric.list.0b76245edb89\": true,\n        \"advfab-legacy.networkintervention.get.e71532affab2\"\
+    : true,\n        \"advfab-legacy.networkintervention.get.f1e551c1176e\": true,\n\
+    \        \"advfab-legacy.networkintervention.list.86bd2131221a\": true,\n    \
+    \    \"advfab-legacy.networkobservationepisode.get.40e65210a244\": true,\n   \
+    \     \"advfab-legacy.networkobservationepisode.get.9951246bfdf0\": true,\n  \
+    \      \"advfab-legacy.networkobservationepisode.list.7b471347fb7e\": true,\n\
+    \        \"advfab-legacy.networkpathassessment.get.0923e5d2622d\": true,\n   \
+    \     \"advfab-legacy.networkpathassessment.get.7bd96e1a92bc\": true,\n      \
+    \  \"advfab-legacy.networkpathassessment.get.ccd2c0d1a0d4\": true,\n        \"\
+    advfab-legacy.networkpathassessment.get.da59c7301752\": true,\n        \"advfab-legacy.networkpathassessment.list.238c4db7c198\"\
+    : true,\n        \"advfab-legacy.networkpathassessment.list.531441095c59\": true,\n\
+    \        \"advfab-legacy.networktradeoffestimate.get.718cc827cef1\": true,\n \
+    \       \"advfab-legacy.networktradeoffestimate.list.2cd12b2f2cda\": true,\n \
+    \       \"advfab-legacy.routerosnode.get.3b2c2f113b83\": true,\n        \"advfab-legacy.routerosnode.get.a985e29f3805\"\
+    : true,\n        \"advfab-legacy.routerosnode.get.b8c2b07d6755\": true,\n    \
+    \    \"advfab-legacy.routerosnode.get.e3b727c720db\": true,\n        \"advfab-legacy.routerosnode.list.43618d0be251\"\
+    : true,\n        \"advfab-legacy.routerosnode.list.b172062613c5\": true,\n   \
+    \     \"advfab-legacy.tradeofftriangle.get.5a5fd55e6355\": true,\n        \"advfab-legacy.tradeofftriangle.get.af756987e107\"\
+    : true,\n        \"advfab-legacy.tradeofftriangle.list.9a34583ebe42\": true,\n\
+    \        \"advfab-legacy.trafficpolicy.get.0b8e1bf1958d\": true,\n        \"advfab-legacy.trafficpolicy.get.69dbd4f22487\"\
+    : true,\n        \"advfab-legacy.trafficpolicy.list.a59cb4a70175\": true,\n  \
+    \      \"advfab-legacy.trafficpolicy.list.ce8bad46d3d2\": true,\n        \"advfab.advancedfabric.get.d09bee342ee5\"\
+    : true,\n        \"advfab.advancedfabric.get.fef91f7ea9f2\": true,\n        \"\
+    advfab.advancedfabric.list.ac8c4fcdc5d0\": true,\n        \"advfab.networkintervention.get.8915088b46f8\"\
+    : true,\n        \"advfab.networkintervention.get.9b7b9cf31644\": true,\n    \
+    \    \"advfab.networkintervention.list.683c91a26456\": true,\n        \"advfab.networkobservationepisode.get.4ad786fce9bd\"\
+    : true,\n        \"advfab.networkobservationepisode.get.e3e4140ace69\": true,\n\
+    \        \"advfab.networkobservationepisode.list.534292221df9\": true,\n     \
+    \   \"advfab.networkpathassessment.get.191a07a2ff7f\": true,\n        \"advfab.networkpathassessment.get.1bcc8a218597\"\
+    : true,\n        \"advfab.networkpathassessment.get.1d1c2f550ef7\": true,\n  \
+    \      \"advfab.networkpathassessment.get.c3b45ad4f3fa\": true,\n        \"advfab.networkpathassessment.list.93dd96fa051c\"\
+    : true,\n        \"advfab.networkpathassessment.list.dd6d744781cf\": true,\n \
+    \       \"advfab.networktradeoffestimate.get.e2122198faf5\": true,\n        \"\
+    advfab.networktradeoffestimate.list.32639e3ac1e4\": true,\n        \"advfab.routerosnode.get.395cc5b79508\"\
+    : true,\n        \"advfab.routerosnode.get.3c0188aa8754\": true,\n        \"advfab.routerosnode.get.a765ac6ce6c9\"\
+    : true,\n        \"advfab.routerosnode.get.af6ef3eb4b4c\": true,\n        \"advfab.routerosnode.list.47422a25686f\"\
+    : true,\n        \"advfab.routerosnode.list.4ed474d75622\": true,\n        \"\
+    advfab.tradeofftriangle.get.9a6e8b31bf82\": true,\n        \"advfab.tradeofftriangle.get.db480dd694ec\"\
+    : true,\n        \"advfab.tradeofftriangle.list.f725a4ac03b1\": true,\n      \
+    \  \"advfab.trafficpolicy.get.2ca3cfdb0fd7\": true,\n        \"advfab.trafficpolicy.get.82152f127468\"\
+    : true,\n        \"advfab.trafficpolicy.list.4eae1d6681e2\": true,\n        \"\
+    advfab.trafficpolicy.list.afd1a2d3d556\": true,\n        \"anatomy.runtime.get.1a33c3ef06b7\"\
+    : true,\n        \"anatomy.runtime.get.7e9890ef54e7\": true,\n        \"anatomy.runtime.list.4cb4a3ffd8a1\"\
+    : true,\n        \"anatomy.runtime.list.e9f51c1e8781\": true,\n        \"anatomy.runtimeanalysis.get.0f0f7997c270\"\
+    : true,\n        \"anatomy.runtimeanalysis.get.e7d689a70ac5\": true,\n       \
+    \ \"anatomy.runtimeanalysis.list.52934117d081\": true,\n        \"anatomy.runtimeanalysis.list.ee0dd5ef66ba\"\
+    : true,\n        \"anatomy.runtimebranch.get.b7b4486e3978\": true,\n        \"\
+    anatomy.runtimebranch.get.bcd70d825e1c\": true,\n        \"anatomy.runtimebranch.list.713c75382b27\"\
+    : true,\n        \"anatomy.runtimebranch.list.e3d1010342b9\": true,\n        \"\
+    anatomy.runtimecheckout.get.556e6b23eddc\": true,\n        \"anatomy.runtimecheckout.get.970e76fa207e\"\
+    : true,\n        \"anatomy.runtimecheckout.list.1788abf1bde4\": true,\n      \
+    \  \"anatomy.runtimecheckout.list.d6bbbb9bf32d\": true,\n        \"anatomy.runtimecommit.get.a8a125c9821c\"\
+    : true,\n        \"anatomy.runtimecommit.get.caf0d1e5c9af\": true,\n        \"\
+    anatomy.runtimecommit.list.70a17685b38c\": true,\n        \"anatomy.runtimecommit.list.dbbe868d26c9\"\
+    : true,\n        \"anatomy.runtimediff.get.57a46f9022ae\": true,\n        \"anatomy.runtimediff.get.ad1bb1f25065\"\
+    : true,\n        \"anatomy.runtimediff.list.16f95e88720d\": true,\n        \"\
+    anatomy.runtimediff.list.20bcbfc19d5b\": true,\n        \"anatomy.runtimegarbagecollection.get.2390c4a596d2\"\
+    : true,\n        \"anatomy.runtimegarbagecollection.get.84e0d01ccc6b\": true,\n\
+    \        \"anatomy.runtimegarbagecollection.list.550bfb8a1e1f\": true,\n     \
+    \   \"anatomy.runtimegarbagecollection.list.e464849e47e9\": true,\n        \"\
+    cilium.ciliumbgpadvertisement.get.0f66f44058ee\": true,\n        \"cilium.ciliumbgpadvertisement.get.6050ff99f93d\"\
+    : true,\n        \"cilium.ciliumbgpadvertisement.list.8ce4de5d7c3f\": true,\n\
+    \        \"cilium.ciliumbgpadvertisement.list.d829993dea2f\": true,\n        \"\
+    cilium.ciliumbgpclusterconfig.get.4134d9f9609b\": true,\n        \"cilium.ciliumbgpclusterconfig.get.598bb080df43\"\
+    : true,\n        \"cilium.ciliumbgpclusterconfig.get.873d7eb7aa8a\": true,\n \
+    \       \"cilium.ciliumbgpclusterconfig.get.d01cdf6e326e\": true,\n        \"\
+    cilium.ciliumbgpclusterconfig.list.7f864027628f\": true,\n        \"cilium.ciliumbgpclusterconfig.list.87db6a1d50b3\"\
+    : true,\n        \"cilium.ciliumbgpnodeconfig.get.03b1dbbdf36b\": true,\n    \
+    \    \"cilium.ciliumbgpnodeconfig.get.211c6ac4411f\": true,\n        \"cilium.ciliumbgpnodeconfig.get.96a9ee5012eb\"\
+    : true,\n        \"cilium.ciliumbgpnodeconfig.get.df59a3a94155\": true,\n    \
+    \    \"cilium.ciliumbgpnodeconfig.list.8f2829242771\": true,\n        \"cilium.ciliumbgpnodeconfig.list.d64f5557c209\"\
+    : true,\n        \"cilium.ciliumbgpnodeconfigoverride.get.79b49268d1c6\": true,\n\
+    \        \"cilium.ciliumbgpnodeconfigoverride.get.e832a0fb6bc4\": true,\n    \
+    \    \"cilium.ciliumbgpnodeconfigoverride.list.0719f79cc205\": true,\n       \
+    \ \"cilium.ciliumbgpnodeconfigoverride.list.60b2edcd2b77\": true,\n        \"\
+    cilium.ciliumbgppeerconfig.get.04b4b78218d1\": true,\n        \"cilium.ciliumbgppeerconfig.get.4e1d7f8b6f5a\"\
+    : true,\n        \"cilium.ciliumbgppeerconfig.get.87e0f371a6dd\": true,\n    \
+    \    \"cilium.ciliumbgppeerconfig.get.9adc58cdb536\": true,\n        \"cilium.ciliumbgppeerconfig.list.0c40b9f1941b\"\
+    : true,\n        \"cilium.ciliumbgppeerconfig.list.6eb4f1d5f773\": true,\n   \
+    \     \"cilium.ciliumcidrgroup.get.8aa4fa516c65\": true,\n        \"cilium.ciliumcidrgroup.get.cbd633f75ad0\"\
+    : true,\n        \"cilium.ciliumcidrgroup.list.c336a1596982\": true,\n       \
+    \ \"cilium.ciliumcidrgroup.list.eed06e652791\": true,\n        \"cilium.ciliumclusterwideenvoyconfig.get.bf92f1dd85e5\"\
+    : true,\n        \"cilium.ciliumclusterwideenvoyconfig.list.a2bc5d373b89\": true,\n\
+    \        \"cilium.ciliumclusterwidenetworkpolicy.get.94cdf1bb87d8\": true,\n \
+    \       \"cilium.ciliumclusterwidenetworkpolicy.get.9c82e682b284\": true,\n  \
+    \      \"cilium.ciliumclusterwidenetworkpolicy.list.e07159805124\": true,\n  \
+    \      \"cilium.ciliumdatapathplugin.get.99b93e35fa1f\": true,\n        \"cilium.ciliumdatapathplugin.list.7458759b734c\"\
+    : true,\n        \"cilium.ciliumegressgatewaypolicy.get.b7b9494ebd74\": true,\n\
+    \        \"cilium.ciliumegressgatewaypolicy.list.0471602c34e1\": true,\n     \
+    \   \"cilium.ciliumendpoint.get.f33630adacdd\": true,\n        \"cilium.ciliumendpoint.list.09d0b00c01fb\"\
+    : true,\n        \"cilium.ciliumendpoint.list.80f7e442dcbd\": true,\n        \"\
+    cilium.ciliumendpointslice.get.da3822f12e80\": true,\n        \"cilium.ciliumendpointslice.list.2c422a9500dc\"\
+    : true,\n        \"cilium.ciliumenvoyconfig.get.6de323051d6c\": true,\n      \
+    \  \"cilium.ciliumenvoyconfig.list.51eb73b43443\": true,\n        \"cilium.ciliumenvoyconfig.list.6ce832791f13\"\
+    : true,\n        \"cilium.ciliumgatewayclassconfig.get.8873d9ed0f85\": true,\n\
+    \        \"cilium.ciliumgatewayclassconfig.get.f744c0dbb9d7\": true,\n       \
+    \ \"cilium.ciliumgatewayclassconfig.list.a981932e3abc\": true,\n        \"cilium.ciliumgatewayclassconfig.list.ea3fb181b4ec\"\
+    : true,\n        \"cilium.ciliumidentity.get.29e8adf82d70\": true,\n        \"\
+    cilium.ciliumidentity.get.75a0cbf0333d\": true,\n        \"cilium.ciliumidentity.list.51a4a850ec5b\"\
+    : true,\n        \"cilium.ciliuml2announcementpolicy.get.330abda0af58\": true,\n\
+    \        \"cilium.ciliuml2announcementpolicy.get.eabcdb75a3a3\": true,\n     \
+    \   \"cilium.ciliuml2announcementpolicy.list.a50b1ef31f1c\": true,\n        \"\
+    cilium.ciliumloadbalancerippool.get.52162b823f05\": true,\n        \"cilium.ciliumloadbalancerippool.get.9b0694dddffb\"\
+    : true,\n        \"cilium.ciliumloadbalancerippool.get.f76a1601e76b\": true,\n\
+    \        \"cilium.ciliumloadbalancerippool.get.f7b820be2e93\": true,\n       \
+    \ \"cilium.ciliumloadbalancerippool.list.4f8b5288fce9\": true,\n        \"cilium.ciliumloadbalancerippool.list.7fae5c685303\"\
+    : true,\n        \"cilium.ciliumlocalredirectpolicy.get.148e9c015379\": true,\n\
+    \        \"cilium.ciliumlocalredirectpolicy.list.0d3a9bb04d4e\": true,\n     \
+    \   \"cilium.ciliumlocalredirectpolicy.list.857be2f2a3b3\": true,\n        \"\
+    cilium.ciliumnetworkdriverclusterconfig.get.41e430864804\": true,\n        \"\
+    cilium.ciliumnetworkdriverclusterconfig.get.4f7ceb883b23\": true,\n        \"\
+    cilium.ciliumnetworkdriverclusterconfig.list.b2fe2c384a28\": true,\n        \"\
+    cilium.ciliumnetworkdrivernodeconfig.get.7fa3a46201d4\": true,\n        \"cilium.ciliumnetworkdrivernodeconfig.list.5a4fd66c4665\"\
+    : true,\n        \"cilium.ciliumnetworkpolicy.get.319209ef562a\": true,\n    \
+    \    \"cilium.ciliumnetworkpolicy.get.5460ce5a52e6\": true,\n        \"cilium.ciliumnetworkpolicy.list.3d99bab9fdbf\"\
+    : true,\n        \"cilium.ciliumnetworkpolicy.list.a81ba013c822\": true,\n   \
+    \     \"cilium.ciliumnode.get.d12cb0d70089\": true,\n        \"cilium.ciliumnode.get.ed15dedd3b4c\"\
+    : true,\n        \"cilium.ciliumnode.list.6f8a91cdcdd8\": true,\n        \"cilium.ciliumnodeconfig.get.5daa79e1bfe7\"\
+    : true,\n        \"cilium.ciliumnodeconfig.list.7ddff6288047\": true,\n      \
+    \  \"cilium.ciliumnodeconfig.list.c3fda608220d\": true,\n        \"cilium.ciliumpodippool.get.ab54966d4656\"\
+    : true,\n        \"cilium.ciliumpodippool.list.54fa976c82c0\": true,\n       \
+    \ \"cilium.ciliumresourceippool.get.ee82d5641f1d\": true,\n        \"cilium.ciliumresourceippool.list.d4395c419132\"\
+    : true,\n        \"mobile-egress.mobileegress.get.98aafa994029\": true,\n    \
+    \    \"mobile-egress.mobileegress.get.c1422d3f888a\": true,\n        \"mobile-egress.mobileegress.list.16c30591d35d\"\
+    : true,\n        \"object-bucket.objectbucket.get.ab61dd63f479\": true,\n    \
+    \    \"object-bucket.objectbucket.get.f999eaf2ebcc\": true,\n        \"object-bucket.objectbucket.list.1e3095710fc3\"\
+    : true,\n        \"object-bucket.objectbucketclaim.get.32b36d26385a\": true,\n\
+    \        \"object-bucket.objectbucketclaim.get.70a6ada6e2e2\": true,\n       \
+    \ \"object-bucket.objectbucketclaim.list.291a31f4602b\": true,\n        \"object-bucket.objectbucketclaim.list.a6fac329642d\"\
+    : true,\n        \"public-edge.publicedge.get.1f5a3a3e14aa\": true,\n        \"\
+    public-edge.publicedge.get.e1e3c5e99b21\": true,\n        \"public-edge.publicedge.list.093405d0d4e4\"\
+    : true,\n        \"rook-ceph-csi.cephconnection.get.719dccd75071\": true,\n  \
+    \      \"rook-ceph-csi.cephconnection.get.8ab6e1868bd1\": true,\n        \"rook-ceph-csi.cephconnection.list.7f1bccacac95\"\
+    : true,\n        \"rook-ceph-csi.cephconnection.list.c6d7b9cbf45c\": true,\n \
+    \       \"rook-ceph-csi.clientprofile.get.4f8eca54fbd2\": true,\n        \"rook-ceph-csi.clientprofile.get.715833bb10ca\"\
+    : true,\n        \"rook-ceph-csi.clientprofile.list.8a70806e1deb\": true,\n  \
+    \      \"rook-ceph-csi.clientprofile.list.9c2ac87b3f38\": true,\n        \"rook-ceph-csi.clientprofilemapping.get.6cb31b843e62\"\
+    : true,\n        \"rook-ceph-csi.clientprofilemapping.get.743d009ac301\": true,\n\
+    \        \"rook-ceph-csi.clientprofilemapping.list.256b44db6b13\": true,\n   \
+    \     \"rook-ceph-csi.clientprofilemapping.list.2e7c934c7657\": true,\n      \
+    \  \"rook-ceph-csi.driver.get.6bc836ed6006\": true,\n        \"rook-ceph-csi.driver.get.9938dba1e56b\"\
+    : true,\n        \"rook-ceph-csi.driver.list.bf6ec3659a34\": true,\n        \"\
+    rook-ceph-csi.driver.list.efdd172c8279\": true,\n        \"rook-ceph-csi.operatorconfig.get.34a233291bd7\"\
+    : true,\n        \"rook-ceph-csi.operatorconfig.get.847183898d8d\": true,\n  \
+    \      \"rook-ceph-csi.operatorconfig.list.147ccbd32ef6\": true,\n        \"rook-ceph-csi.operatorconfig.list.560a49887c7f\"\
+    : true,\n        \"rook-ceph.cephblockpool.get.4c0c2dfc0695\": true,\n       \
+    \ \"rook-ceph.cephblockpool.get.a42d9a17c1b8\": true,\n        \"rook-ceph.cephblockpool.list.169ff0c225b5\"\
+    : true,\n        \"rook-ceph.cephblockpool.list.2272695d335e\": true,\n      \
+    \  \"rook-ceph.cephblockpoolradosnamespace.get.8cdf89a2b3bf\": true,\n       \
+    \ \"rook-ceph.cephblockpoolradosnamespace.get.adbca6164c0b\": true,\n        \"\
+    rook-ceph.cephblockpoolradosnamespace.list.c41888aac924\": true,\n        \"rook-ceph.cephblockpoolradosnamespace.list.d1659d85d98c\"\
+    : true,\n        \"rook-ceph.cephbucketnotification.get.157b386a4c16\": true,\n\
+    \        \"rook-ceph.cephbucketnotification.get.b18847268381\": true,\n      \
+    \  \"rook-ceph.cephbucketnotification.list.819b240fb35e\": true,\n        \"rook-ceph.cephbucketnotification.list.e6e08d9f2860\"\
+    : true,\n        \"rook-ceph.cephbuckettopic.get.9dd379162c33\": true,\n     \
+    \   \"rook-ceph.cephbuckettopic.get.d57cc0757465\": true,\n        \"rook-ceph.cephbuckettopic.list.5a5b22ee93b4\"\
+    : true,\n        \"rook-ceph.cephbuckettopic.list.f675290e2792\": true,\n    \
+    \    \"rook-ceph.cephclient.get.7f78399ca526\": true,\n        \"rook-ceph.cephclient.get.bb56fec7bfa4\"\
+    : true,\n        \"rook-ceph.cephclient.list.17abaa1022c4\": true,\n        \"\
+    rook-ceph.cephclient.list.ffc2fa77dcc9\": true,\n        \"rook-ceph.cephcluster.get.97e1bddd2d52\"\
+    : true,\n        \"rook-ceph.cephcluster.get.d6430ee31dea\": true,\n        \"\
+    rook-ceph.cephcluster.list.8d70ce3dfedb\": true,\n        \"rook-ceph.cephcluster.list.e127bd64065b\"\
+    : true,\n        \"rook-ceph.cephcosidriver.get.1739453da0d9\": true,\n      \
+    \  \"rook-ceph.cephcosidriver.list.77666d7d069d\": true,\n        \"rook-ceph.cephcosidriver.list.a93cbf9a6ea2\"\
+    : true,\n        \"rook-ceph.cephfilesystem.get.98bd5ced547c\": true,\n      \
+    \  \"rook-ceph.cephfilesystem.get.a4cad16b2bf9\": true,\n        \"rook-ceph.cephfilesystem.list.4ffaf9e1b805\"\
+    : true,\n        \"rook-ceph.cephfilesystem.list.fd2eb7dce20e\": true,\n     \
+    \   \"rook-ceph.cephfilesystemmirror.get.7b90b77e4637\": true,\n        \"rook-ceph.cephfilesystemmirror.get.aaef2d9e88f2\"\
+    : true,\n        \"rook-ceph.cephfilesystemmirror.list.7637e021c1b1\": true,\n\
+    \        \"rook-ceph.cephfilesystemmirror.list.a975171f358d\": true,\n       \
+    \ \"rook-ceph.cephfilesystemsubvolumegroup.get.a3c5642e0094\": true,\n       \
+    \ \"rook-ceph.cephfilesystemsubvolumegroup.get.e344ed40c202\": true,\n       \
+    \ \"rook-ceph.cephfilesystemsubvolumegroup.list.3cb1fc108ac0\": true,\n      \
+    \  \"rook-ceph.cephfilesystemsubvolumegroup.list.8702a9f9faca\": true,\n     \
+    \   \"rook-ceph.cephnfs.get.ce661bd869c4\": true,\n        \"rook-ceph.cephnfs.get.e50e2aa9308f\"\
+    : true,\n        \"rook-ceph.cephnfs.list.170161f6339c\": true,\n        \"rook-ceph.cephnfs.list.75d87229904b\"\
+    : true,\n        \"rook-ceph.cephnvmeofgateway.get.82c31e3bc3fe\": true,\n   \
+    \     \"rook-ceph.cephnvmeofgateway.get.e3fd4b4752df\": true,\n        \"rook-ceph.cephnvmeofgateway.list.61c92e413592\"\
+    : true,\n        \"rook-ceph.cephnvmeofgateway.list.f4fd9b4ad5a2\": true,\n  \
+    \      \"rook-ceph.cephobjectrealm.get.0c2cd7a8bb44\": true,\n        \"rook-ceph.cephobjectrealm.get.7359750ad39d\"\
+    : true,\n        \"rook-ceph.cephobjectrealm.list.c1eda1086d91\": true,\n    \
+    \    \"rook-ceph.cephobjectrealm.list.db0d570fe3df\": true,\n        \"rook-ceph.cephobjectstore.get.88475dfb7baa\"\
+    : true,\n        \"rook-ceph.cephobjectstore.get.9446b81730b7\": true,\n     \
+    \   \"rook-ceph.cephobjectstore.get.b9d02c502698\": true,\n        \"rook-ceph.cephobjectstore.list.6940899a5087\"\
+    : true,\n        \"rook-ceph.cephobjectstore.list.ddeb7a545fd3\": true,\n    \
+    \    \"rook-ceph.cephobjectstoreaccount.get.01fab2132403\": true,\n        \"\
+    rook-ceph.cephobjectstoreaccount.get.870be4a75a0e\": true,\n        \"rook-ceph.cephobjectstoreaccount.list.6c5d579cb897\"\
+    : true,\n        \"rook-ceph.cephobjectstoreaccount.list.fb3d87f35235\": true,\n\
+    \        \"rook-ceph.cephobjectstoreuser.get.64484e504faa\": true,\n        \"\
+    rook-ceph.cephobjectstoreuser.get.c6015dd6cbdc\": true,\n        \"rook-ceph.cephobjectstoreuser.list.2a2e2400653f\"\
+    : true,\n        \"rook-ceph.cephobjectstoreuser.list.f76b063d8f26\": true,\n\
+    \        \"rook-ceph.cephobjectzone.get.c2ea14f121d6\": true,\n        \"rook-ceph.cephobjectzone.get.d867107594c7\"\
+    : true,\n        \"rook-ceph.cephobjectzone.list.5855e038143b\": true,\n     \
+    \   \"rook-ceph.cephobjectzone.list.923a72b8724e\": true,\n        \"rook-ceph.cephobjectzonegroup.get.57254d6b9fae\"\
+    : true,\n        \"rook-ceph.cephobjectzonegroup.get.f6cbdf04ea7b\": true,\n \
+    \       \"rook-ceph.cephobjectzonegroup.list.ae00ec03b79c\": true,\n        \"\
+    rook-ceph.cephobjectzonegroup.list.e7b894d9e39c\": true,\n        \"rook-ceph.cephrbdmirror.get.6247af142ccc\"\
+    : true,\n        \"rook-ceph.cephrbdmirror.get.87c4bd54d297\": true,\n       \
+    \ \"rook-ceph.cephrbdmirror.list.6b7a6d2623ba\": true,\n        \"rook-ceph.cephrbdmirror.list.dbf3b397d667\"\
+    : true,\n        \"mihomos.workloads.list\": true,\n        \"mihomos.controllers.list\"\
+    : true,\n        \"mihomos.controller.version\": true,\n        \"mihomos.proxies.list\"\
+    : true,\n        \"mihomos.proxies.get\": true,\n        \"mihomos.groups.list\"\
+    : true,\n        \"mihomos.groups.get\": true,\n        \"mihomos.rules.list\"\
+    : true,\n        \"mihomos.proxy-providers.list\": true,\n        \"mihomos.proxy-providers.get\"\
+    : true,\n        \"mihomos.provider-proxies.get\": true,\n        \"mihomos.rule-providers.list\"\
+    : true,\n        \"mihomos.controller.hello\": true,\n        \"mihomos.configs.get\"\
+    : true,\n        \"mihomos.connections.snapshot\": true,\n        \"anatomy.runtimediff.create\"\
+    : true,\n        \"anatomy.runtimediff.delete\": true,\n        \"cilium.cidrgroup.create\"\
+    : true,\n        \"cilium.cidrgroup.delete\": true,\n        \"advfab-legacy.advancedfabric.delete.61a88efea3fe\"\
+    : true,\n        \"advfab-legacy.advancedfabric.patch.01a438a66db8\": true,\n\
+    \        \"advfab-legacy.advancedfabric.post.5b09ae1f8f1a\": true,\n        \"\
+    advfab-legacy.advancedfabric.put.bd134ca6e525\": true,\n        \"advfab-legacy.networkintervention.delete.f41c1a3adac8\"\
+    : true,\n        \"advfab-legacy.networkintervention.patch.7f380710e538\": true,\n\
+    \        \"advfab-legacy.networkintervention.post.6b24961b5d3a\": true,\n    \
+    \    \"advfab-legacy.networkintervention.put.8dedeeda154d\": true,\n        \"\
+    advfab-legacy.networkobservationepisode.delete.6757cd743ada\": true,\n       \
+    \ \"advfab-legacy.networkobservationepisode.patch.acc536745ea5\": true,\n    \
+    \    \"advfab-legacy.networkobservationepisode.post.d63d83f91dd1\": true,\n  \
+    \      \"advfab-legacy.networkobservationepisode.put.6cd27c41966b\": true,\n \
+    \       \"advfab-legacy.networkpathassessment.delete.4983757e35f3\": true,\n \
+    \       \"advfab-legacy.networkpathassessment.delete.ba1140040448\": true,\n \
+    \       \"advfab-legacy.networkpathassessment.patch.56a1ebdc4593\": true,\n  \
+    \      \"advfab-legacy.networkpathassessment.patch.78cdc91bcb3a\": true,\n   \
+    \     \"advfab-legacy.networkpathassessment.post.4e61891c1ebd\": true,\n     \
+    \   \"advfab-legacy.networkpathassessment.post.9471fc00be67\": true,\n       \
+    \ \"advfab-legacy.networkpathassessment.put.617c0df701aa\": true,\n        \"\
+    advfab-legacy.networkpathassessment.put.eeb99644dde1\": true,\n        \"advfab-legacy.networktradeoffestimate.delete.9fb6c9b2a3af\"\
+    : true,\n        \"advfab-legacy.networktradeoffestimate.patch.75077ae29281\"\
+    : true,\n        \"advfab-legacy.networktradeoffestimate.post.e10a04f2d88e\":\
+    \ true,\n        \"advfab-legacy.networktradeoffestimate.put.16300027eba4\": true,\n\
+    \        \"advfab-legacy.tradeofftriangle.delete.7b5502223676\": true,\n     \
+    \   \"advfab-legacy.tradeofftriangle.patch.54c8df1ae271\": true,\n        \"advfab-legacy.tradeofftriangle.post.c64766ccd1c1\"\
+    : true,\n        \"advfab-legacy.tradeofftriangle.put.fbc8fdac6ba9\": true,\n\
+    \        \"advfab-legacy.trafficpolicy.delete.34c3b6929b67\": true,\n        \"\
+    advfab-legacy.trafficpolicy.patch.0d3890796d6c\": true,\n        \"advfab-legacy.trafficpolicy.post.c52cc2ef3bd6\"\
+    : true,\n        \"advfab-legacy.trafficpolicy.put.64a170ac5c63\": true,\n   \
+    \     \"advfab.advancedfabric.delete.bf7cc8eb9395\": true,\n        \"advfab.advancedfabric.patch.62de7e6473ab\"\
+    : true,\n        \"advfab.advancedfabric.post.15e1ec96e0fa\": true,\n        \"\
+    advfab.advancedfabric.put.f378820e80c3\": true,\n        \"advfab.networkintervention.delete.4d5c82868a9c\"\
+    : true,\n        \"advfab.networkintervention.patch.81cf1fc59558\": true,\n  \
+    \      \"advfab.networkintervention.post.c56d940daf83\": true,\n        \"advfab.networkintervention.put.81bb1c4fb459\"\
+    : true,\n        \"advfab.networkobservationepisode.delete.a4e0ab7526fa\": true,\n\
+    \        \"advfab.networkobservationepisode.patch.c715f0886d81\": true,\n    \
+    \    \"advfab.networkobservationepisode.post.11e41420175c\": true,\n        \"\
+    advfab.networkobservationepisode.put.1c00ce57d6de\": true,\n        \"advfab.networkpathassessment.delete.6c68329892ba\"\
+    : true,\n        \"advfab.networkpathassessment.delete.a48abb6bbd59\": true,\n\
+    \        \"advfab.networkpathassessment.patch.208dce28c63f\": true,\n        \"\
+    advfab.networkpathassessment.patch.f79538d8915b\": true,\n        \"advfab.networkpathassessment.post.27f09e50798d\"\
+    : true,\n        \"advfab.networkpathassessment.post.d212f59867ab\": true,\n \
+    \       \"advfab.networkpathassessment.put.25383ae95196\": true,\n        \"advfab.networkpathassessment.put.51a615e1f3f0\"\
+    : true,\n        \"advfab.networktradeoffestimate.delete.90cad95f2068\": true,\n\
+    \        \"advfab.networktradeoffestimate.patch.433a5bcf82cf\": true,\n      \
+    \  \"advfab.networktradeoffestimate.post.0f1fa9d9446b\": true,\n        \"advfab.networktradeoffestimate.put.5e3da23ab61d\"\
+    : true,\n        \"advfab.tradeofftriangle.delete.c74f3227691e\": true,\n    \
+    \    \"advfab.tradeofftriangle.patch.aac1ccbf1e24\": true,\n        \"advfab.tradeofftriangle.post.f07c66c5d525\"\
+    : true,\n        \"advfab.tradeofftriangle.put.615e6a9b28b3\": true,\n       \
+    \ \"advfab.trafficpolicy.delete.52f7b14a754f\": true,\n        \"advfab.trafficpolicy.patch.ad15dfc5372a\"\
+    : true,\n        \"advfab.trafficpolicy.post.1941de605fc9\": true,\n        \"\
+    advfab.trafficpolicy.put.cd92b2feff5f\": true,\n        \"mobile-egress.mobileegress.delete.75bfa5f6daac\"\
+    : true,\n        \"mobile-egress.mobileegress.patch.b8b95ff07998\": true,\n  \
+    \      \"mobile-egress.mobileegress.post.462d4b4effbe\": true,\n        \"mobile-egress.mobileegress.put.152109cbc59a\"\
+    : true,\n        \"public-edge.publicedge.delete.c967aef6a0c7\": true,\n     \
+    \   \"public-edge.publicedge.patch.843ed2ca541e\": true,\n        \"public-edge.publicedge.post.5c7b156c0412\"\
+    : true,\n        \"public-edge.publicedge.put.4598f1918b1a\": true\n      }\n\
+    \    },\n    \"tenant_admin\": {\n      \"namespace\": \"tenant-infrastructure\"\
+    ,\n      \"secret\": \"admin-vmcp-backend-auth\",\n      \"secretKey\": \"token\"\
+    ,\n      \"header\": \"Authorization\",\n      \"url\": \"http://admin-api.tenant-infrastructure.svc.cluster.local/mcp\"\
+    ,\n      \"allowed\": {\n        \"tenant_create\": true,\n        \"tenant_list\"\
+    : true,\n        \"tenant_visibility_update\": true,\n        \"tenant_delete\"\
+    : true,\n        \"byoc_registration_list\": true,\n        \"byoc_connection_approve\"\
+    : true,\n        \"byoc_connection_revoke\": true,\n        \"dynamic_skill_pending\"\
+    : true,\n        \"dynamic_skill_publish\": true,\n        \"dynamic_skill_review\"\
+    : true,\n        \"dynamic_skill_revoke\": true\n      }\n    }\n  }\n}\n"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tenant-platform-state
+  namespace: tenant-infrastructure
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: rbd-r640
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-api
+  namespace: tenant-infrastructure
+spec:
+  selector:
+    app: admin-api
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tenant-api
+  namespace: tenant-infrastructure
+  labels:
+    re8ch.com/metrics-surface: tenant-mcp
+spec:
+  selector:
+    app: tenant-api
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  - name: skill-admin
+    port: 19450
+    targetPort: skill-admin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tenant-control-controller
+  namespace: tenant-infrastructure
+spec:
+  trafficDistribution: PreferSameNode
+  selector:
+    app: tenant-control-controller
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tenant-infrastructure
+  namespace: tenant-infrastructure
+spec:
+  selector:
+    app: tenant-api
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-api
+  namespace: tenant-infrastructure
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tenant-api
+  namespace: tenant-infrastructure
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tenant-control-controller
+  namespace: tenant-infrastructure
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tenant-provider-reconciler
+  namespace: tenant-infrastructure
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: tenant-billing-auth-center
+  namespace: tenant-infrastructure
+spec:
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: api-https
+  - name: re8ch-region-loudi
+    namespace: kube-system
+    sectionName: api-https
+  - name: re8ch-region-guangzhou
+    namespace: kube-system
+    sectionName: api-https
+  - name: re8ch-region-shanghai
+    namespace: kube-system
+    sectionName: api-https
+  - name: re8ch-region-hangzhou-nuclio
+    namespace: kube-system
+    sectionName: api-https
+  - name: re8ch-region-shanghai-nuclio
+    namespace: kube-system
+    sectionName: api-https
+  hostnames:
+  - api.re8ch.com
+  rules:
+  - matches:
+    - path:
+        type: Exact
+        value: /tenant-native/billing/usage
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /billing/usage
+    backendRefs:
+    - name: tenant-api
+      port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: tenant-billing-read
+  namespace: tenant-infrastructure
+spec:
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: service-wildcard-https
+  hostnames:
+  - tools.service.re8ch.com
+  rules:
+  - matches:
+    - path:
+        type: Exact
+        value: /tenant-native/billing/usage
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /billing/usage
+    backendRefs:
+    - name: tenant-api
+      port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: tenant-credential-redemption
+  namespace: tenant-infrastructure
+spec:
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: service-wildcard-https
+  hostnames:
+  - tools.service.re8ch.com
+  rules:
+  - matches:
+    - path:
+        type: Exact
+        value: /credentials/redeem
+    backendRefs:
+    - name: tenant-api
+      port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: tenant-native-mcp
+  namespace: tenant-infrastructure
+spec:
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: service-wildcard-https
+  hostnames:
+  - tools.service.re8ch.com
+  rules:
+  - matches:
+    - path:
+        type: Exact
+        value: /.well-known/openai-apps-challenge
+    backendRefs:
+    - name: tenant-api
+      port: 80
+  - matches:
+    - path:
+        type: Exact
+        value: /tenant-native/mcp
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /mcp
+    backendRefs:
+    - name: tenant-api
+      port: 80
+  - matches:
+    - path:
+        type: Exact
+        value: /tenant-self-service/mcp
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /self-service/mcp
+    backendRefs:
+    - name: tenant-api
+      port: 80
+  - matches:
+    - path:
+        type: Exact
+        value: /collaboration/oauth/callback
+    backendRefs:
+    - name: tenant-api
+      port: 80
+  - matches:
+    - path:
+        type: Exact
+        value: /.well-known/oauth-protected-resource/tenant-native/mcp
+    backendRefs:
+    - name: tenant-api
+      port: 80
+  - matches:
+    - path:
+        type: Exact
+        value: /.well-known/oauth-protected-resource/tenant-self-service/mcp
+    backendRefs:
+    - name: tenant-api
+      port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: tenant-self-service-capabilities
+  namespace: tenant-infrastructure
+spec:
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: api-https
+  hostnames:
+  - api.re8ch.com
+  rules:
+  - matches:
+    - path:
+        type: Exact
+        value: /tenant-native/self-service/capabilities
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /self-service/capabilities
+    backendRefs:
+    - name: tenant-api
+      port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: admin-api
+  namespace: tenant-infrastructure
+spec:
+  podSelector:
+    matchLabels:
+      app: admin-api
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: toolhive-system
+      podSelector:
+        matchLabels:
+          app: virtualmcpserver
+          toolhive-name: re8ch-admin-vmcp
+    - podSelector:
+        matchLabels:
+          app: tenant-api
+    ports:
+    - protocol: TCP
+      port: 19449
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: tenant-api
+  namespace: tenant-infrastructure
+spec:
+  podSelector:
+    matchLabels:
+      app: tenant-api
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: toolhive-system
+    ports:
+    - protocol: TCP
+      port: 19448
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: TCP
+      port: 19448
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: observability-system
+    ports:
+    - protocol: TCP
+      port: 19448
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: observability-ai
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: birfucate-metering
+          app.kubernetes.io/instance: birfucate-metering
+    ports:
+    - protocol: TCP
+      port: 19448
+  - from:
+    - podSelector:
+        matchLabels:
+          app: admin-api
+    ports:
+    - protocol: TCP
+      port: 19450
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: tenant-control-controller
+  namespace: tenant-infrastructure
+spec:
+  podSelector:
+    matchLabels:
+      app: tenant-control-controller
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          tenant-runtime: 'true'
+    ports:
+    - protocol: TCP
+      port: 19447
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: toolhive-system
+      podSelector:
+        matchLabels:
+          tenant-runtime: 'true'
+    ports:
+    - protocol: TCP
+      port: 19447
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: tenant-control-controller
+  namespace: tenant-infrastructure
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: tenant-control-controller

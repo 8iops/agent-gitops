@@ -2,6 +2,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
 - resources.yaml
+- tenant-runtime-authority-resources.yaml
+- tenant-mcp-publication-resources.yaml
 - mail-authority-resources.yaml
 - litellm-authority-resources.yaml
 - cube-recovery-resources.yaml

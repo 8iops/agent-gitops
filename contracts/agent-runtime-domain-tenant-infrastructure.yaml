@@ -1,0 +1,89 @@
+apiVersion: delivery.re8ch.com/v1alpha1
+kind: ReleaseContract
+metadata:
+  name: agent-runtime-domain-tenant-infrastructure
+spec:
+  authorityDomain: agent-runtime
+  target:
+    cluster: re8ch
+    namespace: tenant-infrastructure
+  source:
+    renderer: kustomize
+    revision: github-main-reviewed
+    repository: 8iops/agent-gitops
+    path: releases/agent-runtime-domain-tenant-infrastructure
+  provenance:
+    repository: 8iops/agent-gitops
+    workflow: .github/workflows/static-release.yml
+    ref: refs/heads/main
+    environment: release-executor-agent-runtime
+    audience: https://kube-api.re8ch.com/release-executor-agent-runtime
+    signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
+    issuer: https://token.actions.githubusercontent.com
+  authorization:
+    fieldManager: re8ch-release/observability-chart-birfucate-metering-tenant-infrastructure
+    resources:
+    - apps/DaemonSet
+    - apps/Deployment
+    - cilium.io/CiliumNetworkPolicy
+    - core/ConfigMap
+    - core/PersistentVolumeClaim
+    - core/Service
+    - core/ServiceAccount
+    - gateway.networking.k8s.io/HTTPRoute
+    - networking.k8s.io/NetworkPolicy
+    - policy/PodDisruptionBudget
+    objectNames:
+    - admin-api
+    - tenant-api
+    - tenant-api-gateway
+    - tenant-billing-auth-center
+    - tenant-billing-read
+    - tenant-control-controller
+    - tenant-credential-redemption
+    - tenant-infrastructure
+    - tenant-native-mcp
+    - tenant-platform-modules
+    - tenant-platform-state
+    - tenant-provider-reconciler
+    - tenant-runtime-image-cache
+    - tenant-self-service-capabilities
+    allowClusterScoped: false
+    requireExisting: true
+    forceConflictObjects:
+    - apps/DaemonSet/tenant-infrastructure/tenant-runtime-image-cache
+    - apps/Deployment/tenant-infrastructure/admin-api
+    - apps/Deployment/tenant-infrastructure/tenant-api
+    - apps/Deployment/tenant-infrastructure/tenant-control-controller
+    - apps/Deployment/tenant-infrastructure/tenant-provider-reconciler
+    - cilium.io/CiliumNetworkPolicy/tenant-infrastructure/tenant-api-gateway
+    - core/ConfigMap/tenant-infrastructure/tenant-platform-modules
+    - core/Service/tenant-infrastructure/admin-api
+    - core/Service/tenant-infrastructure/tenant-api
+    - core/Service/tenant-infrastructure/tenant-control-controller
+    - core/Service/tenant-infrastructure/tenant-infrastructure
+    - core/ServiceAccount/tenant-infrastructure/admin-api
+    - core/ServiceAccount/tenant-infrastructure/tenant-api
+    - core/ServiceAccount/tenant-infrastructure/tenant-control-controller
+    - core/ServiceAccount/tenant-infrastructure/tenant-provider-reconciler
+    - gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-billing-auth-center
+    - gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-billing-read
+    - gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-credential-redemption
+    - gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-native-mcp
+    - gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-self-service-capabilities
+    - networking.k8s.io/NetworkPolicy/tenant-infrastructure/admin-api
+    - networking.k8s.io/NetworkPolicy/tenant-infrastructure/tenant-api
+    - networking.k8s.io/NetworkPolicy/tenant-infrastructure/tenant-control-controller
+    - policy/PodDisruptionBudget/tenant-infrastructure/tenant-control-controller
+  inventory:
+    digest: sha256:134524e110c168e571af8474924081cbdd7d213ff5f915e1702eddba409420a9
+  lifecycle:
+    prune: false
+    healthTimeoutSeconds: 300
+    protectedKinds:
+    - Namespace
+    - CustomResourceDefinition
+    - PersistentVolume
+    - PersistentVolumeClaim
+    - StorageClass
+    deletionAllowlist: []
