@@ -57,6 +57,7 @@ spec:
     - re8ch-plugin-definitions
     - re8ch-plugin-operation-catalog
     - re8ch-plugin-runtime
+    - tenant-mcp
     - toolhive-cloud-ui
     - toolhive-operator
     - tools-re8ch-com
@@ -82,6 +83,7 @@ spec:
     - core/ServiceAccount/toolhive-system/re8ch-plugin-runtime
     - gateway.networking.k8s.io/HTTPRoute/toolhive-system/admin-tools-public
     - gateway.networking.k8s.io/HTTPRoute/toolhive-system/connectool-cloud-mcp
+    - gateway.networking.k8s.io/HTTPRoute/toolhive-system/tenant-mcp
     - gateway.networking.k8s.io/HTTPRoute/toolhive-system/toolhive-cloud-ui
     - networking.k8s.io/Ingress/toolhive-system/admin-tools-re8ch-com
     - networking.k8s.io/Ingress/toolhive-system/connectool-tools-re8ch-com
@@ -101,7 +103,7 @@ spec:
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-operate-tools
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-public-read-tools
   inventory:
-    digest: sha256:1dcc74784590d5df2b5af84d2ece6a55e635205137eaf32f19b47542b1029ec0
+    digest: sha256:d8d6986c9ec5c35cd7130c73ff5814b8940ad5f8417bff57f637100af1b68c0d
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300
