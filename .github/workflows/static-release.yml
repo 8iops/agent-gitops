@@ -208,6 +208,17 @@ jobs:
           kubectl config --kubeconfig "$kubeconfig" use-context release-executor
           echo "KUBECONFIG=$kubeconfig" >> "$GITHUB_ENV"
           echo "EXECUTOR_AUDIENCE=$EXECUTOR_AUDIENCE" >> "$GITHUB_ENV"
+      - name: Inspect tenant executor authorization
+        if: inputs.contract == 'contracts/agent-runtime-domain-tenant-infrastructure.yaml'
+        run: |
+          set -eu
+          kubectl auth whoami -o 'jsonpath={.status.userInfo.groups}{"\n"}'
+          ns=tenant-infrastructure
+          binding=agent-runtime-domain-tenant-infrastructure
+          if kubectl auth can-i get "rolebinding/$binding" -n "$ns"; then
+            kubectl get rolebinding "$binding" -n "$ns" -o 'jsonpath={.roleRef.name}{" "}{.subjects[*].name}{"\n"}'
+          fi
+          kubectl auth can-i get "configmap/ssa-state-$binding" -n "$ns"
       - name: Verify signed artifact and perform bounded server-side preflight
         env:
           CONTRACT: '${{ inputs.contract }}'
