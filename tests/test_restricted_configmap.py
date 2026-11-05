@@ -29,6 +29,10 @@ class RestrictedRunner:
             if self.fail=='decrypt':return subprocess.CompletedProcess(argv,1,VALUE,VALUE)
             return subprocess.CompletedProcess(argv,0,json.dumps(plaintext()),'')
         if argv[:2]==['cosign','verify'] and self.fail=='signature':return subprocess.CompletedProcess(argv,1,'','invalid signature')
+        if argv[:3]==['kubectl','get','configmap']:
+            current=plaintext()
+            if self.fail=='readback':current['data']['nodes.json']='different'
+            return subprocess.CompletedProcess(argv,0,json.dumps(current),'')
         if argv[:2]==['kubectl','apply']:
             assert VALUE in kwargs['input'] and '"sops"' not in kwargs['input']
             if self.fail=='apply':return subprocess.CompletedProcess(argv,1,VALUE,VALUE)
@@ -132,3 +136,10 @@ def test_real_sops_survives_sorted_artifact_and_rejects_source_tampering(tmp_pat
     with pytest.raises(RestrictedConfigError,match='differs'):
         decrypt_configmap(canonicalized,run)
     key.unlink()
+
+def test_restricted_readback_detects_managed_field_drift(tmp_path):
+    value,operation,path=request_fixture(tmp_path)
+    result=executor.Executor(runner=RestrictedRunner('readback'),now=lambda:NOW).reconcile(
+        value,operation,path,tmp_path/'state')
+    assert result['outcome']=='failed'
+    assert VALUE not in json.dumps(result)
