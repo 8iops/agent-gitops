@@ -41,7 +41,7 @@ def test_matrix_and_workflow_have_no_publishing_inputs(monkeypatch):
     text=(ROOT/'.github/workflows/agent-runtime-reconcile.yml').read_text()
     workflow=yaml.safe_load(text)
     triggers=workflow.get('on',workflow.get(True))
-    assert triggers['workflow_dispatch'] is None
+    assert set(triggers['workflow_dispatch']['inputs']) == {'delivery_id'}
     assert set(triggers)=={'workflow_dispatch', 'schedule'}
     assert triggers['schedule']==[{'cron': '17 4 * * *'}]
     assert '--replay-only' in text and 'accepted-bundle' in text
