@@ -9,7 +9,7 @@ OAuth identity tokens and cookies are not forwarded into the test guest;
 only the product's own test JWT reaches the test RPC. The router mounts only the
 private Cube traffic header from `compocv-cube-test-access`, never SDK credentials.
 
-The sandbox is `31b7f25e4ef04efe874818f7a3d02dd3`, owned operationally by the
+The sandbox is `6aa6c5bdef264633b6baab3510a05dd2`, owned operationally by the
 `re8ch` application tenant, with private traffic, a masked `cube.re8ch.com` host,
 two CPUs, 4 GiB RAM, an 8 GiB writable layer, and timeout `-1` (no expiration).
 Template `tpl-20c7da2257b1416eb1a0127d` reuses the accepted root filesystem

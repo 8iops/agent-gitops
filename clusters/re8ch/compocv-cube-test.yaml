@@ -45,7 +45,7 @@ data:
     }
   test-upstream.conf: |
     proxy_http_version 1.1;
-    proxy_set_header Host 5173-31b7f25e4ef04efe874818f7a3d02dd3.cube.app;
+    proxy_set_header Host 5173-6aa6c5bdef264633b6baab3510a05dd2.cube.app;
     include /run/cube-access/proxy-traffic.conf;
     proxy_set_header Cookie "";
     proxy_set_header X-Forwarded-Access-Token "";
