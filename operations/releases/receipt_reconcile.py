@@ -5,7 +5,7 @@ from pathlib import Path
 from uuid import UUID
 
 import yaml
-from ssa_executor import Executor, Store, object_identity
+from ssa_executor import Executor, Rejected, Store, object_identity
 
 
 def comparable(obj):
@@ -95,6 +95,16 @@ if __name__ == "__main__":
         report.update(outcome="blocked", error=type(error).__name__)
         if type(error) is ValueError and str(error) in {"accepted state changed", "release ownership differs", "ToolHive replay awaits dedicated runtime acceptance", "readback differs", "executor did not restore health"}:
             report["reason"] = str(error)
+        if isinstance(error, Rejected):
+            detail = str(error).lower()
+            if "failed calling webhook" in detail:
+                report["reason"] = "admission webhook unavailable"
+            elif "conflict" in detail:
+                report["reason"] = "SSA field ownership conflict"
+            elif "forbidden" in detail:
+                report["reason"] = "executor access denied"
+            elif "notfound" in detail or "not found" in detail:
+                report["reason"] = "object missing"
         success = False
     print(json.dumps(report))
     raise SystemExit(0 if success else 1)
