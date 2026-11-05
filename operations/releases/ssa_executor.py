@@ -349,6 +349,17 @@ class Executor:
                     if not require_existing or attempt == 2 or not (resource_version_conflict(str(error)) or transient_kube_error(str(error))):
                         raise
                     self.sleeper(1)
+            if not dry_run and object_identity(item) in self._restricted_identities:
+                meta = item["metadata"]
+                readback = self.command(
+                    ["kubectl", "get", "configmap", meta["name"], "-n", meta["namespace"], "-o", "json"],
+                    timeout=120, redact=True)
+                try:
+                    data = json.loads(readback.stdout)["data"]
+                except (KeyError, ValueError, TypeError):
+                    raise Rejected("restricted ConfigMap readback unavailable") from None
+                if any(data.get(key) != value for key, value in item["data"].items()):
+                    raise Rejected("restricted ConfigMap managed data differs after apply")
 
     @staticmethod
     def pointer(value: object, pointer: str) -> object:
