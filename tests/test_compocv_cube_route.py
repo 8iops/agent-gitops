@@ -39,5 +39,5 @@ def test_cube_dns_uses_existing_public_authority():
     record = next(d for d in docs if d and d['kind'] == 'Ingress' and d['metadata']['name'] == 'cube-dns-authority')
     assert record['spec']['ingressClassName'] == 'external-dns-only'
     assert record['metadata']['labels']['networking.re8ch.com/dns-authority'] == 'public-edge'
-    assert record['metadata']['annotations']['external-dns.alpha.kubernetes.io/hostname'] == 'cube.re8ch.com'
+    assert record['metadata']['annotations']['external-dns.alpha.kubernetes.io/hostname'] == 'cube.service.re8ch.com'
     assert record['metadata']['annotations']['external-dns.alpha.kubernetes.io/target'] == '223.159.210.222'

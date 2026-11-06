@@ -1,6 +1,6 @@
 # CompoCV persistent Cube test site
 
-The existing Stalwart OIDC boundary at `cube.re8ch.com` protects
+The existing Stalwart OIDC boundary at `cube.service.re8ch.com` protects
 `/compocv-test/` and `/test-rpc/`. The internal router restores `/` to the recovered
 Cube UI. The retired Cube DNS declaration is reactivated through the existing external-dns
 controller at the inventory-approved public edge `223.159.210.222`. No new listener,
@@ -10,7 +10,7 @@ only the product's own test JWT reaches the test RPC. The router mounts only the
 private Cube traffic header from `compocv-cube-test-access`, never SDK credentials.
 
 The sandbox is `6aa6c5bdef264633b6baab3510a05dd2`, owned operationally by the
-`re8ch` application tenant, with private traffic, a masked `cube.re8ch.com` host,
+`re8ch` application tenant, with private traffic, a masked `cube.service.re8ch.com` host,
 two CPUs, 4 GiB RAM, an 8 GiB writable layer, and timeout `-1` (no expiration).
 Template `tpl-20c7da2257b1416eb1a0127d` reuses the accepted root filesystem
 `rfs-f4b45fbf282e9617e4d02e33`, SHA256
