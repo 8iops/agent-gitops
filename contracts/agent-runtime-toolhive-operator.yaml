@@ -15,7 +15,7 @@ spec:
     chartOCI: oci://ghcr.io/stacklok/toolhive/toolhive-operator@sha256:4881731dd7ceaf0fefcdecdb23b1c87d16b1f60fe8aa5ee75304fd33f4fa4d22
     values:
     - path: releases/agent-runtime-toolhive-operator/values.yaml
-      digest: sha256:d756926be28ff2d5572a97d885498ce24505f48e04259499476fdc10037c7975
+      digest: sha256:4a1aa40f15cf47adc43e767a321aa342ca45e38d11ace0af00e3126058483c02
   provenance:
     repository: 8iops/agent-gitops
     workflow: .github/workflows/static-release.yml

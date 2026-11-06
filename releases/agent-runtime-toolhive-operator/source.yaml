@@ -9,9 +9,9 @@ spec:
   namespace: toolhive-system
   includeCRDs: true
   values: values.yaml
-  valuesDigest: sha256:d756926be28ff2d5572a97d885498ce24505f48e04259499476fdc10037c7975
+  valuesDigest: sha256:4a1aa40f15cf47adc43e767a321aa342ca45e38d11ace0af00e3126058483c02
   renderedResources: resources.yaml
-  renderedResourcesDigest: sha256:b7f59a3b0e85284bc8311c9d9f380676a6856a7a5c5804eb2c2cffdf81825ddc
+  renderedResourcesDigest: sha256:dbae35e7150db766a01d51240b93e68a6064fbbadd2058385bc78ad2155da69f
   postRender:
     deploymentStrategy:
       apiVersion: apps/v1

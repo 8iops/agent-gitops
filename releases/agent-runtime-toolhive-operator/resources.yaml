@@ -353,10 +353,6 @@ spec:
               name: health
               protocol: TCP
           env:
-          - name: KUBERNETES_SERVICE_HOST
-            value: 10.250.0.128
-          - name: KUBERNETES_SERVICE_PORT
-            value: "6443"
           - name: TOOLHIVE_SKIP_UPDATE_CHECK
             value: "true"
           - name: GOMEMLIMIT

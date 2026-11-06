@@ -271,14 +271,6 @@ spec:
             name: tenant-grafana-credentials
             optional: true
         env:
-        - name: KUBERNETES_SERVICE_HOST
-          valueFrom:
-            fieldRef:
-              fieldPath: status.hostIP
-        - name: KUBERNETES_SERVICE_PORT
-          value: '6443'
-        - name: KUBERNETES_SERVICE_PORT_HTTPS
-          value: '6443'
         - name: RE8CH_TOOL_PROFILE
           value: tenant
         - name: RE8CH_TOOL_AUDIENCE
@@ -466,14 +458,6 @@ spec:
             name: tenant-claim-internal-auth
             optional: true
         env:
-        - name: KUBERNETES_SERVICE_HOST
-          valueFrom:
-            fieldRef:
-              fieldPath: status.hostIP
-        - name: KUBERNETES_SERVICE_PORT
-          value: '6443'
-        - name: KUBERNETES_SERVICE_PORT_HTTPS
-          value: '6443'
         - name: LISTEN_PORT
           value: '19447'
         - name: IMAGE_POLICY_URL
@@ -577,14 +561,6 @@ spec:
         - python
         - /app/tenant_provider_reconciler.py
         env:
-        - name: KUBERNETES_SERVICE_HOST
-          valueFrom:
-            fieldRef:
-              fieldPath: status.hostIP
-        - name: KUBERNETES_SERVICE_PORT
-          value: '6443'
-        - name: KUBERNETES_SERVICE_PORT_HTTPS
-          value: '6443'
         - name: IDENTITY_REST_URL
           value: http://supabase-identity-rest.supabase-identity.svc:3000
         - name: IDENTITY_SERVICE_KEY
