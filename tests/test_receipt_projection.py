@@ -50,6 +50,8 @@ def test_real_receipt_projection_chain(tmp_path, monkeypatch, failure):
     if failure == 'persistent-server-timeout':
         with pytest.raises(receipt.Rejected): receipt.run(report)
         assert counts['reads'] == 2
+        assert len(report['requestFailures']) == 2
+        assert all(x['phase'] == 'read' and x['transport'] == ['apiserver-deadline'] for x in report['requestFailures'])
         assert counts['writes'] == 0
     elif failure=='ownership':
         with pytest.raises(receipt.Rejected): receipt.run(report)

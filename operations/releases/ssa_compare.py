@@ -21,3 +21,21 @@ def safe_failure_reason(error):
     if 'timeout' in message or 'timed out' in message or 'deadline exceeded' in message or 'serviceunavailable' in message:
         return 'API transport or availability failure'
     return 'API request rejected; raw diagnostics withheld'
+
+
+def transport_markers(error):
+    """Return fixed diagnostic labels, never API bodies or command arguments."""
+    message = str(error).lower()
+    patterns = {
+        'apiserver-deadline': 'the server was unable to return a response in the time allotted',
+        'tls-handshake': 'tls handshake timeout',
+        'io-deadline': 'i/o timeout',
+        'context-deadline': 'context deadline exceeded',
+        'gateway-deadline': 'gateway timeout',
+        'connection-reset': 'connection reset',
+        'connection-refused': 'connection refused',
+        'unexpected-eof': 'unexpected eof',
+        'service-unavailable': 'serviceunavailable',
+        'openapi-fetch': 'failed to download openapi',
+    }
+    return [label for label, pattern in patterns.items() if pattern in message]
