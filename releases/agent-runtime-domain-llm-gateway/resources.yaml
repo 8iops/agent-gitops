@@ -53,6 +53,8 @@ spec:
               name: litellm-ui-auth
         - name: PROXY_BASE_URL
           value: https://litellm.service.re8ch.com
+        - name: FORWARDED_ALLOW_IPS
+          value: '*'
         - name: GENERIC_CLIENT_ID
           valueFrom:
             secretKeyRef:
