@@ -61,3 +61,15 @@ Role and RoleBinding desired objects remain platform-owned until admission can e
 Adoption contracts set `authorization.requireExisting=true`: the executor verifies the artifact, reads each exact object's resourceVersion and sends it as the SSA precondition. Missing objects and concurrent changes fail closed; adoption never silently recreates a deleted object. Ordinary release contracts without this flag retain creation behavior. One-shot Jobs are platform-owned and excluded from replay, and protected storage objects are excluded from force-conflict requests.
 
 Restricted ConfigMaps retain their original ordered SOPS ciphertext inside the signed artifact. Only protected runtime preflight/execute receives `SOPS_AGE_KEY`; after signature validation the executor decrypts in memory, checks object identity and plaintext parity hashes, and suppresses sensitive command diagnostics. Publishing never receives a key and Secrets remain excluded.
+
+## Independent SSA and Observe actions
+
+Reconcile reports SSA execution and runtime observation separately. The SSA step
+validates authorization and the signed accepted artifact, performs server-side
+dry-run and apply, then records `outcome: applied` and `acceptedDigest`. It does
+not claim a healthy runtime. The following read-only Observe step publishes a
+separate observation artifact and records healthy, degraded or unknown health.
+Runtime health does not fail SSA, lock the release or trigger rollback. Signature,
+authorization, field ownership and API write failures remain execution failures.
+Legacy `healthyDigest` is only a fallback for older accepted records; new replay
+authorization uses the explicitly accepted digest without inventing health proof.
