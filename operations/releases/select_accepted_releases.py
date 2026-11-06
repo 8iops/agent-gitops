@@ -71,12 +71,22 @@ def select(matrix, root=ROOT, runner=subprocess.run, sleeper=time.sleep):
     return selected,skipped,invalid
 
 
+def scope_matrix(matrix, release_id):
+    if not release_id:
+        return matrix
+    selected = [entry for entry in matrix if entry["release-id"] == release_id]
+    if not selected:
+        raise ValueError("release_id is not in the trusted replay matrix")
+    return selected
+
+
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--github-output',type=Path,required=True)
     parser.add_argument('--summary',type=Path,required=True)
+    parser.add_argument('--release-id', default='')
     args=parser.parse_args()
-    selected,skipped,invalid=select(replay_matrix())
+    selected,skipped,invalid=select(scope_matrix(replay_matrix(), args.release_id))
     with args.github_output.open('a') as output:
         output.write('matrix='+json.dumps({'include':selected},separators=(',',':'))+'\n')
         output.write('has-accepted='+('true' if selected else 'false')+'\n')

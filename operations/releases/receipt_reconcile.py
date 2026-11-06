@@ -66,7 +66,7 @@ def run(report):
         except (Rejected, subprocess.TimeoutExpired) as error:
             detail = str(error).lower()
             timed_out = isinstance(error, subprocess.TimeoutExpired) or any(
-                message in detail for message in ("context deadline exceeded", "i/o timeout", "timed out")
+                message in detail for message in ("context deadline exceeded", "i/o timeout", "timed out", "the server was unable to return a response in the time allotted")
             )
             if not timed_out:
                 raise
