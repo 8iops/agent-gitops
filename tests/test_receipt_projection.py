@@ -40,11 +40,7 @@ def test_real_receipt_projection_chain(tmp_path, monkeypatch, failure):
             else:
                 assert '--dry-run=server' in argv
                 counts['dryruns']+=1
-                if failure == 'persistent-server-timeout':
-        with pytest.raises(receipt.Rejected): receipt.run(report)
-        assert counts['reads'] == 2
-        assert counts['writes'] == 0
-    elif failure=='ownership': raise receipt.Rejected('conflict with another field manager')
+                if failure=='ownership': raise receipt.Rejected('conflict with another field manager')
             current = copy.deepcopy(item)
             if failure == 'toolhive-drift' and argv[1] == 'get' and counts['writes'] == 0:
                 current['data']['key'] = 'drifted'
