@@ -5,7 +5,7 @@ import subprocess
 import time
 from pathlib import Path
 from uuid import UUID
-from ssa_compare import retry_read_conflict, safe_failure_reason
+from ssa_compare import retry_read_conflict, safe_failure_reason, transport_markers, configmap_owned_fields_match
 
 import yaml
 from ssa_executor import Executor, Rejected, Store, object_identity
@@ -39,9 +39,22 @@ def run(report):
         if state["releaseId"] != rid or state["appliedDigest"] != digest or state.get("acceptedDigest", state.get("healthyDigest")) != digest or state["blocked"] or state.get("suspended"):
             raise ValueError("accepted state changed")
 
+    def projection_request(phase, argv, stdin, timeout=60):
+        started = time.monotonic()
+        try:
+            return executor.command(argv, stdin, timeout=timeout)
+        except (Rejected, subprocess.TimeoutExpired) as error:
+            report.setdefault("requestFailures", []).append({
+                "object": report["checking"], "phase": phase,
+                "elapsedSeconds": round(time.monotonic() - started, 2),
+                "transport": transport_markers(error),
+                "processDeadline": isinstance(error, subprocess.TimeoutExpired),
+            })
+            raise
+
     def project_once(item):
         data = json.dumps(item)
-        live = json.loads(executor.command(["kubectl", "get", "-f", "-", "-o", "json"], data).stdout)
+        live = json.loads(projection_request("read", ["kubectl", "get", "-f", "-", "--show-managed-fields=true", "-o", "json"], data).stdout)
         if live.get("kind") == "List":
             live, = live["items"]
         if object_identity(live) != object_identity(item):
@@ -56,8 +69,10 @@ def run(report):
             annotations.pop(audit_key)
             if audit_key in meta["annotations"]:
                 annotations[audit_key] = meta["annotations"][audit_key]
+        if configmap_owned_fields_match(item, live, manager):
+            return False
         argv = ["kubectl", "apply", "--server-side", "--field-manager=" + manager, "-f", "-"]
-        predicted = json.loads(executor.command(argv + ["--dry-run=server", "-o", "json"], json.dumps(item), timeout=120).stdout)
+        predicted = json.loads(projection_request("server-dry-run", argv + ["--dry-run=server", "-o", "json"], json.dumps(item), timeout=120).stdout)
         return comparable(predicted) != comparable(live)
 
     def project_with_read_retry(item):

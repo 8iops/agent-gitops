@@ -7,7 +7,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parents[1]/'operations/releases'))
 import receipt_reconcile as receipt
 
-@pytest.mark.parametrize('failure', [None, 'timeout', 'ownership', 'toolhive-drift', 'server-timeout', 'persistent-server-timeout'])
+@pytest.mark.parametrize('failure', [None, 'timeout', 'ownership', 'toolhive-drift', 'server-timeout', 'persistent-server-timeout', 'owned-match'])
 def test_real_receipt_projection_chain(tmp_path, monkeypatch, failure):
     item = {'apiVersion':'v1','kind':'ConfigMap','metadata':{'name':'demo','namespace':'test','resourceVersion':'1','annotations':{'delivery.re8ch.com/release-id':'demo'}},'data':{'key':'value'}}
     rid = 'agent-runtime-domain-toolhive-system' if failure == 'toolhive-drift' else 'demo'
@@ -38,10 +38,13 @@ def test_real_receipt_projection_chain(tmp_path, monkeypatch, failure):
                 if failure in {'timeout', 'server-timeout'} and counts['reads']==1:
                     raise receipt.Rejected('i/o timeout' if failure=='timeout' else 'Error from server (Timeout): the server was unable to return a response in the time allotted')
             else:
+                assert failure != 'owned-match', 'unchanged owned ConfigMap must not upload SSA body'
                 assert '--dry-run=server' in argv
                 counts['dryruns']+=1
                 if failure=='ownership': raise receipt.Rejected('conflict with another field manager')
             current = copy.deepcopy(item)
+            if failure == 'owned-match' and argv[1] == 'get':
+                current['metadata']['managedFields'] = [{'manager':'test','operation':'Apply','apiVersion':'v1','fieldsType':'FieldsV1','fieldsV1':{'f:data':{'f:key':{}},'f:metadata':{'f:annotations':{'f:delivery.re8ch.com/release-id':{}}}}}]
             if failure == 'toolhive-drift' and argv[1] == 'get' and counts['writes'] == 0:
                 current['data']['key'] = 'drifted'
             return SimpleNamespace(stdout=json.dumps(current))
@@ -50,6 +53,8 @@ def test_real_receipt_projection_chain(tmp_path, monkeypatch, failure):
     if failure == 'persistent-server-timeout':
         with pytest.raises(receipt.Rejected): receipt.run(report)
         assert counts['reads'] == 2
+        assert len(report['requestFailures']) == 2
+        assert all(x['phase'] == 'read' and x['transport'] == ['apiserver-deadline'] for x in report['requestFailures'])
         assert counts['writes'] == 0
     elif failure=='ownership':
         with pytest.raises(receipt.Rejected): receipt.run(report)
@@ -58,5 +63,5 @@ def test_real_receipt_projection_chain(tmp_path, monkeypatch, failure):
         assert receipt.run(report) is True
         assert report['outcome']==('recovered' if failure == 'toolhive-drift' else 'aligned')
         assert counts['writes']==(1 if failure == 'toolhive-drift' else 0)
-        assert counts['dryruns']==2
+        assert counts['dryruns']==(0 if failure == 'owned-match' else 2)
         assert counts['reads']==(3 if failure in {'timeout', 'server-timeout'} else 2)
