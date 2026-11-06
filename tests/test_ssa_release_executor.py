@@ -294,6 +294,23 @@ def test_completed_job_does_not_require_observed_generation():
     assert executor.Executor(runner=Runner(live=live)).healthy(item) == (True, "job incomplete")
 
 
+def test_http_route_requires_accepted_parent_with_resolved_references():
+    item = {"apiVersion": "gateway.networking.k8s.io/v1", "kind": "HTTPRoute",
+            "metadata": {"name": "public", "namespace": "demo"}}
+    ready = {"status": {"parents": [{"conditions": [
+        {"type": "Accepted", "status": "True", "reason": "Accepted"},
+        {"type": "ResolvedRefs", "status": "True", "reason": "ResolvedRefs"},
+    ]}]}}
+    rejected = {"status": {"parents": [{"conditions": [
+        {"type": "Accepted", "status": "False", "reason": "NoMatchingParent"},
+        {"type": "ResolvedRefs", "status": "True", "reason": "ResolvedRefs"},
+    ]}]}}
+    assert executor.Executor(runner=Runner(live=ready)).healthy(item) == (
+        True, "HTTPRoute accepted with resolved references")
+    assert executor.Executor(runner=Runner(live=rejected)).healthy(item) == (
+        False, "HTTPRoute is not ready (NoMatchingParent)")
+
+
 def test_rollback_pull_keeps_oci_scheme(tmp_path):
     value, operation, bundle_path = prepare(tmp_path)
     archive = bundle_path.read_bytes()
