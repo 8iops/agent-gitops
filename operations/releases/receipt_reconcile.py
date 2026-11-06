@@ -60,7 +60,7 @@ def run(report):
         predicted = json.loads(executor.command(argv + ["--dry-run=server", "-o", "json"], json.dumps(item), timeout=120).stdout)
         return comparable(predicted) != comparable(live)
 
-    def project_once(item):
+    def project_with_read_retry(item):
         try:
             return project_once(item)
         except (Rejected, subprocess.TimeoutExpired) as error:
@@ -76,7 +76,7 @@ def run(report):
         return project_once(item)
 
     def project(item):
-        return retry_read_conflict(lambda: project_once(item))
+        return retry_read_conflict(lambda: project_with_read_retry(item))
 
     require_accepted()
     prepared = executor.with_audit(objects, operation)
