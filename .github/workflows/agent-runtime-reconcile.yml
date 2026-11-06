@@ -5,6 +5,10 @@ on:
     - cron: '17 4 * * *'
   workflow_dispatch:
     inputs:
+      release_id:
+        description: Optional single release from the trusted replay matrix
+        required: false
+        type: string
       delivery_id:
         description: Release webhook delivery for accepted-field observation
         required: false
@@ -39,7 +43,9 @@ jobs:
           python operations/releases/refresh_kubeconfig.py --initialize
           echo "KUBECONFIG=$KUBECONFIG" >> "$GITHUB_ENV"
       - id: select
-        run: python operations/releases/select_accepted_releases.py --github-output "$GITHUB_OUTPUT" --summary "$GITHUB_STEP_SUMMARY"
+        env:
+          RELEASE_ID: ${{ inputs.release_id }}
+        run: python operations/releases/select_accepted_releases.py --release-id "$RELEASE_ID" --github-output "$GITHUB_OUTPUT" --summary "$GITHUB_STEP_SUMMARY"
       - name: Preserve workflow failure evidence
         if: failure()
         run: |

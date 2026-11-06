@@ -7,7 +7,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parents[1]/'operations/releases'))
 import receipt_reconcile as receipt
 
-@pytest.mark.parametrize('failure', [None, 'timeout', 'ownership', 'toolhive-drift'])
+@pytest.mark.parametrize('failure', [None, 'timeout', 'ownership', 'toolhive-drift', 'server-timeout', 'persistent-server-timeout'])
 def test_real_receipt_projection_chain(tmp_path, monkeypatch, failure):
     item = {'apiVersion':'v1','kind':'ConfigMap','metadata':{'name':'demo','namespace':'test','resourceVersion':'1','annotations':{'delivery.re8ch.com/release-id':'demo'}},'data':{'key':'value'}}
     rid = 'agent-runtime-domain-toolhive-system' if failure == 'toolhive-drift' else 'demo'
@@ -33,7 +33,10 @@ def test_real_receipt_projection_chain(tmp_path, monkeypatch, failure):
                 return SimpleNamespace(stdout=json.dumps({'data':{'accepted-state.json':json.dumps(state)}}))
             if argv[1]=='get':
                 counts['reads']+=1
-                if failure=='timeout' and counts['reads']==1: raise receipt.Rejected('i/o timeout')
+                if failure == 'persistent-server-timeout':
+                    raise receipt.Rejected('the server was unable to return a response in the time allotted')
+                if failure in {'timeout', 'server-timeout'} and counts['reads']==1:
+                    raise receipt.Rejected('i/o timeout' if failure=='timeout' else 'Error from server (Timeout): the server was unable to return a response in the time allotted')
             else:
                 assert '--dry-run=server' in argv
                 counts['dryruns']+=1
@@ -44,7 +47,11 @@ def test_real_receipt_projection_chain(tmp_path, monkeypatch, failure):
             return SimpleNamespace(stdout=json.dumps(current))
     monkeypatch.setattr(receipt,'Executor',FakeExecutor)
     report={ 'objects':[], 'applied':[] }
-    if failure=='ownership':
+    if failure == 'persistent-server-timeout':
+        with pytest.raises(receipt.Rejected): receipt.run(report)
+        assert counts['reads'] == 2
+        assert counts['writes'] == 0
+    elif failure=='ownership':
         with pytest.raises(receipt.Rejected): receipt.run(report)
         assert counts['dryruns']==1
     else:
@@ -52,4 +59,4 @@ def test_real_receipt_projection_chain(tmp_path, monkeypatch, failure):
         assert report['outcome']==('recovered' if failure == 'toolhive-drift' else 'aligned')
         assert counts['writes']==(1 if failure == 'toolhive-drift' else 0)
         assert counts['dryruns']==2
-        assert counts['reads']==(3 if failure=='timeout' else 2)
+        assert counts['reads']==(3 if failure in {'timeout', 'server-timeout'} else 2)
