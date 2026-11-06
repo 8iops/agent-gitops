@@ -17,7 +17,7 @@ from urllib.request import Request, build_opener, HTTPRedirectHandler, ProxyHand
 from urllib.error import HTTPError
 
 HOST='stalwart.mail-system.svc.cluster.local:8080'
-CALLBACK='https://cube.re8ch.com/oauth2/callback'
+CALLBACK='https://cube.service.re8ch.com/oauth2/callback'
 CAPABILITIES=['urn:ietf:params:jmap:core','urn:stalwart:jmap']
 PHASE='initialization'
 ERROR_TYPES={'invalidArguments','invalidProperties','forbidden','notFound','serverFail','serverUnavailable','stateMismatch','alreadyExists','invalidResultReference','unknownMethod','accountNotFound','accountNotSupportedByMethod','requestTooLarge','invalidPatch','willDestroy','singleton','overQuota','rateLimit','tooLarge'}

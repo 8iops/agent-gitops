@@ -3,7 +3,7 @@
 application:
   namespace: cube-trial
   deployment: oauth2-proxy-cube
-  publicOrigin: https://cube.re8ch.com
+  publicOrigin: https://cube.service.re8ch.com
 provider:
   issuer: https://id.re8ch.com
   service: {namespace: mail-system, name: stalwart, port: 8080}
@@ -18,7 +18,7 @@ client:
   matchOn: [clientId]
   description: Cube sandbox
   redirectUris:
-    https://cube.re8ch.com/oauth2/callback: true
+    https://cube.service.re8ch.com/oauth2/callback: true
   # Identity scopes openid/profile/email are requested by the proxy.
   # Do not grant Stalwart mail, contacts, calendars or files data access.
   # Installed OAuthClient schema has no scopes or firstParty fields.

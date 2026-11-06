@@ -52,7 +52,7 @@ spec:
               key: UI_PASSWORD
               name: litellm-ui-auth
         - name: PROXY_BASE_URL
-          value: https://litellm.re8ch.com
+          value: https://litellm.service.re8ch.com
         - name: GENERIC_CLIENT_ID
           valueFrom:
             secretKeyRef:
