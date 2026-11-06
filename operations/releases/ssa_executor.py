@@ -390,17 +390,6 @@ class Executor:
             live = json.loads(self.command(argv).stdout)
             phase = live.get("status", {}).get("phase")
             return phase == "Ready", f"Ceph phase is {phase or 'absent'}"
-        if ref["kind"] == "HTTPRoute" and not matching:
-            argv = ["kubectl", "get", "httproute", ref["name"], "--namespace", ref["namespace"], "-o", "json"]
-            live = json.loads(self.kube_get(argv).stdout)
-            for parent in live.get("status", {}).get("parents", []):
-                conditions = {condition.get("type"): condition for condition in parent.get("conditions", [])}
-                if all(conditions.get(name, {}).get("status") == "True" for name in ("Accepted", "ResolvedRefs")):
-                    return True, "HTTPRoute accepted with resolved references"
-            reasons = sorted({condition.get("reason", "Unknown") for parent in live.get("status", {}).get("parents", [])
-                              for condition in parent.get("conditions", [])
-                              if condition.get("type") in {"Accepted", "ResolvedRefs"} and condition.get("status") != "True"})
-            return False, "HTTPRoute is not ready" + (f" ({','.join(reasons)})" if reasons else "")
         if ref["kind"] not in READY_KINDS and not matching:
             return True, "no readiness rule"
         argv = ["kubectl", "get", ref["kind"], ref["name"]]
