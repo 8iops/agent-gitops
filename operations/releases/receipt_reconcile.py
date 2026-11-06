@@ -5,6 +5,7 @@ import subprocess
 import time
 from pathlib import Path
 from uuid import UUID
+from ssa_compare import retry_read_conflict, safe_failure_reason
 
 import yaml
 from ssa_executor import Executor, Rejected, Store, object_identity
@@ -59,7 +60,7 @@ def run(report):
         predicted = json.loads(executor.command(argv + ["--dry-run=server", "-o", "json"], json.dumps(item), timeout=120).stdout)
         return comparable(predicted) != comparable(live)
 
-    def project(item):
+    def project_once(item):
         try:
             return project_once(item)
         except (Rejected, subprocess.TimeoutExpired) as error:
@@ -73,6 +74,9 @@ def run(report):
         time.sleep(2)
         require_accepted()
         return project_once(item)
+
+    def project(item):
+        return retry_read_conflict(lambda: project_once(item))
 
     require_accepted()
     prepared = executor.with_audit(objects, operation)
@@ -123,6 +127,8 @@ if __name__ == "__main__":
                 report["reason"] = "executor access denied"
             elif "notfound" in detail or "not found" in detail:
                 report["reason"] = "object missing"
+        if type(error).__name__ == "Rejected":
+            report["reason"] = safe_failure_reason(error)
         success = False
     print(json.dumps(report))
     raise SystemExit(0 if success else 1)
