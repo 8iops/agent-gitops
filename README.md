@@ -1,5 +1,18 @@
 # RE8CH Agent GitOps
 
+<!-- gitops-status:start -->
+[![Reconcile](https://github.com/8iops/agent-gitops/actions/workflows/agent-runtime-reconcile.yml/badge.svg?branch=main)](https://github.com/8iops/agent-gitops/actions/workflows/agent-runtime-reconcile.yml?query=branch%3Amain)
+[![Contract validation](https://github.com/8iops/agent-gitops/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/8iops/agent-gitops/actions/workflows/validate.yml?query=branch%3Amain)
+
+These live badges show the latest workflow result on `main`, including scheduled
+and manual runs. Reconcile runs can cover a single release; a passing badge is
+not proof that every release is healthy or that SSA changed an object. Open the
+run for its release scope, accepted digest, comparison, apply and health results.
+The [domain observation Project](https://github.com/orgs/8iops/projects/2) retains release-level evidence;
+receipt dispatch and governance checks do not replace runtime health verification.
+Private workflow badges require repository access.
+<!-- gitops-status:end -->
+
 Private desired-state authority for the RE8CH Agent, ToolHive, and fast-moving tool runtime guardrails.
 
 Product source and release artifacts remain in their product repositories. This repository pins signed immutable artifacts and cluster configuration only.
