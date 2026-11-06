@@ -1,6 +1,8 @@
 """Compare a verified accepted release and replay only its drifted, owned objects."""
 import json
 import os
+import subprocess
+import time
 from pathlib import Path
 from uuid import UUID
 
@@ -35,7 +37,7 @@ def run(report):
         if state["releaseId"] != rid or state["appliedDigest"] != digest or state["healthyDigest"] != digest or state["blocked"] or state.get("suspended"):
             raise ValueError("accepted state changed")
 
-    def project(item):
+    def project_once(item):
         data = json.dumps(item)
         live = json.loads(executor.command(["kubectl", "get", "-f", "-", "-o", "json"], data).stdout)
         if live.get("kind") == "List":
@@ -55,6 +57,21 @@ def run(report):
         argv = ["kubectl", "apply", "--server-side", "--field-manager=" + manager, "-f", "-"]
         predicted = json.loads(executor.command(argv + ["--dry-run=server", "-o", "json"], json.dumps(item), timeout=120).stdout)
         return comparable(predicted) != comparable(live)
+
+    def project(item):
+        try:
+            return project_once(item)
+        except (Rejected, subprocess.TimeoutExpired) as error:
+            detail = str(error).lower()
+            timed_out = isinstance(error, subprocess.TimeoutExpired) or any(
+                message in detail for message in ("context deadline exceeded", "i/o timeout", "timed out")
+            )
+            if not timed_out:
+                raise
+        # Both calls in project_once are read-only. Re-read acceptance and resourceVersion.
+        time.sleep(2)
+        require_accepted()
+        return project_once(item)
 
     require_accepted()
     prepared = executor.with_audit(objects, operation)
