@@ -26,8 +26,8 @@ operator = (toolhive or {}).get("spec", {}).get("values", {}).get("operator", {}
 if operator.get("replicaCount") != 1 or operator.get("nodeSelector") != {"kubernetes.io/hostname": "r640"}:
     errors.append("ToolHive must remain a single R640 replica until the cross-node API path is restored")
 environment = {entry.get("name"): str(entry.get("value")) for entry in operator.get("env", [])}
-if environment.get("KUBERNETES_SERVICE_HOST") != "10.250.0.128" or environment.get("KUBERNETES_SERVICE_PORT") != "6443":
-    errors.append("ToolHive must use the R640-local API endpoint while the cross-node API path is degraded")
+if any(name in environment for name in ("KUBERNETES_SERVICE_HOST", "KUBERNETES_SERVICE_PORT")):
+    errors.append("ToolHive must use Kubernetes Service discovery; R640 is a worker, not an API server")
 for name in ("re8ch-plugin-runtime", "toolhive-cloud-ui"):
     deployment = next(
         (d for d in documents if d.get("kind") == "Deployment" and d.get("metadata", {}).get("name") == name),
