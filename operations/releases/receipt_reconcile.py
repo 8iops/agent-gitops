@@ -89,13 +89,11 @@ def run(report):
         if differs:
             changed.append(item)
     if changed:
-        if rid == "agent-runtime-domain-toolhive-system":
-            raise ValueError("ToolHive replay awaits dedicated runtime acceptance")
         require_accepted()
         result = executor.reconcile(contract, operation, root / "pulled/release.bundle", root / "executor-state")
         (root / "executor-result.json").write_text(json.dumps(result))
         if result["outcome"] not in {"applied", "healthy"}:
-            raise ValueError("executor did not restore health")
+            raise ValueError("executor did not complete SSA")
         report["applied"] = [object_identity(item) for item in changed]
     require_accepted()
     for item in prepared:
@@ -115,7 +113,7 @@ if __name__ == "__main__":
     except Exception as error:
         # API errors can contain decrypted values or command input.
         report.update(outcome="blocked", error=type(error).__name__)
-        if type(error) is ValueError and str(error) in {"accepted state changed", "release ownership differs", "ToolHive replay awaits dedicated runtime acceptance", "readback differs", "executor did not restore health"}:
+        if type(error) is ValueError and str(error) in {"accepted state changed", "release ownership differs", "readback differs", "executor did not complete SSA"}:
             report["reason"] = str(error)
         if isinstance(error, Rejected):
             detail = str(error).lower()
