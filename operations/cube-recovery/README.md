@@ -4,6 +4,12 @@ The active runtime authority is this repository. Upstream source is pinned to
 CubeSandbox commit `8721dd151971ce3c2966482bbd32904ad98f378e` and vendored with its
 license under `vendor/chart`. `images.lock.json` pins every deployed image.
 
+All control-plane images must remain compatible with that v0.6.0 baseline. Do
+not promote a custom CubeOps image built from a newer upstream `master`: its
+database and internal API contracts can diverge while the remaining v0.6.0
+services still appear healthy. Rebase any future SSO customization onto the
+pinned source and qualify it as a complete control-plane artifact set first.
+
 `render.py` compiles the reviewed values into `clusters/re8ch/cube-recovery-resources.yaml`
 and `platform-seed.yaml`. The existing domain compiler packages runtime objects
 into `agent-runtime-domain-cube-trial`. The existing static-release workflow
