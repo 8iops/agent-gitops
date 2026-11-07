@@ -1339,7 +1339,7 @@ spec:
           value: 'true'
         - name: CUBE_OPS_TRUSTED_SSO_HEADER
           value: X-Auth-Request-Email
-        image: cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-ops:v0.6.0@sha256:760ec27a938d56bdefa56a9ef3d2fdfe0138ae889d18e0d2c265f0af51662b0b
+        image: ghcr.io/woomou/cubesandbox-cube-ops:8b5f09bd01bd35e077a9d9601340e617cc101a2f@sha256:53d97478f6e8acbe481d22898ef3f934a2228940c6f88428d91005e5f20b2723
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 6

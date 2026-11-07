@@ -2,8 +2,8 @@ global:
   timezone: Asia/Shanghai
 images:
   ops:
-    repository: cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-ops
-    tag: v0.6.0
+    repository: ghcr.io/woomou/cubesandbox-cube-ops
+    tag: 8b5f09bd01bd35e077a9d9601340e617cc101a2f
   webui:
     repository: ghcr.io/woomou/cubesandbox-cube-webui
     tag: 8b5f09bd01bd35e077a9d9601340e617cc101a2f

@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ISSUER = "https://db-rw.re8ch.com/auth/v1"
 CLIENT_ID = "5e150902-f015-5c2d-b962-049f71900311"
 CALLBACK = "https://cube.service.re8ch.com/oauth2/callback"
+SSO_IMAGE_REVISION = "8b5f09bd01bd35e077a9d9601340e617cc101a2f"
 
 
 def test_cube_uses_only_supabase_gotrue_oauth():
@@ -50,6 +51,21 @@ def test_cube_uses_only_supabase_gotrue_oauth():
         "GET=^/assets/.*$",
     ]
     assert all("/opsapi" not in route for route in skip_routes)
+
+    cube_ops = next(
+        item for item in docs
+        if item["kind"] == "Deployment"
+        and item["metadata"]["name"] == "cube-recovery-ops"
+    )
+    cube_webui = next(
+        item for item in docs
+        if item["kind"] == "Deployment"
+        and item["metadata"]["name"] == "cube-recovery-webui"
+    )
+    ops_image = cube_ops["spec"]["template"]["spec"]["containers"][0]["image"]
+    webui_image = cube_webui["spec"]["template"]["spec"]["containers"][0]["image"]
+    assert f":{SSO_IMAGE_REVISION}@sha256:" in ops_image
+    assert f":{SSO_IMAGE_REVISION}@sha256:" in webui_image
 
 
 def test_retired_cube_oauth_plans_are_absent():
