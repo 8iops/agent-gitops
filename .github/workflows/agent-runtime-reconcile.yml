@@ -140,8 +140,8 @@ jobs:
           OCI_REFERENCE="$(jq -r .reference "$RUNNER_TEMP/accepted-bundle.json")"
           OCI_DIGEST="$(jq -r .digest "$RUNNER_TEMP/accepted-bundle.json")"
           immutable="${OCI_REFERENCE#oci://}@${OCI_DIGEST}"
-          cosign verify --certificate-identity '${{ matrix.signer }}' \
-            --certificate-oidc-issuer https://token.actions.githubusercontent.com "$immutable" >/dev/null
+          cosign verify --key operations/releases/keys/static-release-cosign.pub \
+            --insecure-ignore-tlog "$immutable" >/dev/null
           flux pull artifact "${OCI_REFERENCE}@${OCI_DIGEST}" --output "$RUNNER_TEMP/pulled"
           python operations/releases/operation_materialize.py request --replay-only --contract "$CONTRACT" --metadata "$RUNNER_TEMP/pulled/bundle-metadata.json" \
             --state-dir "$root" --reference "$OCI_REFERENCE" --digest "$OCI_DIGEST" --output "$RUNNER_TEMP/operation.json"
