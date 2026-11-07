@@ -100,7 +100,7 @@ webui:
 cubeOps:
   env:
   - name: CUBE_OPS_TRUSTED_SSO_HEADER
-    value: X-Auth-Request-Email
+    value: X-Forwarded-Email
   - name: REDIS_HOST
     value: cube-recovery-redis.cube-trial.svc.cluster.local
   - name: REDIS_PORT

@@ -32,6 +32,10 @@ def test_test_route_keeps_oauth_and_private_sandbox_boundary():
     for flag in ('pass-access-token', 'pass-authorization-header', 'pass-basic-auth'):
         assert f'--{flag}=false' in args
     assert '--pass-user-headers=true' in args
+    cube_docs = list(yaml.safe_load_all((ROOT/'clusters/re8ch/cube-recovery-resources.yaml').read_text()))
+    cube_ops = next(d for d in cube_docs if d and d['kind'] == 'Deployment' and d['metadata']['name'] == 'cube-recovery-ops')
+    cube_env = {item['name']: item for item in cube_ops['spec']['template']['spec']['containers'][0]['env']}
+    assert cube_env['CUBE_OPS_TRUSTED_SSO_HEADER']['value'] == 'X-Forwarded-Email'
     assert '--oidc-issuer-url=https://db-rw.re8ch.com/auth/v1' in args
     assert '--code-challenge-method=S256' in args
     assert '--scope=openid profile email offline_access' in args
