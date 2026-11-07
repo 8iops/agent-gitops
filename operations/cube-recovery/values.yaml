@@ -1,5 +1,12 @@
 global:
   timezone: Asia/Shanghai
+images:
+  ops:
+    repository: ghcr.io/woomou/cubesandbox-cube-ops
+    tag: 8b5f09bd01bd35e077a9d9601340e617cc101a2f
+  webui:
+    repository: ghcr.io/woomou/cubesandbox-cube-webui
+    tag: 8b5f09bd01bd35e077a9d9601340e617cc101a2f
 persistence:
   storageClassName: cephfs-r640
 placement:
@@ -91,6 +98,9 @@ webui:
       cpu: 500m
       memory: 256Mi
 cubeOps:
+  env:
+  - name: CUBE_OPS_TRUSTED_SSO_HEADER
+    value: X-Auth-Request-Email
   resources:
     requests:
       cpu: 50m

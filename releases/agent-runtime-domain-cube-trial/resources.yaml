@@ -1337,7 +1337,9 @@ spec:
           value: cube-recovery.internal
         - name: CUBEMASTER_MIGRATION_SKIP_FINGERPRINT_CHECK
           value: 'true'
-        image: cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-ops:v0.6.0@sha256:760ec27a938d56bdefa56a9ef3d2fdfe0138ae889d18e0d2c265f0af51662b0b
+        - name: CUBE_OPS_TRUSTED_SSO_HEADER
+          value: X-Auth-Request-Email
+        image: ghcr.io/woomou/cubesandbox-cube-ops:8b5f09bd01bd35e077a9d9601340e617cc101a2f@sha256:53d97478f6e8acbe481d22898ef3f934a2228940c6f88428d91005e5f20b2723
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 6
@@ -1596,7 +1598,7 @@ spec:
         env:
         - name: TZ
           value: Asia/Shanghai
-        image: cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-webui:v0.6.0@sha256:9b79ff75dd2a763bb7b01ee4c6c05f785e8bad02989115001df3c7ffeb762747
+        image: ghcr.io/woomou/cubesandbox-cube-webui:8b5f09bd01bd35e077a9d9601340e617cc101a2f@sha256:ee503f5941b41118950747cc1f24602a71d118e17672a2925be84ecc4eaca325
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 6
@@ -1657,12 +1659,12 @@ spec:
       containers:
       - args:
         - --provider=oidc
-        - --oidc-issuer-url=https://id.re8ch.com
+        - --oidc-issuer-url=https://auth.re8ch.com
         - --redirect-url=https://cube.service.re8ch.com/oauth2/callback
         - --upstream=http://cube-compocv-router:8080
         - --http-address=0.0.0.0:4180
         - --email-domain=*
-        - --scope=openid profile email
+        - --scope=openid profile email groups
         - --cookie-secure=true
         - --cookie-samesite=lax
         - --cookie-expire=12h
@@ -1672,7 +1674,7 @@ spec:
         - --pass-access-token=false
         - --pass-authorization-header=false
         - --pass-basic-auth=false
-        - --pass-user-headers=false
+        - --pass-user-headers=true
         - --skip-provider-button=true
         envFrom:
         - secretRef:
