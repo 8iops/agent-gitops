@@ -1661,6 +1661,7 @@ spec:
         - --provider=oidc
         - --oidc-issuer-url=https://db-rw.re8ch.com/auth/v1
         - --client-id=5e150902-f015-5c2d-b962-049f71900311
+        - --client-secret=
         - --code-challenge-method=S256
         - --oidc-extra-audience=authenticated
         - --redirect-url=https://cube.service.re8ch.com/oauth2/callback
@@ -1683,8 +1684,6 @@ spec:
         - --skip-auth-route=GET=^/assets/.*$
         - --skip-provider-button=true
         env:
-        - name: OAUTH2_PROXY_CLIENT_SECRET
-          value: ''
         - name: OAUTH2_PROXY_COOKIE_SECRET
           valueFrom:
             secretKeyRef:

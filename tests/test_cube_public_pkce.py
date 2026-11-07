@@ -33,12 +33,11 @@ def test_cube_oauth_client_is_public_pkce_in_flat_and_release_manifests():
         container = oauth2_proxy(path)
         args = container["args"]
         assert f"--client-id={CLIENT_ID}" in args
-        assert not any(arg.startswith("--client-secret") for arg in args)
+        assert "--client-secret=" in args
         assert "--code-challenge-method=S256" in args
         assert "--oidc-issuer-url=https://db-rw.re8ch.com/auth/v1" in args
         assert "envFrom" not in container
         assert container["env"] == [
-            {"name": "OAUTH2_PROXY_CLIENT_SECRET", "value": ""},
             {
                 "name": "OAUTH2_PROXY_COOKIE_SECRET",
                 "valueFrom": {"secretKeyRef": {
