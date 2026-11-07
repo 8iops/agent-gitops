@@ -32,7 +32,9 @@ def test_reuse_shell_uses_fixed_reference_and_never_builds_or_signs(tmp_path,sel
         assert result.returncode==0,result.stderr
         reference=f"ghcr.io/{spec['provenance']['repository']}-release/{contract['metadata']['name']}"
         assert 'cosign verify ' in calls.read_text()
-        assert '--certificate-github-workflow-sha '+'b'*40 in calls.read_text()
+        assert '--key operations/releases/keys/static-release-cosign.pub' in calls.read_text()
+        assert '--insecure-ignore-tlog' in calls.read_text()
+        assert '--certificate-' not in calls.read_text()
         assert reference+'@'+selected in calls.read_text()
         assert ' sign ' not in calls.read_text() and 'kubectl' not in calls.read_text() and 'flux ' not in calls.read_text()
         assert f'digest={selected}' in output.read_text()
