@@ -4013,6 +4013,9 @@ spec:
         - --pass-authorization-header=false
         - --pass-basic-auth=false
         - --pass-user-headers=true
+        - --skip-auth-route=GET=^/$
+        - --skip-auth-route=GET=^/login(?:[/?].*)?$
+        - --skip-auth-route=GET=^/assets/.*$
         - --skip-provider-button=true
         envFrom:
         - secretRef:

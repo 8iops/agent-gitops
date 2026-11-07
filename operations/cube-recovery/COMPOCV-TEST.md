@@ -1,10 +1,15 @@
 # CompoCV persistent Cube test site
 
-The existing Stalwart OIDC boundary at `cube.service.re8ch.com` protects
+The UserHub Supabase GoTrue OIDC boundary at `cube.service.re8ch.com` protects
 `/compocv-test/` and `/test-rpc/`. The internal router restores `/` to the recovered
 Cube UI. The retired Cube DNS declaration is reactivated through the existing external-dns
 controller at the inventory-approved public edge `223.159.210.222`. No new listener,
 public IP or OAuth client is created.
+The Cube login shell (`/`, `/login`, and immutable `/assets/`) is the only
+unauthenticated surface. It displays the explicit **Sign in with RE8CH** action;
+all Console API, sandbox, and test routes remain behind oauth2-proxy. The proxy's
+default header stripping applies to those skipped static routes, so browser-supplied
+identity headers cannot reach CubeOps as trusted SSO identity.
 OAuth identity tokens and cookies are not forwarded into the test guest;
 only the product's own test JWT reaches the test RPC. The router mounts only the
 private Cube traffic header from `compocv-cube-test-access`, never SDK credentials.
@@ -41,8 +46,9 @@ writable layer. This test instance is not a database backup or an HA service.
 
 Pass repository validation and a signed PR, bootstrap only the new router objects
 through Cloud Platform, apply the exact cube-trial release Role, then publish the
-existing static-release contract. Reuse its digest on retry. Check unauthenticated
-requests still require OIDC, authenticated HTML and HMR work, test RPC authentication
+existing static-release contract. Reuse its digest on retry. Check the unauthenticated
+login shell renders without redirect, its RE8CH action starts OIDC, protected routes
+still require OIDC, authenticated HTML and HMR work, test RPC authentication
 and cross-user isolation hold, raw tables are denied, and database data survive a
 runtime restart. Compare the production deployment generations/images and public
 endpoint before and after. Merging this platform PR does not deploy CompoCV production.

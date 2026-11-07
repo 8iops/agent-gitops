@@ -39,6 +39,18 @@ def test_cube_uses_only_supabase_gotrue_oauth():
     assert pod["automountServiceAccountToken"] is False
     assert deployment["metadata"]["namespace"] == "cube-trial"
 
+    skip_routes = [
+        argument.split("=", 1)[1]
+        for argument in container["args"]
+        if argument.startswith("--skip-auth-route=")
+    ]
+    assert skip_routes == [
+        "GET=^/$",
+        "GET=^/login(?:[/?].*)?$",
+        "GET=^/assets/.*$",
+    ]
+    assert all("/opsapi" not in route for route in skip_routes)
+
 
 def test_retired_cube_oauth_plans_are_absent():
     assert not (ROOT / "operations/identity/cube-stalwart-migration.yaml").exists()
