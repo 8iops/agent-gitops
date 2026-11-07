@@ -43,6 +43,21 @@ The node identity can read node inventory and patch only R640; leases are limite
 to cube-trial. The recovery control plane accepts ingress only from its namespace.
 Existing public OAuth and route resources remain unchanged during qualification.
 
+## Component warehouse S3
+
+The component warehouse uses a Cube-owned MinIO service with a 20 GiB
+`cephfs-r640` volume. It is cluster-internal only and does not reuse another
+application's MinIO instance or root credentials. CubeOps creates the `cube-ops`
+bucket through the S3 API and uses path-style addressing.
+
+Credentials are supplied by the `cube-warehouse-s3` Secret with the exact keys
+`access-key-id` and `secret-access-key`; their values must never be committed to
+Git. Bootstrap that Secret through the approved platform Secret broker first,
+then create the reviewed PVC, Service, Deployment and NetworkPolicy through Cloud
+Platform before applying the static release. The release contract intentionally
+requires those objects to exist and must not be weakened to bypass platform
+authorization.
+
 ## Reviewed deployment order
 
 1. Pass render/credential/isolation tests, server dry-run, signed PR and Actions.

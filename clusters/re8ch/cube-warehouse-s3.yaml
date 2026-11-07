@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cube-warehouse-minio
+  namespace: cube-trial
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: cephfs-r640
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cube-warehouse-minio
+  namespace: cube-trial
+spec:
+  selector:
+    app.kubernetes.io/name: cube-warehouse-minio
+  ports:
+  - {name: s3, port: 9000, targetPort: s3}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cube-warehouse-minio
+  namespace: cube-trial
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cube-warehouse-minio
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cube-warehouse-minio
+        app.kubernetes.io/part-of: cube-sandbox
+    spec:
+      automountServiceAccountToken: false
+      nodeSelector: {kubernetes.io/hostname: r640}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+      - name: minio
+        image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z@sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e
+        args: [server, /data, --address, ':9000']
+        env:
+        - name: MINIO_ROOT_USER
+          valueFrom: {secretKeyRef: {name: cube-warehouse-s3, key: access-key-id}}
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom: {secretKeyRef: {name: cube-warehouse-s3, key: secret-access-key}}
+        ports:
+        - {name: s3, containerPort: 9000}
+        readinessProbe:
+          httpGet: {path: /minio/health/ready, port: s3}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet: {path: /minio/health/live, port: s3}
+          initialDelaySeconds: 30
+          periodSeconds: 20
+        resources:
+          requests: {cpu: 50m, memory: 128Mi}
+          limits: {cpu: 1, memory: 1Gi}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: [ALL]}
+        volumeMounts:
+        - {name: data, mountPath: /data}
+        - {name: tmp, mountPath: /tmp}
+      volumes:
+      - name: data
+        persistentVolumeClaim: {claimName: cube-warehouse-minio}
+      - name: tmp
+        emptyDir: {sizeLimit: 256Mi}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cube-warehouse-minio
+  namespace: cube-trial
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: cube-warehouse-minio
+  policyTypes: [Ingress]
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: ops
+          app.kubernetes.io/instance: cube-recovery
+          app.kubernetes.io/name: cube
+    ports: [{protocol: TCP, port: 9000}]
