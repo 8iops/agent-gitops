@@ -101,6 +101,15 @@ cubeOps:
   env:
   - name: CUBE_OPS_TRUSTED_SSO_HEADER
     value: X-Auth-Request-Email
+  - name: REDIS_HOST
+    value: cube-recovery-redis.cube-trial.svc.cluster.local
+  - name: REDIS_PORT
+    value: "6379"
+  - name: REDIS_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: cube-recovery-secret
+        key: redis-password
   resources:
     requests:
       cpu: 50m

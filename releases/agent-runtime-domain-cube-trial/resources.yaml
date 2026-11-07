@@ -1339,6 +1339,15 @@ spec:
           value: 'true'
         - name: CUBE_OPS_TRUSTED_SSO_HEADER
           value: X-Auth-Request-Email
+        - name: REDIS_HOST
+          value: cube-recovery-redis.cube-trial.svc.cluster.local
+        - name: REDIS_PORT
+          value: '6379'
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cube-recovery-secret
+              key: redis-password
         image: ghcr.io/woomou/cubesandbox-cube-ops:8b5f09bd01bd35e077a9d9601340e617cc101a2f@sha256:53d97478f6e8acbe481d22898ef3f934a2228940c6f88428d91005e5f20b2723
         imagePullPolicy: IfNotPresent
         livenessProbe:
