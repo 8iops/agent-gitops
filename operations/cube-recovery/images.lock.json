@@ -50,9 +50,9 @@
     "digest": "sha256:f94f9188969afc1fd46c019f75e197d3cca8566dc19ff6ea3708611ff6762c9e"
   },
   "ops": {
-    "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cube-ops",
-    "tag": "v0.6.0",
-    "digest": "sha256:760ec27a938d56bdefa56a9ef3d2fdfe0138ae889d18e0d2c265f0af51662b0b"
+    "repository": "ghcr.io/woomou/cubesandbox-cube-ops",
+    "tag": "8b5f09bd01bd35e077a9d9601340e617cc101a2f",
+    "digest": "sha256:53d97478f6e8acbe481d22898ef3f934a2228940c6f88428d91005e5f20b2723"
   },
   "cubemastercli": {
     "repository": "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/cubemastercli",
