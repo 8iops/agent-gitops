@@ -35,7 +35,10 @@ def test_test_route_keeps_oauth_and_private_sandbox_boundary():
     assert '--oidc-issuer-url=https://db-rw.re8ch.com/auth/v1' in args
     assert '--code-challenge-method=S256' in args
     assert '--scope=openid profile email offline_access' in args
-    assert not any(a.startswith('--skip-auth-route') for a in args)
+    assert '--skip-auth-route=GET=^/$' in args
+    assert '--skip-auth-route=GET=^/login(?:[/?].*)?$' in args
+    assert '--skip-auth-route=GET=^/assets/.*$' in args
+    assert not any('/opsapi' in a or '/cubeapi' in a or '/sandbox' in a for a in args if a.startswith('--skip-auth-route'))
 
 
 def test_cube_dns_uses_existing_public_authority():
