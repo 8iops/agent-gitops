@@ -30,7 +30,7 @@ def test_cube_uses_only_supabase_gotrue_oauth():
 
     assert args["oidc-issuer-url"] == ISSUER
     assert args["client-id"] == CLIENT_ID
-    assert args["client-secret"] == ""
+    assert "client-secret" not in args
     assert args["code-challenge-method"] == "S256"
     assert args["oidc-extra-audience"] == "authenticated"
     assert args["scope"] == "openid profile email offline_access"
