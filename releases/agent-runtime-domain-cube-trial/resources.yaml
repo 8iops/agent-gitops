@@ -1682,9 +1682,12 @@ spec:
         - --skip-auth-route=GET=^/login(?:[/?].*)?$
         - --skip-auth-route=GET=^/assets/.*$
         - --skip-provider-button=true
-        envFrom:
-        - secretRef:
-            name: oauth2-proxy-cube
+        env:
+        - name: OAUTH2_PROXY_COOKIE_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: OAUTH2_PROXY_COOKIE_SECRET
+              name: oauth2-proxy-cube
         image: quay.io/oauth2-proxy/oauth2-proxy:v7.9.0@sha256:37c1570c0427e02fc7c947ef2c04e8995b8347b7abc9fcf1dbb4e376a4b221a7
         name: oauth2-proxy
         ports:
