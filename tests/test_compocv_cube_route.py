@@ -32,6 +32,9 @@ def test_test_route_keeps_oauth_and_private_sandbox_boundary():
     for flag in ('pass-access-token', 'pass-authorization-header', 'pass-basic-auth'):
         assert f'--{flag}=false' in args
     assert '--pass-user-headers=true' in args
+    assert '--oidc-issuer-url=https://db-rw.re8ch.com/auth/v1' in args
+    assert '--code-challenge-method=S256' in args
+    assert '--scope=openid profile email offline_access' in args
     assert not any(a.startswith('--skip-auth-route') for a in args)
 
 

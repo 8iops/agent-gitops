@@ -33,7 +33,9 @@ writable layer. This test instance is not a database backup or an HA service.
 - `cube-trial/compocv-cube-test-data`: four independently generated test-only
   credentials, injected through the Cube SDK into a mode-0600 guest file.
   Rotate with the test database and synthetic accounts, never independently.
-- Existing Stalwart OAuth credentials remain in `oauth2-proxy-cube`.
+- Cube authentication uses the public Supabase GoTrue PKCE client declared in
+  `re8ch/service-backend`; `oauth2-proxy-cube` retains only its cookie secret.
+  Do not restore the retired Dex/Stalwart Cube OAuth client credentials.
 
 ## Delivery and acceptance
 
