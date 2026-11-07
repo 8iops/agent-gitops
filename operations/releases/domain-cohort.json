@@ -1,6 +1,6 @@
 {
   "domain": "agent-runtime",
-  "sourceObjects": 369,
+  "sourceObjects": 373,
   "releases": [
     {
       "name": "agent-runtime-domain-ai-operations",
@@ -41,7 +41,7 @@
     {
       "name": "agent-runtime-domain-cube-trial",
       "namespace": "cube-trial",
-      "objects": 35,
+      "objects": 39,
       "contract": "contracts/agent-runtime-domain-cube-trial.yaml"
     },
     {
@@ -87,7 +87,7 @@
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 309,
+  "publishableObjects": 313,
   "deferred": [
     {
       "identity": "batch/Job/ai-operations/re8ch-owner-pilot-workspace-v4",

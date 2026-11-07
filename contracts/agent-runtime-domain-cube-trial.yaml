@@ -54,6 +54,7 @@ spec:
     - cube-recovery-webui
     - cube-recovery-webui-config
     - cube-trial-values
+    - cube-warehouse-minio
     - oauth2-proxy-cube
     allowClusterScoped: false
     requireExisting: true
@@ -69,6 +70,7 @@ spec:
     - apps/Deployment/cube-trial/cube-recovery-ops
     - apps/Deployment/cube-trial/cube-recovery-proxy
     - apps/Deployment/cube-trial/cube-recovery-webui
+    - apps/Deployment/cube-trial/cube-warehouse-minio
     - apps/Deployment/cube-trial/oauth2-proxy-cube
     - apps/StatefulSet/cube-trial/cube-recovery-mysql
     - apps/StatefulSet/cube-trial/cube-recovery-redis
@@ -87,13 +89,15 @@ spec:
     - core/Service/cube-trial/cube-recovery-proxy
     - core/Service/cube-trial/cube-recovery-redis
     - core/Service/cube-trial/cube-recovery-webui
+    - core/Service/cube-trial/cube-warehouse-minio
     - core/Service/cube-trial/oauth2-proxy-cube
     - gateway.networking.k8s.io/HTTPRoute/cube-trial/cube-public
     - networking.k8s.io/Ingress/cube-trial/cube-dns-authority
     - networking.k8s.io/NetworkPolicy/cube-trial/cube-compocv-router
     - networking.k8s.io/NetworkPolicy/cube-trial/cube-recovery-internal
+    - networking.k8s.io/NetworkPolicy/cube-trial/cube-warehouse-minio
   inventory:
-    digest: sha256:4cf149dbc080c27186dc1e2671ce7d08b28b230efe66ba71e02536f6761430a8
+    digest: sha256:7d024ec7c7b3c958dea28435616d31867c1fd7627af60e36aacf4ee65444d425
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

@@ -1338,7 +1338,38 @@ spec:
         - name: CUBEMASTER_MIGRATION_SKIP_FINGERPRINT_CHECK
           value: 'true'
         - name: CUBE_OPS_TRUSTED_SSO_HEADER
-          value: X-Auth-Request-Email
+          value: X-Forwarded-Email
+        - name: REDIS_HOST
+          value: cube-recovery-redis.cube-trial.svc.cluster.local
+        - name: REDIS_PORT
+          value: '6379'
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: redis-password
+              name: cube-recovery-secret
+        - name: CUBE_OPS_S3_ENDPOINT
+          value: http://cube-warehouse-minio.cube-trial.svc.cluster.local:9000
+        - name: CUBE_OPS_S3_NODE_ENDPOINT
+          value: http://cube-warehouse-minio.cube-trial.svc.cluster.local:9000
+        - name: CUBE_OPS_S3_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              key: access-key-id
+              name: cube-warehouse-s3
+        - name: CUBE_OPS_S3_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: secret-access-key
+              name: cube-warehouse-s3
+        - name: CUBE_OPS_S3_BUCKET
+          value: cube-ops
+        - name: CUBE_OPS_S3_REGION
+          value: us-east-1
+        - name: CUBE_OPS_S3_PATH_STYLE
+          value: 'true'
+        - name: CUBE_OPS_S3_CREATE_BUCKET
+          value: 'true'
         image: ghcr.io/woomou/cubesandbox-cube-ops:8b5f09bd01bd35e077a9d9601340e617cc101a2f@sha256:53d97478f6e8acbe481d22898ef3f934a2228940c6f88428d91005e5f20b2723
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1635,6 +1666,93 @@ spec:
       - configMap:
           name: cube-recovery-webui-config
         name: webui-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cube-warehouse-minio
+  namespace: cube-trial
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cube-warehouse-minio
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cube-warehouse-minio
+        app.kubernetes.io/part-of: cube-sandbox
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - args:
+        - server
+        - /data
+        - --address
+        - :9000
+        env:
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              key: access-key-id
+              name: cube-warehouse-s3
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: secret-access-key
+              name: cube-warehouse-s3
+        image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z@sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e
+        livenessProbe:
+          httpGet:
+            path: /minio/health/live
+            port: s3
+          initialDelaySeconds: 30
+          periodSeconds: 20
+        name: minio
+        ports:
+        - containerPort: 9000
+          name: s3
+        readinessProbe:
+          httpGet:
+            path: /minio/health/ready
+            port: s3
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /tmp
+          name: tmp
+      nodeSelector:
+        kubernetes.io/hostname: r640
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: cube-warehouse-minio
+      - emptyDir:
+          sizeLimit: 256Mi
+        name: tmp
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2348,6 +2466,19 @@ spec:
   storageClassName: cephfs-r640
 ---
 apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cube-warehouse-minio
+  namespace: cube-trial
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: cephfs-r640
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: cube-compocv-router
@@ -2557,6 +2688,19 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  name: cube-warehouse-minio
+  namespace: cube-trial
+spec:
+  ports:
+  - name: s3
+    port: 9000
+    targetPort: s3
+  selector:
+    app.kubernetes.io/name: cube-warehouse-minio
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: oauth2-proxy-cube
   namespace: cube-trial
 spec:
@@ -2645,5 +2789,27 @@ spec:
   podSelector:
     matchLabels:
       app.kubernetes.io/instance: cube-recovery
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cube-warehouse-minio
+  namespace: cube-trial
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: ops
+          app.kubernetes.io/instance: cube-recovery
+          app.kubernetes.io/name: cube
+    ports:
+    - port: 9000
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: cube-warehouse-minio
   policyTypes:
   - Ingress
