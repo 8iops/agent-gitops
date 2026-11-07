@@ -29,8 +29,9 @@ def test_test_route_keeps_oauth_and_private_sandbox_boundary():
     oauth = next(d for d in runtime if d and d['kind'] == 'Deployment' and d['metadata']['name'] == 'oauth2-proxy-cube')
     args = oauth['spec']['template']['spec']['containers'][0]['args']
     assert '--upstream=http://cube-compocv-router:8080' in args
-    for flag in ('pass-access-token', 'pass-authorization-header', 'pass-basic-auth', 'pass-user-headers'):
+    for flag in ('pass-access-token', 'pass-authorization-header', 'pass-basic-auth'):
         assert f'--{flag}=false' in args
+    assert '--pass-user-headers=true' in args
     assert not any(a.startswith('--skip-auth-route') for a in args)
 
 
