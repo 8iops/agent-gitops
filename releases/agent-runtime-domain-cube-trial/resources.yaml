@@ -1346,8 +1346,8 @@ spec:
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: cube-recovery-secret
               key: redis-password
+              name: cube-recovery-secret
         image: ghcr.io/woomou/cubesandbox-cube-ops:8b5f09bd01bd35e077a9d9601340e617cc101a2f@sha256:53d97478f6e8acbe481d22898ef3f934a2228940c6f88428d91005e5f20b2723
         imagePullPolicy: IfNotPresent
         livenessProbe:
