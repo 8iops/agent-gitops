@@ -5,12 +5,8 @@ application:
   deployment: oauth2-proxy-cube
   publicOrigin: https://cube.service.re8ch.com
 provider:
-  issuer: https://id.re8ch.com
-  service: {namespace: mail-system, name: stalwart, port: 8080}
-  administrativeCredential:
-    namespace: mail-system
-    secret: stalwart-recovery-admin
-    key: STALWART_RECOVERY_ADMIN
+  issuer: https://auth.re8ch.com
+  service: {namespace: auth, name: re8ch-auth-gateway, port: 8080}
 client:
   identityFrom: {namespace: cube-trial, secret: oauth2-proxy-cube, key: OAUTH2_PROXY_CLIENT_ID}
   secretFrom: {namespace: cube-trial, secret: oauth2-proxy-cube, key: OAUTH2_PROXY_CLIENT_SECRET}
@@ -19,8 +15,8 @@ client:
   description: Cube sandbox
   redirectUris:
     https://cube.service.re8ch.com/oauth2/callback: true
-  # Identity scopes openid/profile/email are requested by the proxy.
-  # Do not grant Stalwart mail, contacts, calendars or files data access.
+  # Identity scopes openid/profile/email/groups are requested by the proxy.
+  # Do not grant mail, contacts, calendars or files data access.
   # Installed OAuthClient schema has no scopes or firstParty fields.
   # Omit unsupported fields rather than granting provider data permissions.
   newClientScopes: {}
@@ -41,4 +37,4 @@ constraints:
   markFirstParty: false
   exportCredentials: false
   preserveProxyEmailPolicy: '*'
-  preserveProxyScopes: openid profile email
+  preserveProxyScopes: openid profile email groups
