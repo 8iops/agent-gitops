@@ -9,7 +9,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-MODULE = Path(__file__).resolve().parents[1]/'identity/register_cube_stalwart.py'
+MODULE = Path(__file__).resolve().parent/'stalwart_api.py'
 spec = importlib.util.spec_from_file_location('registration', MODULE)
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
