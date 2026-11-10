@@ -6,7 +6,7 @@
     "previousSourceCommit": "a527dc8383b6dcfd99a520f7c04e0aea2aa3056f",
     "fieldManager": "re8ch-release/observability-chart-birfucate-metering-tenant-infrastructure",
     "sourcePath": "clusters/re8ch/tenant-runtime-authority-resources.yaml",
-    "sourceDigest": "sha256:f366fafe19451ffa4211fe08d1dedffeeb1a97028bd4fac52482a88e6eaed2bc",
+    "sourceDigest": "sha256:a1e858c5b75b4ec2a9b3b5d9a7960c0de16d2455449c1b82b4ec22deb41fa3ae",
     "mode": "accepted-runtime-update",
     "forceConflictObjects": [
       "apps/DaemonSet/tenant-infrastructure/tenant-runtime-image-cache",
