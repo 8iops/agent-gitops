@@ -1463,6 +1463,13 @@ spec:
   - from:
     - podSelector:
         matchLabels:
+          app: postgresql-provider
+    ports:
+    - port: 19448
+      protocol: TCP
+  - from:
+    - podSelector:
+        matchLabels:
           app: admin-api
     ports:
     - port: 19450
