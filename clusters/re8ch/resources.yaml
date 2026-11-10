@@ -33,6 +33,90 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  name: postgresql-provider
+  namespace: tenant-infrastructure
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: postgresql-provider
+rules:
+- apiGroups: [tenancy.re8ch.com]
+  resources: [tenantserviceinstances]
+  verbs: [get, list, watch]
+- apiGroups: [tenancy.re8ch.com]
+  resources: [tenantserviceinstances/status]
+  verbs: [get, patch]
+- apiGroups: ['']
+  resources: [services]
+  resourceNames: [pg-re8ch-primary]
+  verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: postgresql-provider
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: postgresql-provider
+subjects:
+- kind: ServiceAccount
+  name: postgresql-provider
+  namespace: tenant-infrastructure
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: postgresql-provider-admin-credential
+  namespace: supabase-pg-re8ch
+rules:
+- apiGroups: ['']
+  resources: [secrets]
+  resourceNames: [supabase-pg-re8ch-secrets]
+  verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: postgresql-provider-admin-credential
+  namespace: supabase-pg-re8ch
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: postgresql-provider-admin-credential
+subjects:
+- kind: ServiceAccount
+  name: postgresql-provider
+  namespace: tenant-infrastructure
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: postgresql-provider-credential-broker
+  namespace: credential-broker
+rules:
+- apiGroups: ['']
+  resources: [secrets]
+  verbs: [get, create]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: postgresql-provider-credential-broker
+  namespace: credential-broker
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: postgresql-provider-credential-broker
+subjects:
+- kind: ServiceAccount
+  name: postgresql-provider
+  namespace: tenant-infrastructure
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
   name: retire-toolhive-session-redis
   namespace: flux-system
 ---

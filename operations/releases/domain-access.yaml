@@ -1240,6 +1240,7 @@ rules:
   - deployments
   resourceNames:
   - admin-api
+  - postgresql-provider
   - tenant-api
   - tenant-control-controller
   - tenant-provider-reconciler
@@ -1284,6 +1285,7 @@ rules:
   - serviceaccounts
   resourceNames:
   - admin-api
+  - postgresql-provider
   - tenant-api
   - tenant-control-controller
   - tenant-provider-reconciler
@@ -1297,6 +1299,7 @@ rules:
   - services
   resourceNames:
   - admin-api
+  - postgresql-provider
   - tenant-api
   - tenant-control-controller
   - tenant-infrastructure
@@ -1324,6 +1327,7 @@ rules:
   - networkpolicies
   resourceNames:
   - admin-api
+  - postgresql-provider
   - tenant-api
   - tenant-control-controller
   verbs:

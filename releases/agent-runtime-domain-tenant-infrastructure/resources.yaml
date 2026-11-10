@@ -196,6 +196,92 @@ kind: Deployment
 metadata:
   labels:
     ai.connectool.io/mcp-backend: 'true'
+  name: postgresql-provider
+  namespace: tenant-infrastructure
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql-provider
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        ai.connectool.io/mcp-backend: 'true'
+        app: postgresql-provider
+        saas.re8ch.com/tenant: platform
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - r640
+      containers:
+      - env:
+        - name: LISTEN_PORT
+          value: '8080'
+        - name: PIGSTY_PRIMARY_HOST
+          value: pg-re8ch-primary.pigsty-external.svc.cluster.local
+        envFrom:
+        - secretRef:
+            name: tenant-claim-internal-auth
+            optional: false
+        image: registry.re8ch.com/image/re8ch-postgresql-provider@sha256:60898975b697a2353eed41204ae247b71334cc32dfbac03836d88c4a7525ef15
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: mcp
+          periodSeconds: 15
+          timeoutSeconds: 3
+        name: provider
+        ports:
+        - containerPort: 8080
+          name: mcp
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: mcp
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 25m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+      imagePullSecrets:
+      - name: harbor-registry-pull
+      securityContext:
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: postgresql-provider
+      tolerations:
+      - operator: Exists
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    ai.connectool.io/mcp-backend: 'true'
     re8ch.com/publication-stage: release-gated
   name: tenant-api
   namespace: tenant-infrastructure
@@ -314,7 +400,7 @@ spec:
         - secretRef:
             name: tenant-grafana-credentials
             optional: true
-        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:0ba064e1bee0cf66aa44a376fa36981d4e0c23ef23933896c149e887e9192d5f
+        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:b85d52fe3bd85956c68a216b94bab15237ebbf835e54e0dbe45814740aed1c03
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -1003,6 +1089,19 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  name: postgresql-provider
+  namespace: tenant-infrastructure
+spec:
+  ports:
+  - name: mcp
+    port: 8080
+    targetPort: mcp
+  selector:
+    app: postgresql-provider
+---
+apiVersion: v1
+kind: Service
+metadata:
   labels:
     re8ch.com/metrics-surface: tenant-mcp
   name: tenant-api
@@ -1053,6 +1152,12 @@ automountServiceAccountToken: false
 kind: ServiceAccount
 metadata:
   name: admin-api
+  namespace: tenant-infrastructure
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: postgresql-provider
   namespace: tenant-infrastructure
 ---
 apiVersion: v1
@@ -1283,6 +1388,26 @@ spec:
   podSelector:
     matchLabels:
       app: admin-api
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgresql-provider
+  namespace: tenant-infrastructure
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: tenant-api
+    ports:
+    - port: 8080
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app: postgresql-provider
   policyTypes:
   - Ingress
 ---

@@ -35,6 +35,7 @@ spec:
     - policy/PodDisruptionBudget
     objectNames:
     - admin-api
+    - postgresql-provider
     - tenant-api
     - tenant-api-gateway
     - tenant-billing-auth-center
@@ -55,6 +56,7 @@ spec:
     - apps/Deployment/tenant-infrastructure/admin-api
     - apps/Deployment/tenant-infrastructure/tenant-api
     - apps/Deployment/tenant-infrastructure/tenant-control-controller
+    - apps/Deployment/tenant-infrastructure/postgresql-provider
     - apps/Deployment/tenant-infrastructure/tenant-provider-reconciler
     - cilium.io/CiliumNetworkPolicy/tenant-infrastructure/tenant-api-gateway
     - core/ConfigMap/tenant-infrastructure/tenant-platform-modules
@@ -62,9 +64,11 @@ spec:
     - core/Service/tenant-infrastructure/tenant-api
     - core/Service/tenant-infrastructure/tenant-control-controller
     - core/Service/tenant-infrastructure/tenant-infrastructure
+    - core/Service/tenant-infrastructure/postgresql-provider
     - core/ServiceAccount/tenant-infrastructure/admin-api
     - core/ServiceAccount/tenant-infrastructure/tenant-api
     - core/ServiceAccount/tenant-infrastructure/tenant-control-controller
+    - core/ServiceAccount/tenant-infrastructure/postgresql-provider
     - core/ServiceAccount/tenant-infrastructure/tenant-provider-reconciler
     - gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-billing-auth-center
     - gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-billing-read
@@ -74,9 +78,10 @@ spec:
     - networking.k8s.io/NetworkPolicy/tenant-infrastructure/admin-api
     - networking.k8s.io/NetworkPolicy/tenant-infrastructure/tenant-api
     - networking.k8s.io/NetworkPolicy/tenant-infrastructure/tenant-control-controller
+    - networking.k8s.io/NetworkPolicy/tenant-infrastructure/postgresql-provider
     - policy/PodDisruptionBudget/tenant-infrastructure/tenant-control-controller
   inventory:
-    digest: sha256:134524e110c168e571af8474924081cbdd7d213ff5f915e1702eddba409420a9
+    digest: sha256:a1cce1a42c864d8056e56882230c9c2a7a4f441f5c9ee61e785f0a5da1b144df
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300
