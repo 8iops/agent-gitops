@@ -688,7 +688,7 @@ spec:
               name: tenant-claim-internal-auth
               key: TENANT_CLAIM_SERVICE_TOKEN
         - name: MCP_CATALOG_ADMIN_URL
-          value: http://tenant-api.tenant-infrastructure.svc/internal/mcp/catalog
+          value: http://tenant-api.tenant-infrastructure.svc:19450/internal/mcp/catalog
         ports:
         - name: mcp
           containerPort: 8080
@@ -1467,7 +1467,7 @@ spec:
           app: postgresql-provider
     ports:
     - protocol: TCP
-      port: 19448
+      port: 19450
   - from:
     - podSelector:
         matchLabels:
