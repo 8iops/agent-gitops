@@ -685,8 +685,8 @@ spec:
         - name: MCP_CATALOG_ADMIN_TOKEN
           valueFrom:
             secretKeyRef:
-              name: tenant-claim-internal-auth
-              key: TENANT_CLAIM_SERVICE_TOKEN
+              name: admin-vmcp-backend-auth
+              key: token
         - name: MCP_CATALOG_ADMIN_URL
           value: http://tenant-api.tenant-infrastructure.svc:19450/internal/mcp/catalog
         ports:
