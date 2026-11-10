@@ -389,7 +389,7 @@ spec:
           mountPath: /etc/re8ch/modules
           readOnly: true
       - name: catalog-gateway
-        image: ghcr.io/among-clusters/connectool-catalog-gateway@sha256:d9b588ea6b473b6c85fb48694012dfbfdcab07b36f7a562084df6e9b64641830
+        image: ghcr.io/among-clusters/connectool-catalog-gateway@sha256:ae934a38702255f8e1640b8f78219666724f550903da814a817544ebb8a92767
         imagePullPolicy: IfNotPresent
         env:
         - name: TENANT_CORE_URL
