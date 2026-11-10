@@ -230,6 +230,11 @@ spec:
           value: '8080'
         - name: PIGSTY_PRIMARY_HOST
           value: pg-re8ch-primary.pigsty-external.svc.cluster.local
+        - name: MCP_CATALOG_ADMIN_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: TENANT_CLAIM_SERVICE_TOKEN
+              name: tenant-claim-internal-auth
         envFrom:
         - secretRef:
             name: tenant-claim-internal-auth
@@ -322,6 +327,11 @@ spec:
           value: tenant
         - name: RE8CH_TOOL_AUDIENCE
           value: re8ch-tenant
+        - name: MCP_CATALOG_INTERNAL_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: TENANT_CLAIM_SERVICE_TOKEN
+              name: tenant-claim-internal-auth
         - name: SERVICE_API_TOKEN
           valueFrom:
             secretKeyRef:
