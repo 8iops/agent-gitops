@@ -235,6 +235,8 @@ spec:
             secretKeyRef:
               key: TENANT_CLAIM_SERVICE_TOKEN
               name: tenant-claim-internal-auth
+        - name: MCP_CATALOG_ADMIN_URL
+          value: http://tenant-api.tenant-infrastructure.svc/internal/mcp/catalog
         envFrom:
         - secretRef:
             name: tenant-claim-internal-auth
