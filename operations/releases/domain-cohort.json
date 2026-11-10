@@ -1,6 +1,6 @@
 {
   "domain": "agent-runtime",
-  "sourceObjects": 373,
+  "sourceObjects": 383,
   "releases": [
     {
       "name": "agent-runtime-domain-ai-operations",
@@ -77,7 +77,7 @@
     {
       "name": "agent-runtime-domain-tenant-infrastructure",
       "namespace": "tenant-infrastructure",
-      "objects": 25,
+      "objects": 29,
       "contract": "contracts/agent-runtime-domain-tenant-infrastructure.yaml"
     },
     {
@@ -87,7 +87,7 @@
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 313,
+  "publishableObjects": 317,
   "deferred": [
     {
       "identity": "batch/Job/ai-operations/re8ch-owner-pilot-workspace-v4",
@@ -126,6 +126,14 @@
       "reason": "retired-flux-control-resource"
     },
     {
+      "identity": "rbac.authorization.k8s.io/ClusterRole/_/postgresql-provider",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/ClusterRoleBinding/_/postgresql-provider",
+      "reason": "platform-owned-rbac"
+    },
+    {
       "identity": "rbac.authorization.k8s.io/Role/anycam/kyverno-toolhive-pull-secret-source",
       "reason": "platform-owned-rbac"
     },
@@ -151,6 +159,10 @@
     },
     {
       "identity": "rbac.authorization.k8s.io/Role/credential-broker/credential-broker",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/credential-broker/postgresql-provider-credential-broker",
       "reason": "platform-owned-rbac"
     },
     {
@@ -195,6 +207,10 @@
     },
     {
       "identity": "rbac.authorization.k8s.io/Role/supabase-pg-re8ch/ops-admin-postgres-credential",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/supabase-pg-re8ch/postgresql-provider-admin-credential",
       "reason": "platform-owned-rbac"
     },
     {
@@ -250,6 +266,10 @@
       "reason": "platform-owned-rbac"
     },
     {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/credential-broker/postgresql-provider-credential-broker",
+      "reason": "platform-owned-rbac"
+    },
+    {
       "identity": "rbac.authorization.k8s.io/RoleBinding/git-workspaces/git-workspace-controller",
       "reason": "platform-owned-rbac"
     },
@@ -295,6 +315,10 @@
     },
     {
       "identity": "rbac.authorization.k8s.io/RoleBinding/supabase-pg-re8ch/ops-admin-postgres-credential",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/supabase-pg-re8ch/postgresql-provider-admin-credential",
       "reason": "platform-owned-rbac"
     },
     {
