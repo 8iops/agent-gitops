@@ -17,12 +17,21 @@ Private desired-state authority for the RE8CH Agent, ToolHive, and fast-moving t
 
 Product source and release artifacts remain in their product repositories. This repository pins signed immutable artifacts and cluster configuration only.
 
+## Local Flux prohibition
+
+Local Flux writers are permanently retired and forbidden. Do not create,
+restore, scale, restart, repair, proxy or authorize Source, Kustomize, Helm,
+Notification, image automation, compatibility or domain Flux controllers.
+Retained Flux APIs and manifests are historical/migration inputs only. GitHub
+webhooks and Actions select reviewed immutable artifacts; the bounded cloud SSA
+executor is the sole runtime writer and the only recovery path.
+
 `contracts/agent-runtime-toolhive-operator.yaml` is the first static GitOps
 shadow release. It compiles the reviewed render of the digest-pinned ToolHive
 Operator chart into a deterministic OCI bundle, signs it with the protected
 `release-executor-agent-runtime` workflow identity, and does not mutate the
-cluster. Flux retains live ownership until dry-run, takeover, replay, health,
-rollback, and zero-writer gates are separately proven.
+cluster. The bounded cloud SSA executor retains sole ownership through dry-run,
+takeover, replay, health and rollback; local Flux cannot be a migration writer.
 
 ## Cloud release artifact reuse
 
