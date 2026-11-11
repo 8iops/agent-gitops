@@ -21,7 +21,7 @@ spec:
     signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
     issuer: https://token.actions.githubusercontent.com
   authorization:
-    fieldManager: re8ch-release/observability-chart-birfucate-metering-tenant-infrastructure
+    fieldManager: re8ch-release/agent-runtime-domain-tenant-infrastructure
     resources:
     - apps/DaemonSet
     - apps/Deployment

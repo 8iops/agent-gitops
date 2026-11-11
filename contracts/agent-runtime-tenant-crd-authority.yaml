@@ -1,0 +1,42 @@
+apiVersion: delivery.re8ch.com/v1alpha1
+kind: ReleaseContract
+metadata:
+  name: agent-runtime-tenant-crd-authority
+spec:
+  authorityDomain: agent-runtime
+  target:
+    cluster: re8ch
+    namespace: tenant-infrastructure
+  source:
+    renderer: kustomize
+    revision: github-main-reviewed
+    repository: 8iops/agent-gitops
+    path: releases/agent-runtime-tenant-crd-authority
+  provenance:
+    repository: 8iops/agent-gitops
+    workflow: .github/workflows/static-release.yml
+    ref: refs/heads/main
+    environment: release-executor-agent-runtime
+    audience: https://kube-api.re8ch.com/release-executor-agent-runtime
+    signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
+    issuer: https://token.actions.githubusercontent.com
+  authorization:
+    fieldManager: re8ch-release/agent-runtime-tenant-crd-authority
+    resources:
+    - apiextensions.k8s.io/CustomResourceDefinition
+    objectNames:
+    - tenants.finops.re8ch.com
+    - tenants.tenancy.re8ch.com
+    allowClusterScoped: true
+    requireExisting: true
+    forceConflictObjects:
+    - apiextensions.k8s.io/CustomResourceDefinition/_/tenants.finops.re8ch.com
+    - apiextensions.k8s.io/CustomResourceDefinition/_/tenants.tenancy.re8ch.com
+  inventory:
+    digest: sha256:afdf605d26a17ab76af706513de1a686188140b4bb803f550f52feeaf9105933
+  lifecycle:
+    prune: false
+    healthTimeoutSeconds: 300
+    protectedKinds:
+    - CustomResourceDefinition
+    deletionAllowlist: []
