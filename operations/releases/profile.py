@@ -53,7 +53,14 @@ def validate_contract(path: Path) -> dict[str, str]:
     if source.get("repository") != REPOSITORY or not source_path.startswith("releases/"):
         raise ValueError("contract source must resolve inside this repository")
     if source.get("revision") == "github-main-reviewed":
-        if source.get("renderer") != "kustomize" or not source_path.startswith("releases/" + ("observability" if spec["authorityDomain"] == "observability-metering" else spec["authorityDomain"]) + "-domain-"):
+        generated_prefix = "releases/" + ("observability" if spec["authorityDomain"] == "observability-metering" else spec["authorityDomain"]) + "-domain-"
+        authorization = spec.get("authorization", {})
+        exact_crd_authority = (
+            authorization.get("allowClusterScoped") is True
+            and authorization.get("resources") == ["apiextensions.k8s.io/CustomResourceDefinition"]
+            and source_path.startswith("releases/agent-runtime-")
+        )
+        if source.get("renderer") != "kustomize" or not (source_path.startswith(generated_prefix) or exact_crd_authority):
             raise ValueError("static domain source must use its generated namespace cohort")
     else:
         if source.get("renderer") != "kustomize" or "@sha256:" not in source.get("chartOCI", ""):
