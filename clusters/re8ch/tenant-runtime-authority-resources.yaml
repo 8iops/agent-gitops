@@ -258,7 +258,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: runtime
-        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:b85d52fe3bd85956c68a216b94bab15237ebbf835e54e0dbe45814740aed1c03
+        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:fc7f8c2063e74d311eef497dd2d798c28bc657761f8176d4469777d7f27b501b
         imagePullPolicy: IfNotPresent
         envFrom:
         - secretRef:
