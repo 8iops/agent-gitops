@@ -4,7 +4,7 @@
     "previousReleaseId": "observability-chart-birfucate-metering-tenant-infrastructure",
     "previousAcceptedDigest": "sha256:41da942d273cdf8126b2d13621648a1d5bec1e6e2e1ae97e11a1f42469b8fc7a",
     "previousSourceCommit": "a527dc8383b6dcfd99a520f7c04e0aea2aa3056f",
-    "fieldManager": "re8ch-release/agent-runtime-domain-tenant-infrastructure",
+    "fieldManager": "re8ch-release/observability-chart-birfucate-metering-tenant-infrastructure",
     "sourcePath": "clusters/re8ch/tenant-runtime-authority-resources.yaml",
     "sourceDigest": "sha256:696027369a21b4f0df2f92a68674d399a75e9579a5af076e44bbcd64a2b3f2fc",
     "mode": "accepted-runtime-update",

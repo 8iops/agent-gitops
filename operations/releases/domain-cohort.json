@@ -77,7 +77,7 @@
     {
       "name": "agent-runtime-domain-tenant-infrastructure",
       "namespace": "tenant-infrastructure",
-      "objects": 29,
+      "objects": 28,
       "contract": "contracts/agent-runtime-domain-tenant-infrastructure.yaml"
     },
     {
@@ -87,8 +87,12 @@
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 317,
+  "publishableObjects": 316,
   "deferred": [
+    {
+      "identity": "apps/Deployment/tenant-infrastructure/tenant-api",
+      "reason": "existing-release-contract"
+    },
     {
       "identity": "batch/Job/ai-operations/re8ch-owner-pilot-workspace-v4",
       "reason": "one-shot-job-platform-owned"
