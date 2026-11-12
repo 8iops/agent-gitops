@@ -60,7 +60,12 @@ def validate_contract(path: Path) -> dict[str, str]:
             and authorization.get("resources") == ["apiextensions.k8s.io/CustomResourceDefinition"]
             and source_path.startswith("releases/agent-runtime-")
         )
-        if source.get("renderer") != "kustomize" or not (source_path.startswith(generated_prefix) or exact_crd_authority):
+        exact_object_authority = (
+            authorization.get("requireExisting") is True
+            and spec.get("lifecycle", {}).get("prune") is False
+            and source_path.startswith("releases/agent-runtime-exact-")
+        )
+        if source.get("renderer") != "kustomize" or not (source_path.startswith(generated_prefix) or exact_crd_authority or exact_object_authority):
             raise ValueError("static domain source must use its generated namespace cohort")
     else:
         if source.get("renderer") != "kustomize" or "@sha256:" not in source.get("chartOCI", ""):

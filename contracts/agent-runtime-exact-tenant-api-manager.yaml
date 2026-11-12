@@ -1,0 +1,39 @@
+apiVersion: delivery.re8ch.com/v1alpha1
+kind: ReleaseContract
+metadata:
+  name: agent-runtime-exact-tenant-api-manager
+spec:
+  authorityDomain: agent-runtime
+  target:
+    cluster: re8ch
+    namespace: tenant-infrastructure
+  source:
+    renderer: kustomize
+    revision: github-main-reviewed
+    repository: 8iops/agent-gitops
+    path: releases/agent-runtime-exact-tenant-api-manager
+  provenance:
+    repository: 8iops/agent-gitops
+    workflow: .github/workflows/static-release.yml
+    ref: refs/heads/main
+    environment: release-executor-agent-runtime
+    audience: https://kube-api.re8ch.com/release-executor-agent-runtime
+    signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
+    issuer: https://token.actions.githubusercontent.com
+  authorization:
+    fieldManager: re8ch-release/agent-runtime-exact-tenant-api
+    resources:
+    - apps/Deployment
+    objectNames:
+    - tenant-api
+    allowClusterScoped: false
+    requireExisting: true
+    forceConflictObjects:
+    - apps/Deployment/tenant-infrastructure/tenant-api
+  inventory:
+    digest: sha256:27a4d2f081e513c2aa045a6a10232316b42aaff9266fc68492f70dd516687ddc
+  lifecycle:
+    prune: false
+    healthTimeoutSeconds: 300
+    protectedKinds: []
+    deletionAllowlist: []

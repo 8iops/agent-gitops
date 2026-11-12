@@ -21,7 +21,7 @@ spec:
     signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
     issuer: https://token.actions.githubusercontent.com
   authorization:
-    fieldManager: re8ch-release/agent-runtime-domain-tenant-infrastructure
+    fieldManager: re8ch-release/observability-chart-birfucate-metering-tenant-infrastructure
     resources:
     - apps/DaemonSet
     - apps/Deployment
@@ -81,7 +81,7 @@ spec:
     - networking.k8s.io/NetworkPolicy/tenant-infrastructure/postgresql-provider
     - policy/PodDisruptionBudget/tenant-infrastructure/tenant-control-controller
   inventory:
-    digest: sha256:a1cce1a42c864d8056e56882230c9c2a7a4f441f5c9ee61e785f0a5da1b144df
+    digest: sha256:c61fb07c85cfc93e6e1469af0b21491f9ef9ffe1f82859cd0708283968b85426
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300
