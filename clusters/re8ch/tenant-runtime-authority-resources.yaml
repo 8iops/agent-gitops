@@ -27,7 +27,7 @@ spec:
       automountServiceAccountToken: false
       initContainers:
       - name: pull
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f751479965f23bbb102e6637cfefd2791004c962c15acb928dcd6d42949967d8
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f52a5c2b6a6a55baae8c7b67ed6de10d5d447fee1e90585f08cdf0d9c5847b28
         imagePullPolicy: IfNotPresent
         command:
         - sh
@@ -112,7 +112,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: runtime
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f751479965f23bbb102e6637cfefd2791004c962c15acb928dcd6d42949967d8
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f52a5c2b6a6a55baae8c7b67ed6de10d5d447fee1e90585f08cdf0d9c5847b28
         imagePullPolicy: IfNotPresent
         env:
         - name: RE8CH_TOOL_PROFILE
@@ -487,7 +487,7 @@ spec:
       - name: harbor-registry-pull
       containers:
       - name: controller
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f751479965f23bbb102e6637cfefd2791004c962c15acb928dcd6d42949967d8
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f52a5c2b6a6a55baae8c7b67ed6de10d5d447fee1e90585f08cdf0d9c5847b28
         command:
         - python
         - /app/tenant_control_controller.py
@@ -597,7 +597,7 @@ spec:
                 - r640
       containers:
       - name: reconciler
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f751479965f23bbb102e6637cfefd2791004c962c15acb928dcd6d42949967d8
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f52a5c2b6a6a55baae8c7b67ed6de10d5d447fee1e90585f08cdf0d9c5847b28
         command:
         - python
         - /app/tenant_provider_reconciler.py
