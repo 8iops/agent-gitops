@@ -40,7 +40,7 @@ spec:
         - sh
         - -c
         - 'true'
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f751479965f23bbb102e6637cfefd2791004c962c15acb928dcd6d42949967d8
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f52a5c2b6a6a55baae8c7b67ed6de10d5d447fee1e90585f08cdf0d9c5847b28
         imagePullPolicy: IfNotPresent
         name: pull
 ---
@@ -118,7 +118,7 @@ spec:
         - secretRef:
             name: tenant-claim-internal-auth
             optional: false
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f751479965f23bbb102e6637cfefd2791004c962c15acb928dcd6d42949967d8
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f52a5c2b6a6a55baae8c7b67ed6de10d5d447fee1e90585f08cdf0d9c5847b28
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -341,7 +341,7 @@ spec:
         - secretRef:
             name: tenant-claim-internal-auth
             optional: true
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f751479965f23bbb102e6637cfefd2791004c962c15acb928dcd6d42949967d8
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f52a5c2b6a6a55baae8c7b67ed6de10d5d447fee1e90585f08cdf0d9c5847b28
         livenessProbe:
           failureThreshold: 3
           httpGet:
@@ -439,7 +439,7 @@ spec:
               name: tenant-provider-identity
         - name: GRAFANA_DATABASE_BINDINGS_JSON
           value: '[{"database":"anysite","namespace":"re8ch-anysite","secretName":"anysite-db-credentials","secretUID":"ecb4edf3-eb40-4b0e-ab28-7bf3dab490c4","tenantRef":"re8ch"},{"database":"secretary","namespace":"re8ch-secretary","secretName":"secretary-db-credentials","secretUID":"e31d554c-5cf8-4663-adcd-811849a31b3c","tenantRef":"re8ch"}]'
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f751479965f23bbb102e6637cfefd2791004c962c15acb928dcd6d42949967d8
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f52a5c2b6a6a55baae8c7b67ed6de10d5d447fee1e90585f08cdf0d9c5847b28
         name: reconciler
         resources:
           limits:
