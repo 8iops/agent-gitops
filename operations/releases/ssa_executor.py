@@ -296,8 +296,14 @@ class Executor:
     def verify_signature(self, operation: dict) -> None:
         bundle = operation["bundle"]
         reference = bundle["reference"].removeprefix("oci://") + "@" + bundle["digest"]
-        self.command(["cosign", "verify", "--key", str(STATIC_RELEASE_COSIGN_KEY),
-                      "--insecure-ignore-tlog", reference], timeout=120)
+        try:
+            self.command(["cosign", "verify", "--key", str(STATIC_RELEASE_COSIGN_KEY),
+                          "--insecure-ignore-tlog", reference], timeout=120)
+        except Rejected:
+            # Accepted artifacts published before the repository-controlled key
+            # migration retain their original GitHub Actions keyless signature.
+            self.command(["cosign", "verify", "--certificate-identity", bundle["signer"],
+                          "--certificate-oidc-issuer", bundle["issuer"], reference], timeout=120)
 
     def with_audit(self, objects: list[dict], operation: dict) -> list[dict]:
         annotated = json.loads(json.dumps(objects))

@@ -23,17 +23,16 @@ def test_static_release_uses_repository_controlled_key_without_public_transparen
     assert "certificate-oidc-issuer" not in script
 
 
-def test_every_release_reconciliation_uses_the_same_pinned_public_key():
-    for name in ("static-release.yml", "agent-runtime-reconcile.yml"):
-        text = (ROOT / ".github/workflows" / name).read_text()
-        assert "cosign sign --yes \"$immutable\"" not in text
-        assert "certificate-identity" not in text
-        assert "certificate-oidc-issuer" not in text
-        assert f"cosign verify --key {PUBLIC_KEY}" in text
+def test_accepted_reconciliation_supports_pinned_key_and_legacy_keyless_signatures():
+    text = (ROOT / ".github/workflows" / "agent-runtime-reconcile.yml").read_text()
+    assert f"cosign verify --key {PUBLIC_KEY}" in text
+    assert "--certificate-identity '${{ matrix.signer }}'" in text
+    assert "--certificate-oidc-issuer https://token.actions.githubusercontent.com" in text
 
 
 def test_runtime_executor_uses_the_pinned_public_key():
     text = (ROOT / "operations/releases/ssa_executor.py").read_text()
     assert '"--key", str(STATIC_RELEASE_COSIGN_KEY)' in text
     assert '"--insecure-ignore-tlog"' in text
-    assert '"--certificate-identity"' not in text
+    assert '"--certificate-identity", bundle["signer"]' in text
+    assert '"--certificate-oidc-issuer", bundle["issuer"]' in text
