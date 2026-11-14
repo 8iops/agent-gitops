@@ -24,10 +24,13 @@ def test_static_release_uses_repository_controlled_key_without_public_transparen
 
 
 def test_accepted_reconciliation_supports_pinned_key_and_legacy_keyless_signatures():
-    text = (ROOT / ".github/workflows" / "agent-runtime-reconcile.yml").read_text()
-    assert f"cosign verify --key {PUBLIC_KEY}" in text
-    assert "--certificate-identity '${{ matrix.signer }}'" in text
-    assert "--certificate-oidc-issuer https://token.actions.githubusercontent.com" in text
+    replay = (ROOT / ".github/workflows" / "agent-runtime-reconcile.yml").read_text()
+    release = (ROOT / ".github/workflows" / "static-release.yml").read_text()
+    assert f"cosign verify --key {PUBLIC_KEY}" in replay
+    assert "--certificate-identity '${{ matrix.signer }}'" in replay
+    assert release.count("--certificate-identity '${{ needs.validate.outputs.signer }}'") == 2
+    assert "--certificate-oidc-issuer https://token.actions.githubusercontent.com" in replay
+    assert "--certificate-oidc-issuer https://token.actions.githubusercontent.com" in release
 
 
 def test_runtime_executor_uses_the_pinned_public_key():

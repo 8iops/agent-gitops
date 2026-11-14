@@ -246,7 +246,9 @@ jobs:
           fi
           immutable="${OCI_REFERENCE#oci://}@${OCI_DIGEST}"
           cosign verify --key operations/releases/keys/static-release-cosign.pub \
-            --insecure-ignore-tlog "$immutable" >/dev/null
+            --insecure-ignore-tlog "$immutable" >/dev/null || \
+          cosign verify --certificate-identity '${{ needs.validate.outputs.signer }}' \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com "$immutable" >/dev/null
           flux pull artifact "${OCI_REFERENCE}@${OCI_DIGEST}" --output "$RUNNER_TEMP/pulled"
           python operations/releases/operation_materialize.py hydrate --configmap "$RUNNER_TEMP/state-cm.json" --state-dir "$root" --release-id "$RELEASE_ID"
           request_args=(request --contract "$CONTRACT" --metadata "$RUNNER_TEMP/pulled/bundle-metadata.json" \
@@ -352,7 +354,9 @@ jobs:
           fi
           immutable="${OCI_REFERENCE#oci://}@${OCI_DIGEST}"
           cosign verify --key operations/releases/keys/static-release-cosign.pub \
-            --insecure-ignore-tlog "$immutable" >/dev/null
+            --insecure-ignore-tlog "$immutable" >/dev/null || \
+          cosign verify --certificate-identity '${{ needs.validate.outputs.signer }}' \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com "$immutable" >/dev/null
           flux pull artifact "${OCI_REFERENCE}@${OCI_DIGEST}" --output "$RUNNER_TEMP/pulled"
           python operations/releases/operation_materialize.py hydrate --configmap "$RUNNER_TEMP/state-cm.json" --state-dir "$root" --release-id "$RELEASE_ID"
           request_args=(request --contract "$CONTRACT" --metadata "$RUNNER_TEMP/pulled/bundle-metadata.json" \
