@@ -50,3 +50,14 @@ def test_matrix_and_workflow_have_no_publishing_inputs(monkeypatch):
     assert publisher['jobs']['execute']['concurrency']==workflow['jobs']['reconcile']['concurrency']=={'group':'agent-runtime-runtime-write','queue':'max','cancel-in-progress':False}
     assert 'packages: write' not in text
     assert 'flux push' not in text and 'cosign sign' not in text and 'compile_' not in text
+
+
+def test_blocked_reset_is_wired_only_to_execute_job():
+    publisher = yaml.safe_load((ROOT / '.github/workflows/static-release.yml').read_text())
+    dry_run = next(step['run'] for step in publisher['jobs']['runtime-dry-run']['steps']
+                   if step.get('name') == 'Verify signed artifact and perform bounded server-side preflight')
+    execute = next(step['run'] for step in publisher['jobs']['execute']['steps']
+                   if step.get('name') == 'Pull signed digest, resume durable state and reconcile')
+    assert 'reset_blocked' not in dry_run
+    assert '--allow-blocked' in execute
+    assert 'request_args+=(--action reset)' in execute
