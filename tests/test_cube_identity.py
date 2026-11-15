@@ -5,6 +5,14 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_cube_recovery_contract_allows_missing_objects_to_be_created():
+    contract = yaml.safe_load(
+        (ROOT / "contracts/agent-runtime-domain-cube-trial.yaml").read_text()
+    )
+
+    assert contract["spec"]["authorization"]["requireExisting"] is False
 ISSUER = "https://db-rw.re8ch.com/auth/v1"
 CLIENT_ID = "5e150902-f015-5c2d-b962-049f71900311"
 CALLBACK = "https://cube.service.re8ch.com/oauth2/callback"
