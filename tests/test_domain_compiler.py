@@ -37,6 +37,10 @@ def test_long_namespace_names_do_not_collide():
     assert all(len(name)<=63 for name in names)
 
 
+def test_only_cube_recovery_namespace_is_create_enabled():
+    assert compiler.CREATE_ENABLED_NAMESPACES == {'cube-trial'}
+
+
 def test_runtime_profiles_cannot_write_rbac_or_escalate():
     import yaml
     access=list(yaml.safe_load_all((ROOT/'operations/releases/domain-access.yaml').read_text()))
