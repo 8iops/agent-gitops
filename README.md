@@ -5,8 +5,11 @@
 [![Contract validation](https://github.com/8iops/agent-gitops/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/8iops/agent-gitops/actions/workflows/validate.yml?query=branch%3Amain)
 
 These live badges show the latest workflow result on `main`, including scheduled
-and manual runs. Reconcile runs can cover a single release; a passing badge is
-not proof that every release is healthy or that SSA changed an object. Open the
+and manual runs. The scheduled Reconcile badge covers only the small, declared
+Agent control-plane scope in `operations/releases/scheduled-reconcile.yaml`.
+Generated namespace-domain releases are deliberately excluded from that badge
+and run only when explicitly targeted. A passing badge is not proof that every
+release is healthy or that SSA changed an object. Open the
 run for its release scope, accepted digest, comparison, apply and health results.
 The [domain observation Project](https://github.com/orgs/8iops/projects/2) retains release-level evidence;
 receipt dispatch and governance checks do not replace runtime health verification.

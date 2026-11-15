@@ -15,7 +15,7 @@ from unified_bundle import validate_schema
 
 from kube_transport import transient_failure
 from operation_materialize import accepted_bundle, state_configmap_name
-from profile import ROOT, replay_matrix
+from profile import ROOT, replay_matrix, scheduled_replay_matrix
 
 
 def read_state(argv, runner, sleeper):
@@ -86,7 +86,9 @@ def main():
     parser.add_argument('--summary',type=Path,required=True)
     parser.add_argument('--release-id', default='')
     args=parser.parse_args()
-    selected,skipped,invalid=select(scope_matrix(replay_matrix(), args.release_id))
+    matrix = replay_matrix()
+    matrix = scope_matrix(matrix, args.release_id) if args.release_id else scheduled_replay_matrix(matrix)
+    selected,skipped,invalid=select(matrix)
     with args.github_output.open('a') as output:
         output.write('matrix='+json.dumps({'include':selected},separators=(',',':'))+'\n')
         output.write('has-accepted='+('true' if selected else 'false')+'\n')

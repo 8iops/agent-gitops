@@ -1,0 +1,9 @@
+apiVersion: delivery.re8ch.com/v1alpha1
+kind: ScheduledReconcileScope
+metadata:
+  name: agent-runtime-core
+spec:
+  releases:
+  - agent-runtime-exact-tenant-api-manager
+  - agent-runtime-tenant-crd-authority
+  - agent-runtime-toolhive-operator

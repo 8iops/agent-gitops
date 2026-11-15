@@ -105,11 +105,29 @@ def test_empty_selector_outputs_skip_flag(tmp_path,monkeypatch):
     import sys
     output=tmp_path/'output';summary=tmp_path/'summary'
     monkeypatch.setattr(selector,'replay_matrix',lambda:[])
+    monkeypatch.setattr(selector,'scheduled_replay_matrix',lambda matrix:matrix)
     monkeypatch.setattr(sys,'argv',['selector','--github-output',str(output),'--summary',str(summary)])
     selector.main()
     assert 'matrix={"include":[]}\n' in output.read_text()
     assert 'has-accepted=false\n' in output.read_text()
     assert 'invalid=0\n' in output.read_text()
+
+
+def test_default_selection_uses_scheduled_core_but_explicit_release_can_target_any(tmp_path,monkeypatch):
+    core={'release-id':'agent-runtime-toolhive-operator','namespace':'toolhive-system','contract':'core.yaml'}
+    generated={'release-id':'agent-runtime-domain-cube-trial','namespace':'cube-trial','contract':'generated.yaml'}
+    monkeypatch.setattr(selector,'replay_matrix',lambda:[core,generated])
+    monkeypatch.setattr(selector,'scheduled_replay_matrix',lambda matrix:[core])
+    captured=[]
+    monkeypatch.setattr(selector,'select',lambda matrix:(captured.append(matrix) or ([],[],[])))
+    import sys
+    output=tmp_path/'output';summary=tmp_path/'summary'
+    monkeypatch.setattr(sys,'argv',['selector','--github-output',str(output),'--summary',str(summary)])
+    selector.main()
+    assert captured.pop()==[core]
+    monkeypatch.setattr(sys,'argv',['selector','--release-id',generated['release-id'],'--github-output',str(output),'--summary',str(summary)])
+    selector.main()
+    assert captured.pop()==[generated]
 
 
 def test_domain_outage_is_bounded_by_four_exact_reads(tmp_path):

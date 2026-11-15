@@ -21,6 +21,7 @@ SIGNER = f"https://github.com/{REPOSITORY}/{WORKFLOW}@refs/heads/main"
 REPLAY_WORKFLOW = ".github/workflows/agent-runtime-reconcile.yml"
 REPLAY_ENVIRONMENT = "release-reconciler-agent-runtime"
 REPLAY_AUDIENCE = "https://kube-api.re8ch.com/release-reconciler-agent-runtime"
+SCHEDULED_RECONCILE_SCOPE = ROOT / "operations/releases/scheduled-reconcile.yaml"
 
 
 def sha256(path: Path) -> str:
@@ -109,6 +110,18 @@ def replay_matrix() -> list[dict[str, str]]:
         result.append({**profile, "contract": str(path.relative_to(ROOT)),
                        "environment": REPLAY_ENVIRONMENT, "audience": REPLAY_AUDIENCE})
     return result
+
+
+def scheduled_replay_matrix(matrix: list[dict[str, str]] | None = None) -> list[dict[str, str]]:
+    matrix = replay_matrix() if matrix is None else matrix
+    configured = yaml.safe_load(SCHEDULED_RECONCILE_SCOPE.read_text())["spec"]["releases"]
+    if not isinstance(configured, list) or not configured or len(configured) != len(set(configured)):
+        raise ValueError("scheduled reconcile releases must be a non-empty unique list")
+    by_id = {entry["release-id"]: entry for entry in matrix}
+    unknown = sorted(set(configured) - set(by_id))
+    if unknown:
+        raise ValueError("scheduled reconcile contains unknown releases: " + ", ".join(unknown))
+    return [by_id[release_id] for release_id in configured]
 
 
 def main() -> int:
