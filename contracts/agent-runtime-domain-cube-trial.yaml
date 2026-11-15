@@ -57,7 +57,7 @@ spec:
     - cube-warehouse-minio
     - oauth2-proxy-cube
     allowClusterScoped: false
-    requireExisting: false
+    requireExisting: true
     forceConflictObjects:
     - apps/DaemonSet/cube-trial/cube-recovery-node
     - apps/DaemonSet/cube-trial/cube-recovery-node-bootstrap
