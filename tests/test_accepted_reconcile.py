@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import pytest
 import yaml
 from test_ssa_release_executor import prepare, executor, NOW, canonical, digest, compile_bundle, rendered
-from profile import replay_matrix, replay_provenance, REPOSITORY, WORKFLOW, ENVIRONMENT, AUDIENCE, SIGNER, REPLAY_AUDIENCE
+from profile import replay_matrix, replay_provenance, scheduled_replay_matrix, REPOSITORY, WORKFLOW, ENVIRONMENT, AUDIENCE, SIGNER, REPLAY_AUDIENCE
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -50,6 +50,17 @@ def test_matrix_and_workflow_have_no_publishing_inputs(monkeypatch):
     assert publisher['jobs']['execute']['concurrency']==workflow['jobs']['reconcile']['concurrency']=={'group':'agent-runtime-runtime-write','queue':'max','cancel-in-progress':False}
     assert 'packages: write' not in text
     assert 'flux push' not in text and 'cosign sign' not in text and 'compile_' not in text
+
+
+def test_scheduled_matrix_is_small_explicit_control_plane_scope(monkeypatch):
+    monkeypatch.chdir(ROOT)
+    scheduled = scheduled_replay_matrix()
+    assert [entry['release-id'] for entry in scheduled] == [
+        'agent-runtime-exact-tenant-api-manager',
+        'agent-runtime-tenant-crd-authority',
+        'agent-runtime-toolhive-operator',
+    ]
+    assert all('-domain-' not in entry['release-id'] for entry in scheduled)
 
 
 def test_blocked_reset_is_wired_only_to_execute_job():
