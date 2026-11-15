@@ -522,3 +522,44 @@ def test_unhealthy_reconcile_preserves_runtime_and_blocks_next_worker(tmp_path, 
     with pytest.raises(executor.Rejected, match="release is blocked"):
         executor.Executor(runner=runner, now=lambda: NOW).reconcile(value, next_operation, bundle_path, next_root)
     assert runner.calls == []
+
+
+def test_publisher_can_reset_blocked_release_without_applying_objects(tmp_path):
+    value, operation, bundle_path = prepare(tmp_path)
+    root = tmp_path / "state"
+    instance = executor.Executor(runner=Runner(), now=lambda: NOW, sleeper=lambda _: None)
+    instance.reconcile(value, operation, bundle_path, root, verify_signature=False)
+    state = executor.Store(root, "demo").state()
+    state["blocked"] = True
+    state["blockedReason"] = "manual recovery required"
+    executor.Store(root, "demo").accept(state)
+    _, reset, _ = prepare(tmp_path, sequence=2, previous=state["appliedDigest"])
+    reset["action"] = "reset"
+    runner = Runner()
+    result = executor.Executor(runner=runner, now=lambda: NOW).reconcile(
+        value, reset, bundle_path, root, verify_signature=False)
+    recovered = executor.Store(root, "demo").state()
+    assert result["outcome"] == "healthy"
+    assert result["health"]["reason"] == "reset state recorded"
+    assert recovered["blocked"] is False
+    assert "blockedReason" not in recovered
+    assert runner.calls == []
+
+
+def test_blocked_bundle_requires_explicit_recovery_opt_in(tmp_path):
+    import yaml
+    value, operation, bundle_path = prepare(tmp_path)
+    root = tmp_path / "state"
+    executor.Executor(runner=Runner(), now=lambda: NOW).reconcile(
+        value, operation, bundle_path, root, verify_signature=False)
+    state = executor.Store(root, "demo").state()
+    state.update(blocked=True, bundleReference="oci://ghcr.io/8iops/agent-gitops-release/demo")
+    cm_path = tmp_path / "cm.json"
+    cm_path.write_text(json.dumps({"metadata": {"name": "ssa-state-demo", "namespace": "demo"},
+                                   "data": {"accepted-state.json": json.dumps(state)}}))
+    contract_path = tmp_path / "contract.yaml"
+    contract_path.write_text(yaml.safe_dump(value))
+    with pytest.raises(ValueError, match="blocked or suspended"):
+        materialize.accepted_bundle(cm_path, contract_path)
+    assert materialize.accepted_bundle(cm_path, contract_path, allow_blocked=True) == {
+        "reference": state["bundleReference"], "digest": state["appliedDigest"]}
