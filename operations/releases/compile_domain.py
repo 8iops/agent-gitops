@@ -21,9 +21,6 @@ PREFIX = ('observability' if DOMAIN == 'observability-metering' else DOMAIN) + '
 PLURALS = {'ServiceAccount':'serviceaccounts','Service':'services','ConfigMap':'configmaps','PersistentVolumeClaim':'persistentvolumeclaims','Deployment':'deployments','StatefulSet':'statefulsets','DaemonSet':'daemonsets','Job':'jobs','CronJob':'cronjobs','HorizontalPodAutoscaler':'horizontalpodautoscalers','PodDisruptionBudget':'poddisruptionbudgets','NetworkPolicy':'networkpolicies','Ingress':'ingresses','EndpointSlice':'endpointslices','HTTPRoute':'httproutes','CiliumNetworkPolicy':'ciliumnetworkpolicies','Role':'roles','RoleBinding':'rolebindings','MCPServer':'mcpservers','ResourceQuota':'resourcequotas'}
 CUSTOM_TYPES = json.loads((ROOT/'operations/releases/resource-types.json').read_text())
 FLUX_GROUPS = {'source.toolkit.fluxcd.io','helm.toolkit.fluxcd.io','kustomize.toolkit.fluxcd.io','notification.toolkit.fluxcd.io','image.toolkit.fluxcd.io'}
-# Cube's reviewed recovery cohort includes workloads that may not exist yet.
-# All creates remain bounded by the generated kind, namespace and object-name allowlists.
-CREATE_ENABLED_NAMESPACES = {'cube-trial'}
 
 def group(item):
     return item['apiVersion'].split('/')[0] if '/' in item['apiVersion'] else 'core'
@@ -92,7 +89,7 @@ def compile_outputs():
             'authorityDomain':DOMAIN,'target':{'cluster':'re8ch','namespace':namespace},
             'source':{'renderer':'kustomize','revision':'github-main-reviewed','repository':REPOSITORY,'path':'releases/'+name},
             'provenance':{'repository':REPOSITORY,'workflow':WORKFLOW,'ref':'refs/heads/main','environment':ENVIRONMENT,'audience':AUDIENCE,'signer':SIGNER,'issuer':'https://token.actions.githubusercontent.com'},
-            'authorization':{'fieldManager':'re8ch-release/'+name,'resources':sorted({group(d)+'/'+d['kind'] for d in objects}),'objectNames':sorted({d['metadata']['name'] for d in objects}),'allowClusterScoped':False,'requireExisting':namespace not in CREATE_ENABLED_NAMESPACES,'forceConflictObjects':[object_identity(d) for d in objects if d['kind'] not in {'Namespace','CustomResourceDefinition','PersistentVolume','PersistentVolumeClaim','StorageClass'}]},
+            'authorization':{'fieldManager':'re8ch-release/'+name,'resources':sorted({group(d)+'/'+d['kind'] for d in objects}),'objectNames':sorted({d['metadata']['name'] for d in objects}),'allowClusterScoped':False,'requireExisting':True,'forceConflictObjects':[object_identity(d) for d in objects if d['kind'] not in {'Namespace','CustomResourceDefinition','PersistentVolume','PersistentVolumeClaim','StorageClass'}]},
             'inventory':{'digest':digest(canonical(inventory))},
             'lifecycle':{'prune':False,'healthTimeoutSeconds':300,'protectedKinds':['Namespace','CustomResourceDefinition','PersistentVolume','PersistentVolumeClaim','StorageClass'],'deletionAllowlist':[]}}}
         body=yaml.safe_dump_all(objects,sort_keys=False,explicit_start=True)
