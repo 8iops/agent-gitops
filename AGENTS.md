@@ -1,31 +1,51 @@
 # Agent GitOps repository
 
-- Use signed commits and pull requests for every desired-state change.
-- Never commit credentials or decrypted SOPS material.
-- Pin images and OCI/Helm artifacts by digest.
-- The production root is `clusters/re8ch`.
-- Keep product runtime Deployments excluded when their authority is `product-publisher` or `control-plane-direct`.
-- Local Flux writers are permanently retired and forbidden. Never create, restore, scale, restart, repair, proxy or grant RBAC to Source, Kustomize, Helm, Notification, image automation, compatibility or domain Flux controllers.
-- Retained Flux CRDs and manifests are historical/migration inputs only. GitHub webhooks/Actions plus the bounded cloud SSA executor are the sole delivery path, including emergency recovery.
+This repository owns reviewed Agent-domain desired state. The production root
+is `clusters/re8ch`; product publishers retain their declared runtime authority.
 
-- Before using RE8CH self-service or platform tools, read [docs/RE8CH-TOOLS.md](docs/RE8CH-TOOLS.md) and discover the current authenticated catalog.
+Local Flux writers are permanently retired and forbidden. GitHub webhooks and
+Actions plus the bounded cloud SSA executor form the sole delivery and recovery
+path.
 
-## Shared developer context
+## Start work
 
-- This repository is the desired-state authority for its own domain. The
-  [service-backend developer-context declaration](https://github.com/re8ch/service-backend/blob/main/workspace/developer-context.yaml)
-  supplies cross-repository navigation only and never overrides this file.
-- Start every change from current `origin/main` in a task-specific `codex/*`
-  worktree. Keep the base checkout clean; preserve dirty work before cleanup.
-- A Codespace is an ephemeral developer machine, not a reconciliation
-  controller. GitHub Actions and runtime read-back remain delivery evidence.
-- Wiki, Projects and Gists are projections or task evidence. Stable context and
-  desired state must be reviewed in Git; never place credentials in them.
-- Every change pull request must close an Issue. Every change Issue must belong
-  to exactly one requirement Project declared in `governance/context.json`;
-  use the `Others` Project when no narrower context applies.
-- Keep permissions, dependencies, Code Quality and Dependabot configuration as
-  static reviewed context. Put changing observations and investigation evidence
-  in Discussions or the Observability Wiki, not in desired-state files.
-- Run the validation suite once for each pull-request head. Do not repeat the
-  same render, test or build after merging an already validated head.
+1. Read `docs/RE8CH-TOOLS.md` for current authenticated platform capabilities.
+2. Treat `/Volumes/A1/agent-gitops` as the local read-only anchor.
+3. Fetch `origin/main` and create one task-specific `codex/*` worktree.
+4. Connect the worktree to one delivery Issue and one parent outcome Issue.
+5. Keep credentials and decrypted SOPS material in approved secret systems.
+
+## Rich-context delivery
+
+```text
+Project → parent Issue → Issue → branch/worktree → commits → PR
+        → validation → runtime evidence → Project status
+```
+
+- Every change PR closes an Issue.
+- Every change Issue belongs to exactly one Project declared in
+  `governance/context.json`; `Others` represents unresolved ownership.
+- Parent Issues and Milestones express outcomes, phases and historical time.
+- Project items carry type, lifecycle, status, relevant dates and local risk.
+- Signed commits describe the smallest coherent desired-state transition.
+- Validation runs once for each PR head. A changed head starts a new run.
+- Immutable artifacts are built once per source revision and build configuration,
+  then reused through verification and delivery.
+
+Use `.github/PROJECT_CONTEXT_TEMPLATE.md` for new Projects and reconstruction.
+
+## Code and context
+
+- Prefer existing GitHub and platform primitives and the smallest implementation.
+- Keep comments for non-obvious invariants, security boundaries and external
+  contracts. Names, types and tests explain ordinary control flow.
+- Remove obsolete code, duplicate adapters and stale commentary while changing
+  their owning path.
+- Keep permissions, dependencies, Code Quality, Dependabot and release authority
+  as static reviewed context.
+- Put Kubernetes output, incident timelines, experiments and migration stories
+  in Discussions, Wiki or observability; Issues link the evidence to outcomes.
+- Read back GitHub checks and actual runtime state before completing Project work.
+
+Generated cross-repository context provides navigation. This file and reviewed
+repository contracts define Agent GitOps authority.

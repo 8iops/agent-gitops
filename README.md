@@ -4,95 +4,56 @@
 [![Reconcile](https://github.com/8iops/agent-gitops/actions/workflows/agent-runtime-reconcile.yml/badge.svg?branch=main)](https://github.com/8iops/agent-gitops/actions/workflows/agent-runtime-reconcile.yml?query=branch%3Amain)
 [![Pull request validation](https://github.com/8iops/agent-gitops/actions/workflows/validate.yml/badge.svg?event=pull_request)](https://github.com/8iops/agent-gitops/actions/workflows/validate.yml?query=event%3Apull_request)
 
-The Reconcile badge shows the latest runtime workflow result on `main`. Pull
-request validation runs once for each PR head and is not repeated after merge.
-The scheduled Reconcile badge covers only the small, declared
-Agent control-plane scope in `operations/releases/scheduled-reconcile.yaml`.
-Generated namespace-domain releases are deliberately excluded from that badge
-and run only when explicitly targeted. A passing badge is not proof that every
-release is healthy or that SSA changed an object. Open the
-run for its release scope, accepted digest, comparison, apply and health results.
-Changing observations belong in [Discussions](https://github.com/8iops/agent-gitops/discussions)
-or the [Observability Wiki](https://github.com/8iops/agent-gitops/wiki/Observability).
-The historical domain observation Project is read-only transition material;
-receipt dispatch and governance checks do not replace runtime health verification.
-Private workflow badges require repository access.
+Pull-request validation runs once for each PR head. Reconcile reports the
+declared release scope, accepted digest, SSA result and separate runtime
+observation. Changing evidence belongs in
+[Discussions](https://github.com/8iops/agent-gitops/discussions), the
+[Observability Wiki](https://github.com/8iops/agent-gitops/wiki/Observability)
+or the observability backend.
 <!-- gitops-status:end -->
 
-## Requirement context
+This repository stores reviewed Agent-domain desired state, signed immutable
+artifact references and release contracts. Product repositories own source and
+build artifacts. Kubernetes owns live state.
 
-Every change pull request closes an Issue, and every change Issue belongs to one
-allowed requirement Project. Issues remain free-form; use
-[Others](https://github.com/orgs/8iops/projects/5) when no narrower Project
-applies. See [the repository context model](docs/CONTEXT-MODEL.md) and its
-machine-readable declaration in `governance/context.json`.
+Local Flux writers are permanently retired and forbidden. GitHub webhooks and
+Actions select reviewed artifacts; the bounded cloud SSA executor is the sole
+runtime writer and recovery path.
 
-Private desired-state authority for the RE8CH Agent, ToolHive, and fast-moving tool runtime guardrails.
+## Collaboration model
 
-Product source and release artifacts remain in their product repositories. This repository pins signed immutable artifacts and cluster configuration only.
+```text
+Project → parent Issue → Issue → branch/worktree → signed commits → PR
+        → one validation run → merge → runtime evidence → Project status
+```
 
-## Local Flux prohibition
+- Projects own requirement domains.
+- Parent Issues express outcomes and historical phases.
+- One Issue, branch, worktree and PR form one review unit.
+- Project fields expose type, status, lifecycle and dates.
+- Static permissions, dependencies and release contracts remain in Git.
+- Runtime output, investigations and operational stories live in Discussion,
+  Wiki or observability.
 
-Local Flux writers are permanently retired and forbidden. Do not create,
-restore, scale, restart, repair, proxy or authorize Source, Kustomize, Helm,
-Notification, image automation, compatibility or domain Flux controllers.
-Retained Flux APIs and manifests are historical/migration inputs only. GitHub
-webhooks and Actions select reviewed immutable artifacts; the bounded cloud SSA
-executor is the sole runtime writer and the only recovery path.
+Use [the Project context template](.github/PROJECT_CONTEXT_TEMPLATE.md) and the
+[repository context model](docs/CONTEXT-MODEL.md). Requirement Projects are
+declared in [`governance/context.json`](governance/context.json); `Others`
+holds context whose ownership is still unresolved.
 
-`contracts/agent-runtime-toolhive-operator.yaml` is the first static GitOps
-shadow release. It compiles the reviewed render of the digest-pinned ToolHive
-Operator chart into a deterministic OCI bundle, signs it with the protected
-`release-executor-agent-runtime` workflow identity, and does not mutate the
-cluster. The bounded cloud SSA executor retains sole ownership through dry-run,
-takeover, replay, health and rollback; local Flux cannot be a migration writer.
+## Repository map
 
-## Cloud release artifact reuse
+- `clusters/re8ch`: production Agent desired-state root
+- `contracts`: reviewed release and ownership contracts
+- `operations/releases`: deterministic compilation and bounded SSA execution
+- `operations/cube-recovery`: reviewed recovery inputs
+- `governance`: Rulesets, Projects and context-completeness declarations
+- `docs`: durable architecture and operating contracts
+- `tests`: contract and executor verification
 
-`static-release` defaults to `mode=publish` for a reviewed change. Use
-`mode=reconcile` with `execute=true` to replay the target's healthy accepted OCI
-digest without recompiling or publishing. Replays verify the original signer,
-inventory and contract; blocked or suspended releases are rejected. Agent owner
-migration requires an initial publication with the new canonical signer before
-accepted-artifact replay can be used. State writes use optimistic concurrency.
+The `static-release` workflow publishes one signed artifact for a reviewed
+revision and reuses its digest for replay. SSA execution and runtime observation
+remain distinct evidence. Restricted configuration stays encrypted in signed
+artifacts and is decrypted only inside the protected executor boundary.
 
-Public pull request checks use GitHub-hosted workers. Private preparation can use
-the restricted R640 fallback. Validation supersedes obsolete runs; deployment
-runs remain serialized. No local Docker daemon is required by these workflows.
-
-## Native domain cloud handoff
-
-`python operations/releases/compile_domain.py` reuses the established SSA contract
-and bundle validators to partition the production root by namespace. Generated
-`contracts/*-domain-*.yaml` run through the existing `static-release` workflow.
-`operations/releases/domain-access.yaml` is the exact reviewed access/state seed
-for platform bootstrap; it is not included in this domain's runtime root.
-
-The cohort report lists every source object, either in a publishable release or
-with a specific remaining migration reason. Secret payloads and encrypted
-configuration never enter public OCI bundles. Existing chart snapshot contracts
-remain separate owners. Initial adoption permits only the exact reviewed object
-inventory through `force_takeover=true`, after the previous writer is stopped.
-Pruning is disabled during this first adoption; no migration deletes resources.
-
-CI verifies deterministic outputs and compiles every generated contract. Actual
-cloud adoption still requires the platform access seed and a successful release
-run; generated bundles alone do not establish runtime ownership.
-
-Role and RoleBinding desired objects remain platform-owned until admission can enforce their exact reviewed contents. Runtime groups receive no RBAC writes, bind, escalate or impersonate permission. Exact role names alone are not an escalation boundary.
-
-Adoption contracts set `authorization.requireExisting=true`: the executor verifies the artifact, reads each exact object's resourceVersion and sends it as the SSA precondition. Missing objects and concurrent changes fail closed; adoption never silently recreates a deleted object. Ordinary release contracts without this flag retain creation behavior. One-shot Jobs are platform-owned and excluded from replay, and protected storage objects are excluded from force-conflict requests.
-
-Restricted ConfigMaps retain their original ordered SOPS ciphertext inside the signed artifact. Only protected runtime preflight/execute receives `SOPS_AGE_KEY`; after signature validation the executor decrypts in memory, checks object identity and plaintext parity hashes, and suppresses sensitive command diagnostics. Publishing never receives a key and Secrets remain excluded.
-
-## Independent SSA and Observe actions
-
-Reconcile reports SSA execution and runtime observation separately. The SSA step
-validates authorization and the signed accepted artifact, performs server-side
-dry-run and apply, then records `outcome: applied` and `acceptedDigest`. It does
-not claim a healthy runtime. The following read-only Observe step publishes a
-separate observation artifact and records healthy, degraded or unknown health.
-Runtime health does not fail SSA, lock the release or trigger rollback. Signature,
-authorization, field ownership and API write failures remain execution failures.
-Legacy `healthyDigest` is only a fallback for older accepted records; new replay
-authorization uses the explicitly accepted digest without inventing health proof.
+See [`AGENTS.md`](AGENTS.md) before changing desired state and
+[`docs/RE8CH-TOOLS.md`](docs/RE8CH-TOOLS.md) before using platform tools.
