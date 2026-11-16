@@ -2,19 +2,30 @@
 
 <!-- gitops-status:start -->
 [![Reconcile](https://github.com/8iops/agent-gitops/actions/workflows/agent-runtime-reconcile.yml/badge.svg?branch=main)](https://github.com/8iops/agent-gitops/actions/workflows/agent-runtime-reconcile.yml?query=branch%3Amain)
-[![Contract validation](https://github.com/8iops/agent-gitops/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/8iops/agent-gitops/actions/workflows/validate.yml?query=branch%3Amain)
+[![Pull request validation](https://github.com/8iops/agent-gitops/actions/workflows/validate.yml/badge.svg?event=pull_request)](https://github.com/8iops/agent-gitops/actions/workflows/validate.yml?query=event%3Apull_request)
 
-These live badges show the latest workflow result on `main`, including scheduled
-and manual runs. The scheduled Reconcile badge covers only the small, declared
+The Reconcile badge shows the latest runtime workflow result on `main`. Pull
+request validation runs once for each PR head and is not repeated after merge.
+The scheduled Reconcile badge covers only the small, declared
 Agent control-plane scope in `operations/releases/scheduled-reconcile.yaml`.
 Generated namespace-domain releases are deliberately excluded from that badge
 and run only when explicitly targeted. A passing badge is not proof that every
 release is healthy or that SSA changed an object. Open the
 run for its release scope, accepted digest, comparison, apply and health results.
-The [domain observation Project](https://github.com/orgs/8iops/projects/2) retains release-level evidence;
+Changing observations belong in [Discussions](https://github.com/8iops/agent-gitops/discussions)
+or the [Observability Wiki](https://github.com/8iops/agent-gitops/wiki/Observability).
+The historical domain observation Project is read-only transition material;
 receipt dispatch and governance checks do not replace runtime health verification.
 Private workflow badges require repository access.
 <!-- gitops-status:end -->
+
+## Requirement context
+
+Every change pull request closes an Issue, and every change Issue belongs to one
+allowed requirement Project. Issues remain free-form; use
+[Others](https://github.com/orgs/8iops/projects/5) when no narrower Project
+applies. See [the repository context model](docs/CONTEXT-MODEL.md) and its
+machine-readable declaration in `governance/context.json`.
 
 Private desired-state authority for the RE8CH Agent, ToolHive, and fast-moving tool runtime guardrails.
 

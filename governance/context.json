@@ -1,0 +1,62 @@
+{
+  "apiVersion": "governance.re8ch.com/v1alpha1",
+  "kind": "RepositoryContext",
+  "repository": "8iops/agent-gitops",
+  "relationships": {
+    "pullRequest": "must close at least one issue",
+    "issue": "must belong to exactly one allowed requirement project",
+    "project": "defines the durable requirement context"
+  },
+  "requirementProjects": [
+    {
+      "class": "runtime",
+      "label": "project:runtime",
+      "id": "PVT_kwDOE_Gpfs4Br5VQ",
+      "number": 3,
+      "title": "Agent Runtime Requirements",
+      "url": "https://github.com/orgs/8iops/projects/3"
+    },
+    {
+      "class": "governance",
+      "label": "project:governance",
+      "id": "PVT_kwDOE_Gpfs4Br5Vc",
+      "number": 4,
+      "title": "Governance and Dependencies",
+      "url": "https://github.com/orgs/8iops/projects/4"
+    },
+    {
+      "class": "other",
+      "label": "project:other",
+      "id": "PVT_kwDOE_Gpfs4Br5Vh",
+      "number": 5,
+      "title": "Others",
+      "url": "https://github.com/orgs/8iops/projects/5"
+    }
+  ],
+  "staticContext": {
+    "permissions": ["AGENTS.md", ".github/workflows", "governance/rulesets", "contracts", "policies"],
+    "dependencies": [".github/dependabot.yml", "operations/cube-recovery/images.lock.json", "contracts"],
+    "codeQuality": {
+      "workflow": ".github/workflows/validate.yml",
+      "requiredCheck": "validate / render",
+      "execution": "once-per-pull-request-head",
+      "securityFindings": "runtime-only",
+      "githubCodeScanningDefaultSetup": "disabled"
+    },
+    "dependabot": {
+      "configuration": ".github/dependabot.yml",
+      "autonomousPullRequests": false,
+      "reason": "Dependency PRs must first have an Issue and requirement Project context."
+    }
+  },
+  "dynamicContext": {
+    "discussion": "https://github.com/8iops/agent-gitops/discussions",
+    "observabilityWiki": "https://github.com/8iops/agent-gitops/wiki/Observability",
+    "rawTelemetryInGit": false,
+    "projectMembershipReadback": "runtime GitHub App verifies Project and label parity",
+    "legacyObservationProject": {
+      "number": 2,
+      "status": "read-only-transition"
+    }
+  }
+}
