@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 0
+    labels:
+      - dependencies
+    commit-message:
+      prefix: chore(actions)
+
+# Version-update pull requests remain disabled until the governance GitHub App
+# creates a requirement Issue, adds it to Governance and Dependencies, and links
+# the PR. Runtime security findings are intentionally outside pull-request CI.

@@ -21,3 +21,11 @@
   controller. GitHub Actions and runtime read-back remain delivery evidence.
 - Wiki, Projects and Gists are projections or task evidence. Stable context and
   desired state must be reviewed in Git; never place credentials in them.
+- Every change pull request must close an Issue. Every change Issue must belong
+  to exactly one requirement Project declared in `governance/context.json`;
+  use the `Others` Project when no narrower context applies.
+- Keep permissions, dependencies, Code Quality and Dependabot configuration as
+  static reviewed context. Put changing observations and investigation evidence
+  in Discussions or the Observability Wiki, not in desired-state files.
+- Run the validation suite once for each pull-request head. Do not repeat the
+  same render, test or build after merging an already validated head.
