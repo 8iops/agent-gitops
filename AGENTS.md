@@ -7,6 +7,7 @@
 - Keep product runtime Deployments excluded when their authority is `product-publisher` or `control-plane-direct`.
 - Local Flux writers are permanently retired and forbidden. Never create, restore, scale, restart, repair, proxy or grant RBAC to Source, Kustomize, Helm, Notification, image automation, compatibility or domain Flux controllers.
 - Retained Flux CRDs and manifests are historical/migration inputs only. GitHub webhooks/Actions plus the bounded cloud SSA executor are the sole delivery path, including emergency recovery.
+- For reconcile failures, follow [docs/GITHUB_OPS_RECONCILE_DEBUGGING.md](docs/GITHUB_OPS_RECONCILE_DEBUGGING.md). Inspect the selection job before blaming a sibling release: `state-read-failed` means the exact accepted-state read failed and requires identity, namespace, resource-name and cluster-scoped RBAC comparison.
 
 - Before using RE8CH self-service or platform tools, read [docs/RE8CH-TOOLS.md](docs/RE8CH-TOOLS.md) and discover the current authenticated catalog.
 

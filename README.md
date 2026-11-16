@@ -18,6 +18,8 @@ Private workflow badges require repository access.
 
 Private desired-state authority for the RE8CH Agent, ToolHive, and fast-moving tool runtime guardrails.
 
+For reconcile incidents, use the local [GitHub-ops debugging notes](docs/GITHUB_OPS_RECONCILE_DEBUGGING.md) and the cross-domain authoritative runbook linked there.
+
 Product source and release artifacts remain in their product repositories. This repository pins signed immutable artifacts and cluster configuration only.
 
 ## Local Flux prohibition
