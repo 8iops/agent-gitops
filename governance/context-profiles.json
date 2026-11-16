@@ -1,0 +1,29 @@
+{
+  "apiVersion": "governance.re8ch.com/v1alpha1",
+  "kind": "ContextCompletenessProfiles",
+  "defaultProfile": "change-context-v1",
+  "profiles": {
+    "change-context-v1": {
+      "description": "Semantic completeness contract for an Issue or Feature that authorizes a repository change.",
+      "requiredSemantics": [
+        {"key": "purpose", "question": "Why is this needed?", "acceptedBindings": ["issue-body", "issue-field", "project-field", "parent-issue"]},
+        {"key": "outcome", "question": "What observable result is expected?", "acceptedBindings": ["issue-body", "issue-field", "project-field"]},
+        {"key": "scope", "question": "What is in and explicitly out of scope?", "acceptedBindings": ["issue-body", "sub-issues", "linked-document"]},
+        {"key": "dependencies", "question": "What repositories, artifacts, services, Issues or decisions are required or blocked?", "acceptedBindings": ["issue-body", "sub-issues", "linked-issues", "project-field"]},
+        {"key": "authority", "question": "What identity, permission boundary and source of truth authorize the work?", "acceptedBindings": ["issue-body", "issue-field", "project-field", "repository-policy"]},
+        {"key": "time", "question": "What created, start, target, completion or last-reviewed times matter?", "acceptedBindings": ["system-time", "issue-field", "project-field", "milestone"]},
+        {"key": "acceptance", "question": "What evidence makes the requirement complete?", "acceptedBindings": ["issue-body", "task-list", "issue-field", "linked-document"]},
+        {"key": "delivery", "question": "What PR, artifact, deployment and runtime result implement it?", "acceptedBindings": ["linked-pull-request", "issue-body", "project-field", "deployment"]},
+        {"key": "dynamic-evidence", "question": "Where are changing observations and telemetry discussed?", "acceptedBindings": ["discussion", "observability-wiki", "external-observability-link"]},
+        {"key": "provenance", "question": "Is this contemporaneous, migrated or historically inferred, and with what confidence?", "acceptedBindings": ["issue-body", "issue-field", "project-field", "timeline"]}
+      ],
+      "rules": [
+        "Projects may rename fields and use repository-specific types and statuses.",
+        "A semantic may be satisfied by any accepted binding; duplicate fields are not required.",
+        "Missing context is explicit rather than silently inferred.",
+        "Historical items record the represented time range and whether classification was inferred.",
+        "Raw telemetry and secrets never satisfy durable context."
+      ]
+    }
+  }
+}

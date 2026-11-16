@@ -7,6 +7,12 @@
     "issue": "must belong to exactly one allowed requirement project",
     "project": "defines the durable requirement context"
   },
+  "contextCompleteness": {
+    "profileDeclaration": "governance/context-profiles.json",
+    "defaultProfile": "change-context-v1",
+    "projectSpecificSchemasAllowed": true,
+    "projectFieldsAreOptionalBindings": true
+  },
   "requirementProjects": [
     {
       "class": "runtime",
@@ -14,6 +20,7 @@
       "id": "PVT_kwDOE_Gpfs4Br5VQ",
       "number": 3,
       "title": "Agent Runtime Requirements",
+      "contextProfile": "change-context-v1",
       "url": "https://github.com/orgs/8iops/projects/3"
     },
     {
@@ -22,6 +29,7 @@
       "id": "PVT_kwDOE_Gpfs4Br5Vc",
       "number": 4,
       "title": "Governance and Dependencies",
+      "contextProfile": "change-context-v1",
       "url": "https://github.com/orgs/8iops/projects/4"
     },
     {
@@ -30,6 +38,7 @@
       "id": "PVT_kwDOE_Gpfs4Br5Vh",
       "number": 5,
       "title": "Others",
+      "contextProfile": "change-context-v1",
       "url": "https://github.com/orgs/8iops/projects/5"
     }
   ],

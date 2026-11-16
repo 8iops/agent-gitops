@@ -18,6 +18,25 @@ check validates the unique label without adding a long-lived credential. The
 Project remains authoritative; the governance GitHub App performs runtime
 read-back and reports any Project/label mismatch as an observation.
 
+## Context completeness, not a universal field schema
+
+Each organization, repository and Project may define its own Issue types,
+statuses, labels, fields and time conventions. The invariant is that every Issue
+or Feature used as change context is semantically complete, not that every
+Project has identical columns.
+
+The default profile in `governance/context-profiles.json` requires purpose,
+outcome, scope, dependencies, authority, relevant time facts, acceptance,
+delivery links, dynamic-evidence locations and provenance to be discoverable.
+A Project may satisfy these semantics with Issue fields, Project fields, body
+sections, parent/sub-issues, milestones or links. Project fields are optional
+bindings rather than a global schema.
+
+Missing information is explicit instead of guessed. Historical archive Issues
+record their represented time range and state that their classification is
+retrospective; they are not presented as requirements that existed when the
+original pull requests were merged.
+
 No review count is implied by this model. The relationship check establishes
 context and traceability; it does not create an artificial approval role for an
 agent.
