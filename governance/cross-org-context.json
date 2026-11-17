@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "repository": "8iops/agent-gitops",
+  "project": "https://github.com/orgs/8iops/projects/4",
+  "parentProgram": "https://github.com/re8ch/service-backend/issues/2890",
+  "relatedRepositories": [
+    "re8ch/service-backend",
+    "re8ch/identity-gitops",
+    "siren-observer/observability-gitops",
+    "pillars-infra/network-gitops",
+    "strata-silica/storage-gitops",
+    "re8ch/delivery-products-gitops"
+  ],
+  "referenceForms": ["owner/repository#number", "https://github.com/owner/repository/issues/number"]
+}

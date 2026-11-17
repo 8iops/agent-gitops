@@ -27,6 +27,11 @@ allowed requirement Project. Issues remain free-form; use
 applies. See [the repository context model](docs/CONTEXT-MODEL.md) and its
 machine-readable declaration in `governance/context.json`.
 
+Cross-organization parents and evidence use `owner/repository#number` or full
+URLs. The reviewed graph and static demo are documented in
+[`docs/CROSS-ORG-CONTEXT.md`](docs/CROSS-ORG-CONTEXT.md) and published through
+[GitHub Pages](https://8iops.github.io/agent-gitops/).
+
 Private desired-state authority for the RE8CH Agent, ToolHive, and fast-moving tool runtime guardrails.
 
 Product source and release artifacts remain in their product repositories. This repository pins signed immutable artifacts and cluster configuration only.
