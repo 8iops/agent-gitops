@@ -8,6 +8,9 @@
 
 Closes #
 
+<!-- Cross-organization context uses owner/repository#number or a full URL. -->
+Parent: owner/repository#number
+
 ## Validation
 
 <!-- List evidence already produced for this exact pull-request head. -->
