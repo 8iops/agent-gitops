@@ -25,4 +25,4 @@ jobs:
           path: site
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@4f18959bd0b344d7fb6a2df7c2ab1e9d7e0421fa
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
