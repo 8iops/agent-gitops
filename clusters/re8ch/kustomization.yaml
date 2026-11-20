@@ -9,6 +9,7 @@ resources:
 - cube-recovery-resources.yaml
 - cube-warehouse-s3.yaml
 - compocv-cube-test.yaml
+- dissosy-resources.yaml
 patches:
 - path: webmail-session-patch.yaml
 - path: stalwart-client-discovery-patch.yaml
