@@ -75,7 +75,10 @@ jobs:
     needs: validate
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    environment: ${{ needs.validate.outputs.environment }}
+    # Artifact signing is repository-wide authority. Target-specific
+    # environments are reserved for the jobs that actually contact a cluster,
+    # so the long-lived Cosign key is not copied to every cluster boundary.
+    environment: release-executor-agent-runtime
     permissions: {contents: read, packages: write}
     outputs:
       digest: ${{ steps.publish.outputs.digest }}
