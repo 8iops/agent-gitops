@@ -29,6 +29,7 @@ rules:
   resources:
   - cronjobs
   resourceNames:
+  - dissosy-ops-analyst
   - workspace-mirror-sync
   verbs:
   - get
@@ -42,6 +43,7 @@ rules:
   - ai-operations-inventory
   - ai-operations-ssh-config
   - controlled-cluster-kubeconfigs
+  - dissosy-runner
   - harbor-tenant-catalog
   - ops-capsule-policy
   - ssa-state-agent-runtime-domain-ai-operations
@@ -68,6 +70,7 @@ rules:
   - serviceaccounts
   resourceNames:
   - ai-operations
+  - dissosy
   - workspace-controller
   verbs:
   - get
