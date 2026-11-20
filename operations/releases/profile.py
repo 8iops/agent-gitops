@@ -18,6 +18,13 @@ ENVIRONMENT = "release-executor-agent-runtime"
 AUDIENCE = "https://kube-api.re8ch.com/release-executor-agent-runtime"
 GROUP = "re8ch:release-executor:agent-runtime"
 SIGNER = f"https://github.com/{REPOSITORY}/{WORKFLOW}@refs/heads/main"
+EXECUTION_PROFILES = {
+    "re8ch": {"environment": ENVIRONMENT, "audience": AUDIENCE},
+    "re8ch-atlantic": {
+        "environment": "release-executor-agent-runtime-atlantic",
+        "audience": "https://kube-api.re8ch.com/release-executor-agent-runtime-atlantic",
+    },
+}
 REPLAY_WORKFLOW = ".github/workflows/agent-runtime-reconcile.yml"
 REPLAY_ENVIRONMENT = "release-reconciler-agent-runtime"
 REPLAY_AUDIENCE = "https://kube-api.re8ch.com/release-reconciler-agent-runtime"
@@ -38,12 +45,16 @@ def validate_contract(path: Path) -> dict[str, str]:
         raise ValueError("contract authorityDomain must be agent-runtime")
     if not contract["metadata"]["name"].startswith("agent-runtime-"):
         raise ValueError("contract name is outside agent-runtime")
+    cluster = spec["target"].get("cluster")
+    if cluster not in EXECUTION_PROFILES:
+        raise ValueError("unsupported agent-runtime target cluster")
+    execution = EXECUTION_PROFILES[cluster]
     expected = {
         "repository": REPOSITORY,
         "workflow": WORKFLOW,
         "ref": "refs/heads/main",
-        "environment": ENVIRONMENT,
-        "audience": AUDIENCE,
+        "environment": execution["environment"],
+        "audience": execution["audience"],
         "signer": SIGNER,
     }
     for field, value in expected.items():
@@ -85,9 +96,10 @@ def validate_contract(path: Path) -> dict[str, str]:
     return {
         "release-id": contract["metadata"]["name"],
         "namespace": spec["target"]["namespace"],
+        "cluster": cluster,
         "domain": "agent-runtime",
-        "environment": ENVIRONMENT,
-        "audience": AUDIENCE,
+        "environment": execution["environment"],
+        "audience": execution["audience"],
         "kubernetes-group": GROUP,
         "signer": SIGNER,
     }

@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import pytest
 import yaml
 from test_ssa_release_executor import prepare, executor, NOW, canonical, digest, compile_bundle, rendered
-from profile import replay_matrix, replay_provenance, scheduled_replay_matrix, REPOSITORY, WORKFLOW, ENVIRONMENT, AUDIENCE, SIGNER, REPLAY_AUDIENCE
+from profile import replay_matrix, replay_provenance, scheduled_replay_matrix, REPOSITORY, WORKFLOW, ENVIRONMENT, AUDIENCE, SIGNER, REPLAY_AUDIENCE, EXECUTION_PROFILES
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -72,3 +72,16 @@ def test_blocked_reset_is_wired_only_to_execute_job():
     assert 'reset_blocked' not in dry_run
     assert '--allow-blocked' in execute
     assert 'request_args+=(--action reset)' in execute
+
+
+def test_static_release_has_exact_atlantic_execution_profile():
+    assert EXECUTION_PROFILES == {
+        're8ch': {'environment': ENVIRONMENT, 'audience': AUDIENCE},
+        're8ch-atlantic': {
+            'environment': 'release-executor-agent-runtime-atlantic',
+            'audience': 'https://kube-api.re8ch.com/release-executor-agent-runtime-atlantic',
+        },
+    }
+    workflow = (ROOT / '.github/workflows/static-release.yml').read_text()
+    assert workflow.count('re8ch-atlantic) api_server=https://2.29.219.31:6443') == 2
+    assert workflow.count("TARGET_CLUSTER: '${{ needs.validate.outputs.cluster }}'") == 2
