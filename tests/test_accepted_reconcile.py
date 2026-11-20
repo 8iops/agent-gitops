@@ -46,6 +46,9 @@ def test_matrix_and_workflow_have_no_publishing_inputs(monkeypatch):
     assert triggers['schedule']==[{'cron': '17 4 * * *'}]
     assert '--replay-only' in text and 'accepted-bundle' in text
     publisher=yaml.safe_load((ROOT/'.github/workflows/static-release.yml').read_text())
+    assert publisher['jobs']['compile-sign']['environment'] == 'release-executor-agent-runtime'
+    assert publisher['jobs']['runtime-dry-run']['environment'] == '${{ needs.validate.outputs.environment }}'
+    assert publisher['jobs']['execute']['environment'] == '${{ needs.validate.outputs.environment }}'
     assert publisher['concurrency']['group']=='agent-runtime-static-release-${{ inputs.contract }}'
     assert publisher['jobs']['execute']['concurrency']==workflow['jobs']['reconcile']['concurrency']=={'group':'agent-runtime-runtime-write','queue':'max','cancel-in-progress':False}
     assert 'packages: write' not in text
