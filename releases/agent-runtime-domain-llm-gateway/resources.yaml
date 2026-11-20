@@ -41,6 +41,24 @@ spec:
             secretKeyRef:
               key: KIMI_API_KEY
               name: litellm-provider-credentials
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: ANTHROPIC_API_KEY
+              name: litellm-provider-credentials
+              optional: true
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: OPENAI_API_KEY
+              name: litellm-provider-credentials
+              optional: true
+        - name: XAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: XAI_API_KEY
+              name: litellm-provider-credentials
+              optional: true
         - name: UI_USERNAME
           valueFrom:
             secretKeyRef:
@@ -210,10 +228,20 @@ data:
     \      api_base: https://api.deepseek.com\n      timeout: 120\n  - model_name:\
     \ kimi-k2-5\n    litellm_params:\n      model: openai/kimi-k2.5\n      api_key:\
     \ os.environ/KIMI_API_KEY\n      api_base: https://api.moonshot.cn/v1\n      timeout:\
-    \ 120\nrouter_settings:\n  routing_strategy: simple-shuffle\n  num_retries: 2\n\
-    \  retry_after: 1\n  timeout: 120\nlitellm_settings:\n  telemetry: false\n  success_callback:\
-    \ [prometheus]\n  failure_callback: [prometheus]\n  drop_params: true\nmcp_servers:\n\
-    \  re8ch_toolhive:\n    transport: http\n    url: http://vmcp-re8ch-tools-vmcp.toolhive-system.svc.cluster.local:4483/mcp\n\
+    \ 120\n  - model_name: claude-opus-5-5\n    litellm_params:\n      model: anthropic/claude-opus-5-5\n\
+    \      api_key: os.environ/ANTHROPIC_API_KEY\n      timeout: 600\n  - model_name:\
+    \ claude-sonnet-5-5\n    litellm_params:\n      model: anthropic/claude-sonnet-5-5\n\
+    \      api_key: os.environ/ANTHROPIC_API_KEY\n      timeout: 600\n  - model_name:\
+    \ claude-haiku-5-5\n    litellm_params:\n      model: anthropic/claude-haiku-5-5\n\
+    \      api_key: os.environ/ANTHROPIC_API_KEY\n      timeout: 600\n  - model_name:\
+    \ anthropic/*\n    litellm_params:\n      model: anthropic/*\n      api_key: os.environ/ANTHROPIC_API_KEY\n\
+    \      timeout: 600\n  - model_name: openai/*\n    litellm_params:\n      model:\
+    \ openai/*\n      api_key: os.environ/OPENAI_API_KEY\n      timeout: 600\n  -\
+    \ model_name: xai/*\n    litellm_params:\n      model: xai/*\n      api_key: os.environ/XAI_API_KEY\n\
+    \      timeout: 600\nrouter_settings:\n  routing_strategy: simple-shuffle\n  num_retries:\
+    \ 2\n  retry_after: 1\n  timeout: 120\nlitellm_settings:\n  telemetry: false\n\
+    \  success_callback: [prometheus]\n  failure_callback: [prometheus]\n  drop_params:\
+    \ true\nmcp_servers:\n  re8ch_toolhive:\n    transport: http\n    url: http://vmcp-re8ch-tools-vmcp.toolhive-system.svc.cluster.local:4483/mcp\n\
     \    auth_type: none\n    extra_headers: [Authorization]\n    oauth_passthrough:\
     \ true\n    allow_all_keys: false\n    description: RE8CH ToolHive unified hot-pluggable\
     \ tool catalog\ngeneral_settings:\n  master_key: os.environ/LITELLM_MASTER_KEY\n\

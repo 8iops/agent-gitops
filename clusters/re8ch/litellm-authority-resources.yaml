@@ -5,21 +5,77 @@ metadata:
   name: litellm-config
   namespace: llm-gateway
 data:
-  config.yaml: "model_list:\n  - model_name: deepseek-v4-flash\n    litellm_params:\n\
-    \      model: deepseek/deepseek-v4-flash\n      api_key: os.environ/DEEPSEEK_API_KEY\n\
-    \      api_base: https://api.deepseek.com\n      timeout: 120\n  - model_name:\
-    \ kimi-k2-5\n    litellm_params:\n      model: openai/kimi-k2.5\n      api_key:\
-    \ os.environ/KIMI_API_KEY\n      api_base: https://api.moonshot.cn/v1\n      timeout:\
-    \ 120\nrouter_settings:\n  routing_strategy: simple-shuffle\n  num_retries: 2\n\
-    \  retry_after: 1\n  timeout: 120\nlitellm_settings:\n  telemetry: false\n  success_callback:\
-    \ [prometheus]\n  failure_callback: [prometheus]\n  drop_params: true\nmcp_servers:\n\
-    \  re8ch_toolhive:\n    transport: http\n    url: http://vmcp-re8ch-tools-vmcp.toolhive-system.svc.cluster.local:4483/mcp\n\
-    \    auth_type: none\n    extra_headers: [Authorization]\n    oauth_passthrough:\
-    \ true\n    allow_all_keys: false\n    description: RE8CH ToolHive unified hot-pluggable\
-    \ tool catalog\ngeneral_settings:\n  master_key: os.environ/LITELLM_MASTER_KEY\n\
-    \  database_url: os.environ/DATABASE_URL\n  store_model_in_db: true\n  ui_access_mode:\
-    \ admin_only\n  store_prompts_in_spend_logs: false\n  maximum_spend_logs_retention_period:\
-    \ 30d\n  maximum_spend_logs_retention_interval: 1d\n"
+  config.yaml: |
+    model_list:
+      - model_name: deepseek-v4-flash
+        litellm_params:
+          model: deepseek/deepseek-v4-flash
+          api_key: os.environ/DEEPSEEK_API_KEY
+          api_base: https://api.deepseek.com
+          timeout: 120
+      - model_name: kimi-k2-5
+        litellm_params:
+          model: openai/kimi-k2.5
+          api_key: os.environ/KIMI_API_KEY
+          api_base: https://api.moonshot.cn/v1
+          timeout: 120
+      - model_name: claude-opus-5-5
+        litellm_params:
+          model: anthropic/claude-opus-5-5
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 600
+      - model_name: claude-sonnet-5-5
+        litellm_params:
+          model: anthropic/claude-sonnet-5-5
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 600
+      - model_name: claude-haiku-5-5
+        litellm_params:
+          model: anthropic/claude-haiku-5-5
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 600
+      - model_name: anthropic/*
+        litellm_params:
+          model: anthropic/*
+          api_key: os.environ/ANTHROPIC_API_KEY
+          timeout: 600
+      - model_name: openai/*
+        litellm_params:
+          model: openai/*
+          api_key: os.environ/OPENAI_API_KEY
+          timeout: 600
+      - model_name: xai/*
+        litellm_params:
+          model: xai/*
+          api_key: os.environ/XAI_API_KEY
+          timeout: 600
+    router_settings:
+      routing_strategy: simple-shuffle
+      num_retries: 2
+      retry_after: 1
+      timeout: 120
+    litellm_settings:
+      telemetry: false
+      success_callback: [prometheus]
+      failure_callback: [prometheus]
+      drop_params: true
+    mcp_servers:
+      re8ch_toolhive:
+        transport: http
+        url: http://vmcp-re8ch-tools-vmcp.toolhive-system.svc.cluster.local:4483/mcp
+        auth_type: none
+        extra_headers: [Authorization]
+        oauth_passthrough: true
+        allow_all_keys: false
+        description: RE8CH ToolHive unified hot-pluggable tool catalog
+    general_settings:
+      master_key: os.environ/LITELLM_MASTER_KEY
+      database_url: os.environ/DATABASE_URL
+      store_model_in_db: true
+      ui_access_mode: admin_only
+      store_prompts_in_spend_logs: false
+      maximum_spend_logs_retention_period: 30d
+      maximum_spend_logs_retention_interval: 1d
 ---
 apiVersion: v1
 kind: Service
@@ -187,6 +243,24 @@ spec:
             secretKeyRef:
               name: litellm-provider-credentials
               key: KIMI_API_KEY
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: litellm-provider-credentials
+              key: ANTHROPIC_API_KEY
+              optional: true
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: litellm-provider-credentials
+              key: OPENAI_API_KEY
+              optional: true
+        - name: XAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: litellm-provider-credentials
+              key: XAI_API_KEY
+              optional: true
         - name: UI_USERNAME
           valueFrom:
             secretKeyRef:
