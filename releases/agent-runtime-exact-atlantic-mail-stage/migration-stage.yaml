@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: atlantic-mail-migration-stage
+  namespace: mail-system
+  labels:
+    app.kubernetes.io/managed-by: agent-runtime-ssa
+data:
+  authority: 8iops/agent-gitops
+  cluster: re8ch-atlantic
+  state: staged
+  policy: >-
+    Keep the main-cluster mail writers active until the Atlantic secrets,
+    static volumes, data backup, service routing, and rollback checks pass.
