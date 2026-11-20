@@ -82,7 +82,7 @@ def test_static_release_has_exact_atlantic_execution_profile():
         're8ch': {'environment': ENVIRONMENT, 'audience': AUDIENCE},
         're8ch-atlantic': {
             'environment': 'release-executor-agent-runtime-atlantic',
-            'audience': 'https://kube-api.re8ch.com/release-executor-agent-runtime-atlantic',
+            'audience': 'https://kube-api.re8ch.com/release-executor-networking-atlantic',
         },
     }
     workflow = (ROOT / '.github/workflows/static-release.yml').read_text()
