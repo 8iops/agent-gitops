@@ -119,6 +119,11 @@ def replay_matrix() -> list[dict[str, str]]:
     result = []
     for path in sorted(CONTRACT_ROOT.glob("agent-runtime-*.yaml")):
         profile = validate_contract(path.relative_to(ROOT))
+        # The scheduled reconciler is intentionally bound to the main-cluster
+        # replay identity. Atlantic releases are explicit, protected dispatches
+        # until a separate Atlantic reconciler contract is reviewed.
+        if profile["cluster"] != "re8ch":
+            continue
         result.append({**profile, "contract": str(path.relative_to(ROOT)),
                        "environment": REPLAY_ENVIRONMENT, "audience": REPLAY_AUDIENCE})
     return result
