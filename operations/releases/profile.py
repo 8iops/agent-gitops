@@ -22,7 +22,9 @@ EXECUTION_PROFILES = {
     "re8ch": {"environment": ENVIRONMENT, "audience": AUDIENCE},
     "re8ch-atlantic": {
         "environment": "release-executor-agent-runtime-atlantic",
-        "audience": "https://kube-api.re8ch.com/release-executor-agent-runtime-atlantic",
+        # K3s exposes one OIDC client ID for this cluster. Repository and
+        # Environment isolation remain in the exact `sub` claim and RBAC user.
+        "audience": "https://kube-api.re8ch.com/release-executor-networking-atlantic",
     },
 }
 REPLAY_WORKFLOW = ".github/workflows/agent-runtime-reconcile.yml"
