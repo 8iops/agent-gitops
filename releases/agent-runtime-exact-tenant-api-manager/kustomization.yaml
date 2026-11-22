@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
 - tenant-api.yaml
 - tenant-platform-state.yaml
+- tenant-control-controller.yaml

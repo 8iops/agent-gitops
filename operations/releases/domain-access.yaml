@@ -1241,7 +1241,6 @@ rules:
   resourceNames:
   - admin-api
   - postgresql-provider
-  - tenant-control-controller
   - tenant-provider-reconciler
   verbs:
   - get
