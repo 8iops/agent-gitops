@@ -28,12 +28,14 @@ spec:
     objectNames:
     - tenant-api
     - tenant-platform-state
+    - tenant-control-controller
     allowClusterScoped: false
     requireExisting: true
     forceConflictObjects:
     - apps/Deployment/tenant-infrastructure/tenant-api
+    - apps/Deployment/tenant-infrastructure/tenant-control-controller
   inventory:
-    digest: sha256:b08e1f4dd3c36bda4c1aff58d21a91e002f28bc0d7f0b93db211b745cf59275e
+    digest: sha256:638a621e9e32f8bf55dbd708a9e101f677cc23e15b899da7c66ff52ccddf9088
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

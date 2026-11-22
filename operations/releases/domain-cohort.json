@@ -77,7 +77,7 @@
     {
       "name": "agent-runtime-domain-tenant-infrastructure",
       "namespace": "tenant-infrastructure",
-      "objects": 27,
+      "objects": 26,
       "contract": "contracts/agent-runtime-domain-tenant-infrastructure.yaml"
     },
     {
@@ -87,10 +87,14 @@
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 315,
+  "publishableObjects": 314,
   "deferred": [
     {
       "identity": "apps/Deployment/tenant-infrastructure/tenant-api",
+      "reason": "existing-release-contract"
+    },
+    {
+      "identity": "apps/Deployment/tenant-infrastructure/tenant-control-controller",
       "reason": "existing-release-contract"
     },
     {
