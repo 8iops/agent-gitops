@@ -39,14 +39,6 @@ spec:
       automountServiceAccountToken: true
       containers:
       - env:
-        # Retain projected service-account authentication and Kubernetes CA.
-        # Match the reviewed private API transport used by PublicEdge.
-        - name: KUBERNETES_SERVICE_HOST
-          value: 10.250.0.147
-        - name: KUBERNETES_SERVICE_PORT
-          value: "6443"
-        - name: KUBERNETES_SERVICE_PORT_HTTPS
-          value: "6443"
         - name: RE8CH_TOOL_PROFILE
           value: tenant
         - name: RE8CH_TOOL_AUDIENCE
