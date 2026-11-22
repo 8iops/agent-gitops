@@ -15,19 +15,19 @@ def tenant_api_rollout(executor):
     try:
         value = json.loads(executor.command([
             'kubectl', '--request-timeout=8s', 'get', 'deployment', 'tenant-api',
-            '-n', 'tenant-infrastructure', '-o', 'json'], timeout=12))
+            '-n', 'tenant-infrastructure', '-o', 'json'], timeout=12).stdout)
         status = value.get('status', {})
         details['deployment'] = {key: status.get(key, 0) for key in
                                  ('replicas', 'updatedReplicas', 'readyReplicas', 'availableReplicas')}
         details['deployment']['conditions'] = [
             {key: item.get(key) for key in ('type', 'status', 'reason')}
             for item in status.get('conditions', [])]
-    except Exception:
-        details['deployment'] = {'observation': 'not-authorized-or-unavailable'}
+    except Exception as error:
+        details['deployment'] = {'observation': 'not-authorized-or-unavailable', 'errorType': type(error).__name__}
     try:
         value = json.loads(executor.command([
             'kubectl', '--request-timeout=8s', 'get', 'pods', '-n', 'tenant-infrastructure',
-            '-l', 'app=tenant-api', '-o', 'json'], timeout=12))
+            '-l', 'app=tenant-api', '-o', 'json'], timeout=12).stdout)
         details['pods'] = [{
             'name': item.get('metadata', {}).get('name'),
             'phase': item.get('status', {}).get('phase'),
@@ -39,8 +39,8 @@ def tenant_api_rollout(executor):
             } for container in (item.get('status', {}).get('initContainerStatuses', []) +
                                 item.get('status', {}).get('containerStatuses', []))],
         } for item in value.get('items', [])]
-    except Exception:
-        details['pods'] = {'observation': 'not-authorized-or-unavailable'}
+    except Exception as error:
+        details['pods'] = {'observation': 'not-authorized-or-unavailable', 'errorType': type(error).__name__}
     return details
 
 
