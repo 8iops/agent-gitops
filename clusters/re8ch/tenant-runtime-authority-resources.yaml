@@ -1116,7 +1116,7 @@ spec:
   storageClassName: rbd-r640
   resources:
     requests:
-      storage: 1Gi
+      storage: 4Gi
 ---
 apiVersion: v1
 kind: Service
