@@ -16,6 +16,8 @@ import fcntl
 import io
 import json
 import os
+import re
+from decimal import Decimal, localcontext
 import subprocess
 import tarfile
 import tempfile
@@ -336,6 +338,72 @@ class Executor:
                 self.sleeper(1)
         raise AssertionError("unreachable")
 
+    def pvc_expansion_patch(self, item: dict) -> dict:
+        """Expand existing storage without taking another manager's PVC fields."""
+        metadata = item["metadata"]
+        live = json.loads(self.kube_get([
+            "kubectl", "get", "PersistentVolumeClaim", metadata["name"],
+            "--namespace", metadata["namespace"], "-o", "json"]).stdout)
+        current = live.get("metadata", {})
+        if (live.get("apiVersion") != "v1" or live.get("kind") != "PersistentVolumeClaim"
+                or any(current.get(key) != metadata.get(key) for key in ("name", "namespace", "uid"))
+                or not current.get("resourceVersion") or current.get("deletionTimestamp")):
+            raise Rejected("PVC expansion requires the original existing object")
+
+        def specified_equal(desired, actual):
+            if isinstance(desired, dict):
+                return isinstance(actual, dict) and all(
+                    key in actual and specified_equal(value, actual[key]) for key, value in desired.items())
+            return desired == actual
+
+        desired_spec = json.loads(json.dumps(item.get("spec", {})))
+        try:
+            target = desired_spec["resources"]["requests"].pop("storage")
+            original = live["spec"]["resources"]["requests"]["storage"]
+        except (KeyError, TypeError):
+            raise Rejected("PVC expansion requires existing and desired storage requests") from None
+        if not specified_equal(desired_spec, live.get("spec", {})):
+            raise Rejected("PVC expansion cannot change other spec fields")
+        audit_keys = {"delivery.re8ch.com/release-id", "delivery.re8ch.com/operation-id"}
+        desired_meta = {key: value for key, value in metadata.items()
+                        if key not in {"uid", "resourceVersion", "annotations"}}
+        annotations = metadata.get("annotations", {})
+        desired_meta["annotations"] = {key: value for key, value in annotations.items() if key not in audit_keys}
+        comparable_meta = dict(current)
+        comparable_meta.setdefault("annotations", {})
+        if not specified_equal(desired_meta, comparable_meta):
+            raise Rejected("PVC expansion cannot change other metadata")
+
+        def quantity(value):
+            # Kubernetes storage quantities: exact Decimal comparison, no floats.
+            match = re.fullmatch(r"([+]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+))([eE][+-]?[0-9]+|[KMGTPE]i|[numkMGTPE]?)", str(value))
+            if not match or len(str(value)) > 128:
+                raise Rejected("PVC expansion requires valid positive storage quantities")
+            suffix = match[2]
+            powers = {"n": -9, "u": -6, "m": -3, "": 0, "k": 3,
+                      "M": 6, "G": 9, "T": 12, "P": 15, "E": 18}
+            if suffix.endswith("i"):
+                scale = Decimal(1024) ** ("KMGTPE".index(suffix[0]) + 1)
+            elif len(suffix) > 1 and suffix[0] in "eE":
+                exponent = int(suffix[1:])
+                if abs(exponent) > 63:
+                    raise Rejected("PVC storage quantity exponent exceeds bounded range")
+                scale = Decimal(10) ** exponent
+            else:
+                scale = Decimal(10) ** powers[suffix]
+            with localcontext() as context:
+                context.prec = 200
+                result = Decimal(match[1]) * scale
+            if not 0 < result <= Decimal(2) ** 63 - 1:
+                raise Rejected("PVC expansion requires bounded positive storage quantities")
+            return result
+
+        if quantity(target) < quantity(original):
+            raise Rejected("PVC expansion cannot shrink storage")
+        return {"metadata": {"uid": current["uid"], "resourceVersion": current["resourceVersion"],
+                             "annotations": {key: value for key, value in annotations.items() if key in audit_keys}},
+                "spec": {"resources": {"requests": {"storage": target}}}}
+
     def apply(self, objects: list[dict], field_manager: str, dry_run: bool,
               force_objects: set[str] | None = None, require_existing: bool = False) -> None:
         for item in objects:
@@ -352,7 +420,18 @@ class Executor:
             for attempt in range(3 if require_existing else 1):
                 current = self.with_existing_versions([item])[0] if require_existing else item
                 try:
-                    self.command(argv, json.dumps(current), timeout=120, redact=object_identity(item) in self._restricted_identities)
+                    if require_existing and item.get("kind") == "PersistentVolumeClaim":
+                        if item.get("apiVersion") != "v1" or object_identity(item) in (force_objects or set()):
+                            raise Rejected("protected PVC expansion cannot use force-conflicts")
+                        patch = self.pvc_expansion_patch(current)
+                        patch_argv = ["kubectl", "patch", "PersistentVolumeClaim", current["metadata"]["name"],
+                                      "--namespace", current["metadata"]["namespace"], "--type=merge", "--patch-file=-",
+                                      f"--field-manager={field_manager}"]
+                        if dry_run:
+                            patch_argv.append("--dry-run=server")
+                        self.command(patch_argv, json.dumps(patch), timeout=120)
+                    else:
+                        self.command(argv, json.dumps(current), timeout=120, redact=object_identity(item) in self._restricted_identities)
                     break
                 except Rejected as error:
                     if not require_existing or attempt == 2 or not (resource_version_conflict(str(error)) or transient_kube_error(str(error))):
