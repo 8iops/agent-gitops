@@ -168,7 +168,7 @@ spec:
         - secretRef:
             name: tenant-grafana-credentials
             optional: true
-        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:7c3ccb43c79f36a9eb0f8830bd563c84cad8e4bea61dab83165653f9a1b55644
+        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:3891d717e36a2f04a3295c64b7e0db312e52e0857b3ba1c6caff79f20c23d38f
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
