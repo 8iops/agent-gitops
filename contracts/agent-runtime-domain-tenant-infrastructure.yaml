@@ -27,7 +27,6 @@ spec:
     - apps/Deployment
     - cilium.io/CiliumNetworkPolicy
     - core/ConfigMap
-    - core/PersistentVolumeClaim
     - core/Service
     - core/ServiceAccount
     - gateway.networking.k8s.io/HTTPRoute
@@ -45,7 +44,6 @@ spec:
     - tenant-infrastructure
     - tenant-native-mcp
     - tenant-platform-modules
-    - tenant-platform-state
     - tenant-provider-reconciler
     - tenant-runtime-image-cache
     - tenant-self-service-capabilities
@@ -81,7 +79,7 @@ spec:
     - networking.k8s.io/NetworkPolicy/tenant-infrastructure/postgresql-provider
     - policy/PodDisruptionBudget/tenant-infrastructure/tenant-control-controller
   inventory:
-    digest: sha256:c61fb07c85cfc93e6e1469af0b21491f9ef9ffe1f82859cd0708283968b85426
+    digest: sha256:9d1856f23ef397defe1024e0b9704607dbfa15e1ab4e21dbd6c3c1e7c61de9b9
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

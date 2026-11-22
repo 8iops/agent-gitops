@@ -1271,16 +1271,6 @@ rules:
 - apiGroups:
   - ''
   resources:
-  - persistentvolumeclaims
-  resourceNames:
-  - tenant-platform-state
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - ''
-  resources:
   - serviceaccounts
   resourceNames:
   - admin-api

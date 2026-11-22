@@ -9,8 +9,10 @@ SOURCE = ROOT / 'releases/agent-runtime-exact-tenant-api-manager'
 
 
 def runtime():
-    deployment = yaml.safe_load(subprocess.check_output(
+    documents = yaml.safe_load_all(subprocess.check_output(
         ['kubectl', 'kustomize', str(SOURCE)], text=True))
+    deployment = next(item for item in documents
+                      if item['kind'] == 'Deployment' and item['metadata']['name'] == 'tenant-api')
     return next(container for container in deployment['spec']['template']['spec']['containers']
                 if container['name'] == 'runtime')
 
