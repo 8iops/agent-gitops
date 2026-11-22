@@ -9,6 +9,41 @@ from ssa_executor import Executor, load_archive
 from unified_bundle import canonical, digest
 
 
+def tenant_api_rollout(executor):
+    """Bounded diagnostics when the Admin MCP cannot inspect its own rollout."""
+    details = {}
+    try:
+        value = json.loads(executor.command([
+            'kubectl', '--request-timeout=8s', 'get', 'deployment', 'tenant-api',
+            '-n', 'tenant-infrastructure', '-o', 'json'], timeout=12).stdout)
+        status = value.get('status', {})
+        details['deployment'] = {key: status.get(key, 0) for key in
+                                 ('replicas', 'updatedReplicas', 'readyReplicas', 'availableReplicas')}
+        details['deployment']['conditions'] = [
+            {key: item.get(key) for key in ('type', 'status', 'reason')}
+            for item in status.get('conditions', [])]
+    except Exception as error:
+        details['deployment'] = {'observation': 'not-authorized-or-unavailable', 'errorType': type(error).__name__}
+    try:
+        value = json.loads(executor.command([
+            'kubectl', '--request-timeout=8s', 'get', 'pods', '-n', 'tenant-infrastructure',
+            '-l', 'app=tenant-api', '-o', 'json'], timeout=12).stdout)
+        details['pods'] = [{
+            'name': item.get('metadata', {}).get('name'),
+            'phase': item.get('status', {}).get('phase'),
+            'containers': [{
+                'name': container.get('name'), 'ready': container.get('ready', False),
+                'restartCount': container.get('restartCount', 0),
+                'state': {state: {key: data.get(key) for key in ('reason', 'exitCode') if key in data}
+                          for state, data in container.get('state', {}).items()},
+            } for container in (item.get('status', {}).get('initContainerStatuses', []) +
+                                item.get('status', {}).get('containerStatuses', []))],
+        } for item in value.get('items', [])]
+    except Exception as error:
+        details['pods'] = {'observation': 'not-authorized-or-unavailable', 'errorType': type(error).__name__}
+    return details
+
+
 def observe(root, contract=None):
     operation_path = root / 'operation.json'
     bundle = root / 'pulled/release.bundle'
@@ -29,7 +64,10 @@ def observe(root, contract=None):
                         and digest(canonical(v)) == operation['contractDigest'])
         if os.environ.get('ACTIONS_ID_TOKEN_REQUEST_URL'):
             os.environ.setdefault('EXECUTOR_AUDIENCE', operation['github']['audience'])
-        healthy, reason = Executor().wait_healthy(objects, 0, contract['spec']['lifecycle'].get('healthChecks'))
+        executor = Executor()
+        healthy, reason = executor.wait_healthy(objects, 0, contract['spec']['lifecycle'].get('healthChecks'))
+        if operation['releaseId'] == 'agent-runtime-exact-tenant-api-manager':
+            observation['rollout'] = tenant_api_rollout(executor)
         observation['health'] = {'status': 'healthy' if healthy else 'degraded', 'reason': reason}
     except Exception as error:
         # Never expose command input, decrypted values or raw API error bodies.

@@ -84,3 +84,22 @@ def test_reuse_rejects_changed_source_missing_commit_and_external_dependencies(s
     if fault=='symlink':(root/'releases/demo/link').symlink_to('/tmp')
     git('add','.');subprocess.run(['git','commit','-qm','change'],cwd=root,capture_output=True)
     with pytest.raises(ValueError):verify(commit,'contracts/demo.yaml',root)
+
+
+def test_reuse_accepts_certified_named_static_manifest(source_repo):
+    root,commit,git,verify=source_repo
+    git('mv','releases/demo/resources.yaml','releases/demo/tenant-api.yaml')
+    (root/'releases/demo/kustomization.yaml').write_text('resources: [tenant-api.yaml]\n')
+    git('add','.');git('commit','-qm','dedicated static source');commit=git('rev-parse','HEAD')
+    verify(commit,'contracts/demo.yaml',root)
+    (root/'releases/demo/tenant-api.yaml').write_text('kind: Deployment\n')
+    git('add','.');git('commit','-qm','source changed after certification')
+    with pytest.raises(ValueError):verify(commit,'contracts/demo.yaml',root)
+
+
+@pytest.mark.parametrize('resource',['../../outside.yaml','https://example.test/data.yaml','missing.yaml','resources', 'resources.yaml?ref=main'])
+def test_reuse_rejects_external_missing_or_non_file_manifests(source_repo, resource):
+    root,commit,git,verify=source_repo
+    (root/'releases/demo/kustomization.yaml').write_text(yaml.safe_dump({'resources':[resource]}))
+    git('add','.');git('commit','-qm','unsafe source');commit=git('rev-parse','HEAD')
+    with pytest.raises(ValueError):verify(commit,'contracts/demo.yaml',root)

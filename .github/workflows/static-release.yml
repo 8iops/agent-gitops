@@ -207,25 +207,16 @@ jobs:
         env:
           EXECUTOR_AUDIENCE: '${{ needs.validate.outputs.audience }}'
           TARGET_CLUSTER: '${{ needs.validate.outputs.cluster }}'
-          KUBE_API_CA: '${{ secrets.KUBE_API_CA_PEM }}'
+          KUBE_API_CA_PEM: '${{ secrets.KUBE_API_CA_PEM }}'
         run: |
           set -euo pipefail
-          printf '%s' "$KUBE_API_CA" > "$RUNNER_TEMP/re8ch-ca.crt"
           curl -fsS --get -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" --data-urlencode "audience=$EXECUTOR_AUDIENCE" \
             "$ACTIONS_ID_TOKEN_REQUEST_URL" > "$RUNNER_TEMP/oidc.json"
           token="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["value"])' "$RUNNER_TEMP/oidc.json")"
           echo "::add-mask::$token"
           kubeconfig="$RUNNER_TEMP/executor.kubeconfig"
-          case "$TARGET_CLUSTER" in
-            re8ch) api_server=https://kube-api.service.re8ch.com ;;
-            re8ch-atlantic) api_server=https://2.29.219.31:6443 ;;
-            *) echo "unsupported target cluster: $TARGET_CLUSTER" >&2; exit 1 ;;
-          esac
-          kubectl config --kubeconfig "$kubeconfig" set-cluster "$TARGET_CLUSTER" --server="$api_server" \
-            --certificate-authority="$RUNNER_TEMP/re8ch-ca.crt" --embed-certs=true
-          kubectl config --kubeconfig "$kubeconfig" set-credentials release-executor --token="$token"
-          kubectl config --kubeconfig "$kubeconfig" set-context release-executor --cluster="$TARGET_CLUSTER" --user=release-executor
-          kubectl config --kubeconfig "$kubeconfig" use-context release-executor
+          export KUBECONFIG="$kubeconfig"
+          EXECUTOR_TOKEN="$token" python operations/releases/kube_endpoint.py
           echo "KUBECONFIG=$kubeconfig" >> "$GITHUB_ENV"
           echo "EXECUTOR_AUDIENCE=$EXECUTOR_AUDIENCE" >> "$GITHUB_ENV"
       - name: Inspect tenant executor authorization
@@ -332,25 +323,16 @@ jobs:
         env:
           EXECUTOR_AUDIENCE: '${{ needs.validate.outputs.audience }}'
           TARGET_CLUSTER: '${{ needs.validate.outputs.cluster }}'
-          KUBE_API_CA: '${{ secrets.KUBE_API_CA_PEM }}'
+          KUBE_API_CA_PEM: '${{ secrets.KUBE_API_CA_PEM }}'
         run: |
           set -euo pipefail
-          printf '%s' "$KUBE_API_CA" > "$RUNNER_TEMP/re8ch-ca.crt"
           curl -fsS --get -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" --data-urlencode "audience=$EXECUTOR_AUDIENCE" \
             "$ACTIONS_ID_TOKEN_REQUEST_URL" > "$RUNNER_TEMP/oidc.json"
           token="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["value"])' "$RUNNER_TEMP/oidc.json")"
           echo "::add-mask::$token"
           kubeconfig="$RUNNER_TEMP/executor.kubeconfig"
-          case "$TARGET_CLUSTER" in
-            re8ch) api_server=https://kube-api.service.re8ch.com ;;
-            re8ch-atlantic) api_server=https://2.29.219.31:6443 ;;
-            *) echo "unsupported target cluster: $TARGET_CLUSTER" >&2; exit 1 ;;
-          esac
-          kubectl config --kubeconfig "$kubeconfig" set-cluster "$TARGET_CLUSTER" --server="$api_server" \
-            --certificate-authority="$RUNNER_TEMP/re8ch-ca.crt" --embed-certs=true
-          kubectl config --kubeconfig "$kubeconfig" set-credentials release-executor --token="$token"
-          kubectl config --kubeconfig "$kubeconfig" set-context release-executor --cluster="$TARGET_CLUSTER" --user=release-executor
-          kubectl config --kubeconfig "$kubeconfig" use-context release-executor
+          export KUBECONFIG="$kubeconfig"
+          EXECUTOR_TOKEN="$token" python operations/releases/kube_endpoint.py
           echo "KUBECONFIG=$kubeconfig" >> "$GITHUB_ENV"
           echo "EXECUTOR_AUDIENCE=$EXECUTOR_AUDIENCE" >> "$GITHUB_ENV"
       - name: Pull signed digest, resume durable state and reconcile
