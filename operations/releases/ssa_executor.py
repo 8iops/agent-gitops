@@ -425,7 +425,7 @@ class Executor:
                             raise Rejected("protected PVC expansion cannot use force-conflicts")
                         patch = self.pvc_expansion_patch(current)
                         patch_argv = ["kubectl", "patch", "PersistentVolumeClaim", current["metadata"]["name"],
-                                      "--namespace", current["metadata"]["namespace"], "--type=merge", "--patch-file=-",
+                                      "--namespace", current["metadata"]["namespace"], "--type=merge", "--patch-file=/dev/stdin",
                                       f"--field-manager={field_manager}"]
                         if dry_run:
                             patch_argv.append("--dry-run=server")

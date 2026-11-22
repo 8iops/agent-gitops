@@ -73,15 +73,14 @@ and bundle validators to partition the production root by namespace. Generated
 `operations/releases/domain-access.yaml` is the exact reviewed access/state seed
 for platform bootstrap; it is not included in this domain's runtime root.
 
-The existing `agent-runtime-exact-tenant-api-manager` release also owns
-`tenant-platform-state`. Its PVC-only access seed is
-`operations/releases/tenant-api-state-access.yaml`; platform administrators apply
-it before replacing the generated domain access seed. The existing live domain
-Role already grants the required PVC access, so this seed need not be applied
-for the initial expansion. It binds only the existing
-agent-runtime group to the named PVC. Publish this exact release for capacity
-changes, keeping its Deployment identical to live state. Never deploy the entire
-tenant domain merely to resize this volume.
+The existing `agent-runtime-exact-tenant-api-manager` release owns the tenant API,
+its `tenant-platform-state` PVC, and `tenant-control-controller`. The scoped access
+seed `operations/releases/tenant-api-state-access.yaml` retains named PVC and
+controller Deployment access for the existing agent-runtime group when platform
+administrators next replace the generated domain access seed. Existing live
+domain permissions cover the initial promotion. Publish this exact release for
+capacity or controller repairs, preserving unrelated Deployment and module
+configuration. Never deploy the entire tenant domain merely for these repairs.
 
 The cohort report lists every source object, either in a publishable release or
 with a specific remaining migration reason. Secret payloads and encrypted

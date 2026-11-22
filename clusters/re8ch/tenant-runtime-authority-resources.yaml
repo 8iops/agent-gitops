@@ -487,7 +487,7 @@ spec:
       - name: harbor-registry-pull
       containers:
       - name: controller
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f52a5c2b6a6a55baae8c7b67ed6de10d5d447fee1e90585f08cdf0d9c5847b28
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:2cb666e928193da520048ef96d034ec534c4364a9ec409dc5f123a9d378acfbf
         command:
         - python
         - /app/tenant_control_controller.py

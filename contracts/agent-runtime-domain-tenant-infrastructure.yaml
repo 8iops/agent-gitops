@@ -79,7 +79,7 @@ spec:
     - networking.k8s.io/NetworkPolicy/tenant-infrastructure/postgresql-provider
     - policy/PodDisruptionBudget/tenant-infrastructure/tenant-control-controller
   inventory:
-    digest: sha256:9d1856f23ef397defe1024e0b9704607dbfa15e1ab4e21dbd6c3c1e7c61de9b9
+    digest: sha256:70fb629ffc6385196cbd8328ada3ba3f123442b35cd649138a4c9a8722d2f83a
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

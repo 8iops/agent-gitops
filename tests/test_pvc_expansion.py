@@ -38,7 +38,7 @@ class PvcRunner:
                 live['metadata']['uid'] = 'replacement'
             return subprocess.CompletedProcess(argv, 0, json.dumps(live), '')
         assert argv[:2] == ['kubectl', 'patch']
-        assert '--type=merge' in argv and '--patch-file=-' in argv
+        assert '--type=merge' in argv and '--patch-file=/dev/stdin' in argv
         assert '--field-manager=bounded-release' in argv
         assert not any('force' in arg or 'server-side' in arg for arg in argv)
         self.patches += 1
@@ -126,3 +126,23 @@ def test_protected_force_guard_remains_in_effect():
     with pytest.raises(executor.Rejected, match='cannot use force'):
         apply(runner, item, force_objects={executor.object_identity(item)})
     assert runner.patches == 0
+
+
+def test_actual_kubectl_reads_executor_merge_patch_from_piped_stdin(tmp_path):
+    # Exercise kubectl's actual file option, not a fake accepting arbitrary argv.
+    # --local avoids a cluster while retaining the production patch-file argument
+    # and subprocess PIPE behavior used by Executor.command.
+    runner = PvcRunner()
+    apply(runner, pvc())
+    argv, patch = next((args, data) for args, data in runner.calls if args[:2] == ['kubectl', 'patch'])
+    fixture = tmp_path / 'existing-pvc.json'
+    fixture.write_text(json.dumps(runner.live))
+    options = [arg for arg in argv if arg.startswith(('--patch-file=', '--type=', '--field-manager='))]
+    result = subprocess.run(['kubectl', 'patch', '--local', '-f', str(fixture),
+                             *options, '-o', 'json'], input=patch, text=True,
+                            capture_output=True, check=True, timeout=15)
+    actual = json.loads(result.stdout)
+    expected = copy.deepcopy(runner.live)
+    expected['spec']['resources']['requests']['storage'] = '4Gi'
+    expected['metadata']['annotations'].update(json.loads(patch)['metadata']['annotations'])
+    assert actual == expected
