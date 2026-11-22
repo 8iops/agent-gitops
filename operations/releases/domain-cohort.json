@@ -77,7 +77,7 @@
     {
       "name": "agent-runtime-domain-tenant-infrastructure",
       "namespace": "tenant-infrastructure",
-      "objects": 28,
+      "objects": 27,
       "contract": "contracts/agent-runtime-domain-tenant-infrastructure.yaml"
     },
     {
@@ -87,7 +87,7 @@
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 316,
+  "publishableObjects": 315,
   "deferred": [
     {
       "identity": "apps/Deployment/tenant-infrastructure/tenant-api",
@@ -100,6 +100,10 @@
     {
       "identity": "batch/Job/flux-system/retire-toolhive-session-redis-v3",
       "reason": "one-shot-job-platform-owned"
+    },
+    {
+      "identity": "core/PersistentVolumeClaim/tenant-infrastructure/tenant-platform-state",
+      "reason": "existing-release-contract"
     },
     {
       "identity": "core/Secret/api-conformance-system/api-conformance-github-app",

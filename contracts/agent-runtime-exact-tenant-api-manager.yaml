@@ -24,16 +24,19 @@ spec:
     fieldManager: re8ch-release/agent-runtime-exact-tenant-api
     resources:
     - apps/Deployment
+    - core/PersistentVolumeClaim
     objectNames:
     - tenant-api
+    - tenant-platform-state
     allowClusterScoped: false
     requireExisting: true
     forceConflictObjects:
     - apps/Deployment/tenant-infrastructure/tenant-api
   inventory:
-    digest: sha256:27a4d2f081e513c2aa045a6a10232316b42aaff9266fc68492f70dd516687ddc
+    digest: sha256:b08e1f4dd3c36bda4c1aff58d21a91e002f28bc0d7f0b93db211b745cf59275e
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300
-    protectedKinds: []
+    protectedKinds:
+    - PersistentVolumeClaim
     deletionAllowlist: []
