@@ -168,7 +168,7 @@ spec:
         - secretRef:
             name: tenant-grafana-credentials
             optional: true
-        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:7c3ccb43c79f36a9eb0f8830bd563c84cad8e4bea61dab83165653f9a1b55644
+        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:843ef2637807f336330318b3f501ba1e6ad7d5c680cbeb2048c987df9892f16d
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -221,7 +221,7 @@ spec:
           value: http://127.0.0.1:19448
         - name: LISTEN_ADDR
           value: :19449
-        image: ghcr.io/among-clusters/connectool-catalog-gateway@sha256:c433add3e20b71d9e328bd7dc6b25dda491e1f7b25c551799ae1dfaf8057093f
+        image: ghcr.io/among-clusters/connectool-catalog-gateway@sha256:c74ecd1c18852dc7dabbfa2dfe439da673fae5cce38c2080c7a473065c5ee9ed
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
