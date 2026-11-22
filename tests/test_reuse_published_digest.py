@@ -103,3 +103,30 @@ def test_reuse_rejects_external_missing_or_non_file_manifests(source_repo, resou
     (root/'releases/demo/kustomization.yaml').write_text(yaml.safe_dump({'resources':[resource]}))
     git('add','.');git('commit','-qm','unsafe source');commit=git('rev-parse','HEAD')
     with pytest.raises(ValueError):verify(commit,'contracts/demo.yaml',root)
+
+
+@pytest.mark.parametrize('changed_file', [None, 'resources.yaml', 'state.yaml'])
+def test_reuse_checks_all_certified_flat_manifests(source_repo, changed_file):
+    root, commit, git, verify = source_repo
+    (root/'releases/demo/state.yaml').write_text('kind: PersistentVolumeClaim\n')
+    (root/'releases/demo/kustomization.yaml').write_text('resources: [resources.yaml, state.yaml]\n')
+    git('add', '.'); git('commit', '-qm', 'certified two-file source')
+    commit = git('rev-parse', 'HEAD')
+    (root/'README.md').write_text('executor-only change')
+    if changed_file:
+        (root/'releases/demo'/changed_file).write_text('kind: Service\n')
+    git('add', '.'); git('commit', '-qm', 'later change')
+    if changed_file:
+        with pytest.raises(ValueError):
+            verify(commit, 'contracts/demo.yaml', root)
+    else:
+        verify(commit, 'contracts/demo.yaml', root)
+
+
+@pytest.mark.parametrize('resources', [[], ['resources.yaml']*2, ['resources.yaml']*65])
+def test_reuse_rejects_empty_duplicate_or_excessive_flat_resource_lists(source_repo, resources):
+    root, commit, git, verify = source_repo
+    (root/'releases/demo/kustomization.yaml').write_text(yaml.safe_dump({'resources': resources}))
+    git('add', '.'); git('commit', '-qm', 'invalid resource list')
+    with pytest.raises(ValueError):
+        verify(git('rev-parse', 'HEAD'), 'contracts/demo.yaml', root)

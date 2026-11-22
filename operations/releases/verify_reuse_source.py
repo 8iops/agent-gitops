@@ -16,10 +16,12 @@ def verify(commit, contract_path, root=Path('.')):
     kustomization=yaml.safe_load((root/source/'kustomization.yaml').read_text())
     resources=kustomization.get('resources')
     if (set(kustomization)-{'apiVersion','kind','resources'} or not isinstance(resources,list) or
-            len(resources)!=1 or not isinstance(resources[0],str) or
-            not re.fullmatch(r'[A-Za-z0-9_.-]+\.ya?ml',resources[0]) or
-            not (root/source/resources[0]).is_file()):
-        raise ValueError('reuse requires one static local YAML resource without external rendering dependencies')
+            not 1 <= len(resources) <= 64 or
+            any(not isinstance(resource,str) or
+                not re.fullmatch(r'[A-Za-z0-9_.-]+\.ya?ml',resource) or
+                not (root/source/resource).is_file() for resource in resources) or
+            len(set(resources)) != len(resources)):
+        raise ValueError('reuse requires 1-64 distinct static local YAML resources without external rendering dependencies')
     if any(p.is_symlink() for p in (root/source).rglob('*')):
         raise ValueError('reuse source must not contain symlinks')
     for command in [['git','cat-file','-e',commit+'^{commit}'],['git','merge-base','--is-ancestor',commit,'HEAD'],['git','diff','--exit-code',commit,'HEAD','--',str(path),str(source)]]:
