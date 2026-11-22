@@ -221,7 +221,7 @@ spec:
           value: http://127.0.0.1:19448
         - name: LISTEN_ADDR
           value: :19449
-        image: ghcr.io/among-clusters/connectool-catalog-gateway@sha256:c74ecd1c18852dc7dabbfa2dfe439da673fae5cce38c2080c7a473065c5ee9ed
+        image: ghcr.io/among-clusters/connectool-catalog-gateway@sha256:790d17e415494eb797e39472cadf2d8d9d38faca42b425ff6464698bb4552c41
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
