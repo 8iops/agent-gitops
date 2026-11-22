@@ -86,5 +86,5 @@ def test_static_release_has_exact_atlantic_execution_profile():
         },
     }
     workflow = (ROOT / '.github/workflows/static-release.yml').read_text()
-    assert workflow.count('re8ch-atlantic) api_server=https://2.29.219.31:6443') == 2
+    assert workflow.count('EXECUTOR_TOKEN="$token" python operations/releases/kube_endpoint.py') == 2
     assert workflow.count("TARGET_CLUSTER: '${{ needs.validate.outputs.cluster }}'") == 2
