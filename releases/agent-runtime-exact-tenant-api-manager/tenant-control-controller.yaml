@@ -48,7 +48,7 @@ spec:
       - name: harbor-registry-pull
       containers:
       - name: controller
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:2cb666e928193da520048ef96d034ec534c4364a9ec409dc5f123a9d378acfbf
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:186ef837e5b6b0db84d75efab1f7c6e203b5e0055df6cbfaa68c546875109a45
         command:
         - python
         - /app/tenant_control_controller.py
@@ -60,6 +60,12 @@ spec:
             name: tenant-claim-internal-auth
             optional: true
         env:
+        - name: SENTRY_DSN
+          value: https://2b6b17d602c68bbb6789de55c05afa1a@o4509349085577216.ingest.us.sentry.io/4509349088985088
+        - name: SENTRY_ENVIRONMENT
+          value: production
+        - name: SENTRY_RELEASE
+          value: tenant-control@f0ccebc180b3ed99ad59b26ed949e8d830502cdd
         - name: LISTEN_PORT
           value: '19447'
         - name: IMAGE_POLICY_URL
