@@ -1076,6 +1076,8 @@ spec:
     ports:
     - port: 19448
       protocol: TCP
+    - port: 19449
+      protocol: TCP
   - from:
     - namespaceSelector:
         matchLabels:
@@ -1128,6 +1130,17 @@ spec:
       podSelector:
         matchLabels:
           tenant-runtime: 'true'
+    ports:
+    - port: 19447
+      protocol: TCP
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: observability-system
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: re8ch
+          app.kubernetes.io/name: vmagent
     ports:
     - port: 19447
       protocol: TCP
