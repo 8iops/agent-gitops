@@ -39,6 +39,12 @@ spec:
       automountServiceAccountToken: true
       containers:
       - env:
+        - name: SENTRY_DSN
+          value: https://2b6b17d602c68bbb6789de55c05afa1a@o4509349085577216.ingest.us.sentry.io/4509349088985088
+        - name: SENTRY_ENVIRONMENT
+          value: production
+        - name: SENTRY_RELEASE
+          value: tenant-mcp@1797f498fca5030e516978db94bc7f5e59496f1a
         - name: RE8CH_TOOL_PROFILE
           value: tenant
         - name: RE8CH_TOOL_AUDIENCE
@@ -168,7 +174,7 @@ spec:
         - secretRef:
             name: tenant-grafana-credentials
             optional: true
-        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:922d3c3d585844bcded0f572a9bf6b84c128e2b043e8a94862ac7f8c03e55115
+        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:a3043cb4eee513bb38f16b7e16b9b59e143d841f67f8e73f62079a14166c1e06
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -217,11 +223,17 @@ spec:
           name: platform-modules
           readOnly: true
       - env:
+        - name: SENTRY_DSN
+          value: https://2b6b17d602c68bbb6789de55c05afa1a@o4509349085577216.ingest.us.sentry.io/4509349088985088
+        - name: SENTRY_ENVIRONMENT
+          value: production
+        - name: SENTRY_RELEASE
+          value: connectool-catalog-gateway@b807d673d7387b67494fb1888047f220522ad7f1
         - name: TENANT_CORE_URL
           value: http://127.0.0.1:19448
         - name: LISTEN_ADDR
           value: :19449
-        image: ghcr.io/among-clusters/connectool-catalog-gateway@sha256:fc79744e3cafe57c76af518aab2be1d57182757db024d9d9b6518d74425f0703
+        image: ghcr.io/among-clusters/connectool-catalog-gateway@sha256:c444a5de464580bd2146132b1be4f23ed40295693153da10144208178392a0e7
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
