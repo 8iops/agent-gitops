@@ -1507,6 +1507,17 @@ spec:
     ports:
     - protocol: TCP
       port: 19447
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: observability-system
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: vmagent
+          app.kubernetes.io/instance: re8ch
+    ports:
+    - protocol: TCP
+      port: 19447
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
