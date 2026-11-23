@@ -1076,6 +1076,8 @@ spec:
     ports:
     - port: 19448
       protocol: TCP
+    - port: 19449
+      protocol: TCP
   - from:
     - namespaceSelector:
         matchLabels:
