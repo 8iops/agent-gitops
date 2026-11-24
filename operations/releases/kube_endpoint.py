@@ -13,17 +13,27 @@ from ssa_executor import Rejected
 
 ENDPOINTS = {
     "re8ch": [
+        "https://kube-api.re8ch.com",
         "https://179.255.126.104:443",
         "https://179.253.231.159:443",
         "https://223.159.210.222:6443",
     ],
     "re8ch-main": [
+        "https://kube-api.re8ch.com",
         "https://179.255.126.104:443",
         "https://179.253.231.159:443",
         "https://223.159.210.222:6443",
     ],
     "re8ch-atlantic": ["https://2.29.219.31:6443"],
 }
+
+
+def _tls_name(cluster: str, endpoint: str) -> str | None:
+    if cluster not in {"re8ch", "re8ch-main"}:
+        return None
+    if endpoint == "https://kube-api.re8ch.com":
+        return "kube-api.re8ch.com"
+    return "kube-api.service.re8ch.com"
 
 
 def _write(path: Path, config: dict) -> None:
@@ -42,7 +52,7 @@ def _write(path: Path, config: dict) -> None:
 def base_config(cluster: str, token: str, ca_pem: str) -> dict:
     if cluster not in ENDPOINTS:
         raise Rejected(f"unsupported target cluster: {cluster}")
-    tls_name = "kube-api.service.re8ch.com" if cluster in {"re8ch", "re8ch-main"} else None
+    tls_name = _tls_name(cluster, ENDPOINTS[cluster][0])
     cluster_data = {
         "server": ENDPOINTS[cluster][0],
         "certificate-authority-data": base64.b64encode(ca_pem.encode()).decode(),
@@ -62,7 +72,13 @@ def base_config(cluster: str, token: str, ca_pem: str) -> dict:
 def select(path: Path, config: dict, cluster: str) -> str:
     failures = []
     for endpoint in ENDPOINTS.get(cluster, []):
-        config["clusters"][0]["cluster"]["server"] = endpoint
+        cluster_data = config["clusters"][0]["cluster"]
+        cluster_data["server"] = endpoint
+        tls_name = _tls_name(cluster, endpoint)
+        if tls_name:
+            cluster_data["tls-server-name"] = tls_name
+        else:
+            cluster_data.pop("tls-server-name", None)
         _write(path, config)
         try:
             result = subprocess.run(
