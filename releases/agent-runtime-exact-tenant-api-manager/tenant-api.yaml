@@ -186,7 +186,7 @@ spec:
         - secretRef:
             name: tenant-grafana-credentials
             optional: true
-        image: registry.re8ch.com/image/re8ch-tenant-mcp@sha256:46b2d66130695d3cbedf1065ba0c4b41a27165d7d26b553e44b45644985f2f22
+        image: registry.re8ch.com/image/re8ch-tenant-mcp@sha256:ee3cb1bc01d4db03e109ffaa2cdf8945daeab73a537f00ad4f4847df19319857
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
