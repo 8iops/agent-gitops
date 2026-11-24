@@ -12,11 +12,12 @@ import kube_endpoint
 def test_main_endpoint_order_and_tls_identity():
     config = kube_endpoint.base_config("re8ch", "token", "ca")
     assert kube_endpoint.ENDPOINTS["re8ch"] == [
+        "https://kube-api.re8ch.com",
         "https://179.255.126.104:443",
         "https://179.253.231.159:443",
         "https://223.159.210.222:6443",
     ]
-    assert config["clusters"][0]["cluster"]["tls-server-name"] == "kube-api.service.re8ch.com"
+    assert config["clusters"][0]["cluster"]["tls-server-name"] == "kube-api.re8ch.com"
 
 
 def test_select_fails_over_and_persists_selected_endpoint(tmp_path, monkeypatch):
@@ -27,15 +28,16 @@ def test_select_fails_over_and_persists_selected_endpoint(tmp_path, monkeypatch)
         assert config["users"][0]["user"]["token"] == "token"
         endpoint = config["clusters"][0]["cluster"]["server"]
         attempts.append(endpoint)
-        return SimpleNamespace(returncode=0 if endpoint.endswith("159:443") else 1, stderr="")
+        return SimpleNamespace(returncode=0 if endpoint.endswith("104:443") else 1, stderr="")
 
     monkeypatch.setattr(kube_endpoint.subprocess, "run", run)
     config = kube_endpoint.base_config("re8ch", "token", "ca")
     selected = kube_endpoint.select(tmp_path / "config", config, "re8ch")
-    assert selected == "https://179.253.231.159:443"
+    assert selected == "https://179.255.126.104:443"
     assert attempts == kube_endpoint.ENDPOINTS["re8ch"][:2]
     persisted = yaml.safe_load((tmp_path / "config").read_text())
     assert persisted["clusters"][0]["cluster"]["server"] == selected
+    assert persisted["clusters"][0]["cluster"]["tls-server-name"] == "kube-api.service.re8ch.com"
     assert persisted["users"][0]["user"]["token"] == "token"
 
 
@@ -51,7 +53,20 @@ def test_select_treats_timeout_as_failover(tmp_path, monkeypatch):
 
     monkeypatch.setattr(kube_endpoint.subprocess, "run", run)
     config = kube_endpoint.base_config("re8ch", "token", "ca")
-    assert kube_endpoint.select(tmp_path / "config", config, "re8ch") == "https://179.253.231.159:443"
+    assert kube_endpoint.select(tmp_path / "config", config, "re8ch") == "https://179.255.126.104:443"
+
+
+def test_select_removes_main_tls_override_for_atlantic(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        kube_endpoint.subprocess,
+        "run",
+        lambda argv, **kwargs: SimpleNamespace(returncode=0, stderr=""),
+    )
+    config = kube_endpoint.base_config("re8ch", "token", "ca")
+    selected = kube_endpoint.select(tmp_path / "config", config, "re8ch-atlantic")
+    assert selected == "https://2.29.219.31:6443"
+    persisted = yaml.safe_load((tmp_path / "config").read_text())
+    assert "tls-server-name" not in persisted["clusters"][0]["cluster"]
 
 
 def test_select_reports_bounded_transport_failures(tmp_path, monkeypatch):
