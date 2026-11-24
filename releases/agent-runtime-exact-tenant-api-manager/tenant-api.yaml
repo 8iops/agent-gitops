@@ -153,16 +153,14 @@ spec:
           value: stalwart-credentials
         - name: STALWART_URL
           value: https://id.re8ch.com
-        - name: STALWART_CONNECT_URL
-          value: http://stalwart.mail-system.svc.cluster.local:8080
         - name: STALWART_CLIENT_ID
-          value: stalwart-webui
+          value: 705c1168-43d8-4ec3-980a-0327a59c7fc6
         - name: COLLABORATION_AUTH_MODE
           value: auth-hub-pkce
         - name: STALWART_AUTHORIZATION_URL
-          value: https://auth.re8ch.com/authorize
+          value: https://db-rw.re8ch.com/auth/v1/oauth/authorize
         - name: STALWART_TOKEN_URL
-          value: https://auth.re8ch.com/token
+          value: https://db-rw.re8ch.com/auth/v1/oauth/token
         - name: STALWART_REDIRECT_URI
           value: https://tools.service.re8ch.com/collaboration/oauth/callback
         - name: PLATFORM_MODULE_REGISTRY
@@ -186,7 +184,7 @@ spec:
         - secretRef:
             name: tenant-grafana-credentials
             optional: true
-        image: registry.re8ch.com/image/re8ch-tenant-mcp@sha256:e243f1dcc2185b604a177b4204b348d2a92f835c3eb98f21f83687436eb125af
+        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:7448cb80d91c0078e7480f2f9ca758356352a62a06857586ed46d7ea363695fb
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
