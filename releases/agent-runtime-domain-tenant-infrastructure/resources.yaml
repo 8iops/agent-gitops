@@ -340,6 +340,10 @@ spec:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /cli
+          name: stalwart-cli
+          readOnly: true
       dnsConfig:
         nameservers:
         - 10.43.0.53
@@ -357,6 +361,11 @@ spec:
       serviceAccountName: tenant-provider-reconciler
       tolerations:
       - operator: Exists
+      volumes:
+      - image:
+          pullPolicy: IfNotPresent
+          reference: ghcr.io/stalwartlabs/cli@sha256:5b70732cb69cdab3ff0894c501544cf0bfa180fa75bcd0eeba4eebe04c1064e1
+        name: stalwart-cli
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
