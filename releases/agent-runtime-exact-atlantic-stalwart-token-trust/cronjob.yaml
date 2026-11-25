@@ -24,7 +24,7 @@ spec:
               export STALWART_PASSWORD="${STALWART_RECOVERY_ADMIN#*:}"
               unset STALWART_RECOVERY_ADMIN
               /cli/usr/local/bin/stalwart-cli apply --stdin --json <<'PLAN'
-              {"@type":"upsert","object":"Directory","matchOn":["description"],"value":{"re8ch-enterprise-sso":{"@type":"Oidc","description":"RE8CH Enterprise SSO broker","issuerUrl":"https://db-rw.re8ch.com/auth/v1","requireAudience":"authenticated","requireScopes":{"openid":true,"email":true,"profile":true},"claimUsername":"email","claimName":"name","claimGroups":"groups"}}}
+              {"@type":"upsert","object":"Directory","matchOn":["description"],"value":{"re8ch-enterprise-sso":{"@type":"Oidc","description":"RE8CH Enterprise SSO broker","issuerUrl":"https://db-rw.re8ch.com/auth/v1","acceptedAudiences":{"authenticated":true},"unscopedTokens":"interoperable","claimUsername":"email","claimName":"name","claimGroups":"groups"}}}
               {"@type":"upsert","object":"Domain","matchOn":["name"],"value":{"re8ch-domain":{"name":"re8ch.com","enable":true,"aliases":{},"certificateManagement":{"@type":"Manual"},"dkimManagement":{"@type":"Automatic"},"dnsManagement":{"@type":"Manual"},"subAddressing":{"@type":"Enabled"},"directoryId":"#re8ch-enterprise-sso"}}}
               {"@type":"update","object":"Authentication","value":{"directoryId":"#re8ch-enterprise-sso"}}
               PLAN
@@ -58,7 +58,7 @@ spec:
           volumes:
           - image:
               pullPolicy: IfNotPresent
-              reference: ghcr.io/stalwartlabs/cli@sha256:fe199affac1d120a8c200ef39ae629765a2976270e0453575c1caf906ee15b52
+              reference: ghcr.io/stalwartlabs/cli@sha256:5b70732cb69cdab3ff0894c501544cf0bfa180fa75bcd0eeba4eebe04c1064e1
             name: cli
           - emptyDir: {}
             name: cache
