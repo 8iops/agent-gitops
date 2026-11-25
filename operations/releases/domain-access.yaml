@@ -948,7 +948,6 @@ rules:
   resourceNames:
   - stalwart-cloudflare-token-sync
   - stalwart-mailbox-provisioner
-  - stalwart-tls-reloader
   verbs:
   - get
   - patch
