@@ -136,6 +136,7 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     assert contract['authorization']['forceConflictObjects'] == [
         'apps/Deployment/mail-system/stalwart-webmail',
         'apps/StatefulSet/mail-system/stalwart-flk',
+        'cert-manager.io/Certificate/mail-system/stalwart-mail-re8ch',
         'cert-manager.io/Certificate/mail-system/stalwart-phonaid-mta-sts',
         'cert-manager.io/Issuer/mail-system/stalwart-phonaid-cloudflare-dns01',
         'core/ConfigMap/mail-system/stalwart-bootstrap-plan',
