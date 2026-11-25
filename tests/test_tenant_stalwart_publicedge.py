@@ -46,7 +46,7 @@ def test_tenant_provider_admin_uses_publicedge():
         item for item in deployment["spec"]["template"]["spec"]["containers"]
         if item["name"] == "reconciler"
     )
-    assert container["image"] == "registry.re8ch.com/image/re8ch-ai-operations@sha256:f5911c8f9b3c531dd263e89fb02469659d2a5d44baff8e494de520edfcf09ac3"
+    assert container["image"] == "registry.re8ch.com/image/re8ch-ai-operations@sha256:d59472f27c9333ad447fead5f540c720a62fee8994c3ed1a37936cfba284fad9"
     env = {item["name"]: item.get("value") for item in container["env"]}
     assert env["STALWART_URL"] == "https://stalwart-admin.service.re8ch.com"
     assert ".svc" not in env["STALWART_URL"] and ".cluster.local" not in env["STALWART_URL"]
