@@ -28,6 +28,7 @@ spec:
               {"@type":"upsert","object":"Domain","matchOn":["name"],"value":{"re8ch-domain":{"name":"re8ch.com","enable":true,"aliases":{},"certificateManagement":{"@type":"Manual"},"dkimManagement":{"@type":"Automatic"},"dnsManagement":{"@type":"Manual"},"subAddressing":{"@type":"Enabled"},"directoryId":"#re8ch-enterprise-sso"}}}
               {"@type":"update","object":"Authentication","value":{"directoryId":"#re8ch-enterprise-sso"}}
               PLAN
+              /cli/usr/local/bin/stalwart-cli create Action/ReloadSettings
               /cli/usr/local/bin/stalwart-cli create Action/InvalidateCaches
               /cli/usr/local/bin/stalwart-cli create Action/ReloadTlsCertificates
             command: [/bin/sh, -ceu]
