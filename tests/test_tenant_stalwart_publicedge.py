@@ -21,7 +21,7 @@ def tenant_runtime_environment(path):
 def test_tenant_stalwart_uses_publicedge_and_reviewed_oauth():
     for path in (SOURCE, EXACT):
         runtime, env = tenant_runtime_environment(path)
-        assert runtime["image"] == "ghcr.io/re8ch/service-backend-tenant-mcp@sha256:c4103d5c9737f6ef51605e33c6f2a611c598d124ca27256ca5b27f75c6b1a460"
+        assert runtime["image"] == "ghcr.io/re8ch/service-backend-tenant-mcp@sha256:7336a040432c357ec6f157be2a2f4061a91ff1646be0a263566e92726a504ea7"
         assert env["STALWART_URL"] == "https://id.re8ch.com"
         assert "STALWART_CONNECT_URL" not in env
         assert env["STALWART_CLIENT_ID"] == "705c1168-43d8-4ec3-980a-0327a59c7fc6"
