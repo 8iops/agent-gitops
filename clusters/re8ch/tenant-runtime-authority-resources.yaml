@@ -654,6 +654,15 @@ spec:
           capabilities:
             drop:
             - ALL
+        volumeMounts:
+        - name: stalwart-cli
+          mountPath: /cli
+          readOnly: true
+      volumes:
+      - name: stalwart-cli
+        image:
+          reference: ghcr.io/stalwartlabs/cli@sha256:5b70732cb69cdab3ff0894c501544cf0bfa180fa75bcd0eeba4eebe04c1064e1
+          pullPolicy: IfNotPresent
 ---
 apiVersion: apps/v1
 kind: Deployment
