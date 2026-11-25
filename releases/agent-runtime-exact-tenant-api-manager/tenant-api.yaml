@@ -44,7 +44,7 @@ spec:
         - name: SENTRY_ENVIRONMENT
           value: production
         - name: SENTRY_RELEASE
-          value: tenant-mcp@1797f498fca5030e516978db94bc7f5e59496f1a
+          value: tenant-mcp@2cdc6005f2ff1187eb8f902801ac3618d4a579e8
         - name: RE8CH_TOOL_PROFILE
           value: tenant
         - name: RE8CH_TOOL_AUDIENCE
@@ -184,7 +184,7 @@ spec:
         - secretRef:
             name: tenant-grafana-credentials
             optional: true
-        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:c4103d5c9737f6ef51605e33c6f2a611c598d124ca27256ca5b27f75c6b1a460
+        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:7336a040432c357ec6f157be2a2f4061a91ff1646be0a263566e92726a504ea7
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
