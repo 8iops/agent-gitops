@@ -69,6 +69,12 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
     route['spec']['rules'][1]['matches'].insert(3, device_route_patch[0]['value'])
     id_dns = next(obj for obj in expected if obj['kind'] == 'Ingress' and obj['metadata']['name'] == 'stalwart-idp-public-dns')
     assert id_dns['metadata']['annotations']['external-dns.alpha.kubernetes.io/target'] == '2.28.106.230'
+    # Runtime authority for this existing CronJob is transferred to the exact
+    # Atlantic release; the main-cluster domain cohort must no longer own it.
+    expected = [
+        obj for obj in expected
+        if not (obj['kind'] == 'CronJob' and obj['metadata']['name'] == 'stalwart-tls-reloader')
+    ]
     identity = lambda obj: (
         obj['apiVersion'].split('/')[0] if '/' in obj['apiVersion'] else 'core',
         obj['kind'],
@@ -90,7 +96,7 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
         assert '"requireScopes":{"openid":true,"email":true,"profile":true}' in plan
         assert '"name":"re8ch.com"' in plan
         assert '"directoryId":"#re8ch-enterprise-sso"' in plan
-    assert len(target) == 53
+    assert len(target) == 52
     assert not {'Secret', 'Role', 'RoleBinding', 'Job'} & {obj['kind'] for obj in target}
     contract = yaml.safe_load((ROOT / 'contracts/agent-runtime-domain-mail-system.yaml').read_text())['spec']
     assert contract['authorization']['fieldManager'] == 're8ch-release/identity-access-domain-mail-system'

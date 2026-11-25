@@ -65,7 +65,7 @@
     {
       "name": "agent-runtime-domain-mail-system",
       "namespace": "mail-system",
-      "objects": 53,
+      "objects": 52,
       "contract": "contracts/agent-runtime-domain-mail-system.yaml"
     },
     {
@@ -87,7 +87,7 @@
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 314,
+  "publishableObjects": 313,
   "deferred": [
     {
       "identity": "apps/Deployment/tenant-infrastructure/tenant-api",
@@ -95,6 +95,10 @@
     },
     {
       "identity": "apps/Deployment/tenant-infrastructure/tenant-control-controller",
+      "reason": "existing-release-contract"
+    },
+    {
+      "identity": "batch/CronJob/mail-system/stalwart-tls-reloader",
       "reason": "existing-release-contract"
     },
     {
