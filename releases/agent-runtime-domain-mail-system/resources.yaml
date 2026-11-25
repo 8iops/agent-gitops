@@ -546,9 +546,23 @@ spec:
             app.kubernetes.io/name: stalwart-mailbox-provisioner
         spec:
           containers:
-          - command:
-            - python3
-            - /app/provision.py
+          - args:
+            - 'recovery="${STALWART_RECOVERY_ADMIN}"
+
+              export STALWART_USER="${recovery%%:*}"
+
+              export STALWART_PASSWORD="${recovery#*:}"
+
+              /cli/usr/local/bin/stalwart-cli apply --stdin --json < /plans/plan.ndjson
+
+              unset STALWART_USER STALWART_PASSWORD recovery
+
+              exec python3 /app/provision.py
+
+              '
+            command:
+            - /bin/sh
+            - -ceu
             env:
             - name: STALWART_URL
               value: http://stalwart.mail-system.svc.cluster.local:8080
@@ -573,6 +587,9 @@ spec:
                 - ALL
               readOnlyRootFilesystem: true
             volumeMounts:
+            - mountPath: /plans
+              name: oidc-plan
+              readOnly: true
             - mountPath: /app
               name: app
               readOnly: true
@@ -601,6 +618,9 @@ spec:
             operator: Equal
             value: closed
           volumes:
+          - configMap:
+              name: stalwart-userhub-oauth-plan-v1
+            name: oidc-plan
           - configMap:
               name: stalwart-mailbox-provisioner
             name: app
@@ -826,7 +846,7 @@ metadata:
 apiVersion: v1
 data:
   plan.ndjson: '{"@type":"upsert","object":"Directory","matchOn":["description"],"value":{"re8ch-enterprise-sso":{"@type":"Oidc","description":"RE8CH
-    Enterprise SSO broker","issuerUrl":"https://auth.re8ch.com","requireAudience":"stalwart-webui","requireScopes":{"openid":true,"email":true,"profile":true},"claimUsername":"email","claimName":"name","claimGroups":"groups"}}}
+    Enterprise SSO broker","issuerUrl":"https://db-rw.re8ch.com/auth/v1","requireAudience":"authenticated","requireScopes":{"openid":true,"email":true,"profile":true},"claimUsername":"email","claimName":"name","claimGroups":"groups"}}}
 
     {"@type":"update","object":"Authentication","value":{"directoryId":"#re8ch-enterprise-sso"}}
 

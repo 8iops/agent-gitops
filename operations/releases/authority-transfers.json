@@ -46,8 +46,8 @@
     "previousSourceCommit": "35eabf6a46a17f173a7fd2856cd170bb5ebeea64",
     "fieldManager": "re8ch-release/identity-access-domain-mail-system",
     "sourcePath": "clusters/re8ch/mail-authority-resources.yaml",
-    "sourceDigest": "sha256:505052b0b9d1ff5544efc91881de439ed2dc553d09bca5dc547dc936d066b035",
-    "mode": "authority-only-existing-payload",
+    "sourceDigest": "sha256:62e6dff7c036de0c25d6cb686d1bb484ec10ffd43f9e4185d61fb32d8c2f4919",
+    "mode": "accepted-runtime-update",
     "forceConflictObjects": [
       "apps/Deployment/mail-system/stalwart-webmail",
       "apps/StatefulSet/mail-system/stalwart-flk",
@@ -59,6 +59,7 @@
       "core/ConfigMap/mail-system/stalwart-metrics-secret-bootstrap",
       "core/ConfigMap/mail-system/stalwart-unified-identity-bootstrap-plan-v2",
       "core/ConfigMap/mail-system/stalwart-userhub-oauth-plan-v1",
+      "batch/CronJob/mail-system/stalwart-mailbox-provisioner",
       "core/ServiceAccount/mail-system/stalwart-metrics-secret-bootstrap",
       "gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-idp-public",
       "gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-mta-sts-phonaid",

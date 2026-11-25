@@ -59,6 +59,21 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
             and obj['metadata']['name'] == trust_patch['metadata']['name']
         )
         trust_config['data'].update(trust_patch['data'])
+    reconciler_patch = yaml.safe_load(
+        (ROOT / 'clusters/re8ch/stalwart-oidc-reconciler-patch.yaml').read_text()
+    )
+    provisioner = next(
+        obj for obj in expected
+        if obj['kind'] == 'CronJob' and obj['metadata']['name'] == 'stalwart-mailbox-provisioner'
+    )
+    pod = provisioner['spec']['jobTemplate']['spec']['template']['spec']
+    patch_pod = reconciler_patch['spec']['jobTemplate']['spec']['template']['spec']
+    container = next(item for item in pod['containers'] if item['name'] == 'provision')
+    patch_container = patch_pod['containers'][0]
+    container['command'] = patch_container['command']
+    container['args'] = patch_container['args']
+    container['volumeMounts'].insert(0, patch_container['volumeMounts'][0])
+    pod['volumes'].insert(0, patch_pod['volumes'][0])
     device_route_patch = yaml.safe_load((ROOT / 'clusters/re8ch/stalwart-device-route-patch.yaml').read_text())
     assert device_route_patch == [{
         'op': 'add',
@@ -96,6 +111,23 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
         assert '"requireScopes":{"openid":true,"email":true,"profile":true}' in plan
         assert '"name":"re8ch.com"' in plan
         assert '"directoryId":"#re8ch-enterprise-sso"' in plan
+    oidc_plans = [
+        obj['data']['plan.ndjson']
+        for obj in target
+        if obj['kind'] == 'ConfigMap' and 'plan.ndjson' in obj.get('data', {})
+        and '"object":"Directory"' in obj['data']['plan.ndjson']
+    ]
+    assert oidc_plans
+    assert all('https://auth.re8ch.com' not in plan for plan in oidc_plans)
+    assert all('"requireAudience":"stalwart-webui"' not in plan for plan in oidc_plans)
+    provisioner = next(
+        obj for obj in target
+        if obj['kind'] == 'CronJob' and obj['metadata']['name'] == 'stalwart-mailbox-provisioner'
+    )
+    pod = provisioner['spec']['jobTemplate']['spec']['template']['spec']
+    command = next(container for container in pod['containers'] if container['name'] == 'provision')['args'][0]
+    assert '/plans/plan.ndjson' in command
+    assert any(volume['name'] == 'oidc-plan' for volume in pod['volumes'])
     assert len(target) == 52
     assert not {'Secret', 'Role', 'RoleBinding', 'Job'} & {obj['kind'] for obj in target}
     contract = yaml.safe_load((ROOT / 'contracts/agent-runtime-domain-mail-system.yaml').read_text())['spec']
@@ -112,6 +144,7 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
         'core/ConfigMap/mail-system/stalwart-metrics-secret-bootstrap',
         'core/ConfigMap/mail-system/stalwart-unified-identity-bootstrap-plan-v2',
         'core/ConfigMap/mail-system/stalwart-userhub-oauth-plan-v1',
+            'batch/CronJob/mail-system/stalwart-mailbox-provisioner',
         'core/ServiceAccount/mail-system/stalwart-metrics-secret-bootstrap',
         'gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-idp-public',
         'gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-mta-sts-phonaid',
