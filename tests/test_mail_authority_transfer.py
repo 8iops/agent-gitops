@@ -142,6 +142,7 @@ def test_mail_transfer_preserves_exact_accepted_objects_and_manager():
         'core/ConfigMap/mail-system/stalwart-bootstrap-plan',
         'core/ConfigMap/mail-system/stalwart-bot-access-contract',
         'core/ConfigMap/mail-system/stalwart-config',
+        'core/ConfigMap/mail-system/stalwart-idp-bootstrap-plan-v6',
         'core/ConfigMap/mail-system/stalwart-metrics-secret-bootstrap',
         'core/ConfigMap/mail-system/stalwart-unified-identity-bootstrap-plan-v2',
         'core/ConfigMap/mail-system/stalwart-userhub-oauth-plan-v1',
