@@ -1,4 +1,5 @@
 from pathlib import Path
+import subprocess
 
 import yaml
 
@@ -29,3 +30,23 @@ def test_tenant_stalwart_uses_publicedge_and_reviewed_oauth():
         assert env["STALWART_TOKEN_URL"] == "https://db-rw.re8ch.com/auth/v1/oauth/token"
         for name in ("STALWART_URL", "STALWART_AUTHORIZATION_URL", "STALWART_TOKEN_URL"):
             assert ".svc" not in env[name] and ".cluster.local" not in env[name]
+
+
+def test_tenant_provider_admin_uses_publicedge():
+    rendered = subprocess.check_output(
+        ["kubectl", "kustomize", str(ROOT / "clusters/re8ch")], text=True
+    )
+    deployment = next(
+        item
+        for item in yaml.safe_load_all(rendered)
+        if item and item.get("kind") == "Deployment"
+        and item["metadata"]["name"] == "tenant-provider-reconciler"
+    )
+    container = next(
+        item for item in deployment["spec"]["template"]["spec"]["containers"]
+        if item["name"] == "reconciler"
+    )
+    assert container["image"] == "registry.re8ch.com/image/re8ch-ai-operations@sha256:efc3344c17f82b49c6d5c65376e51c02160acd9ea6aeac2b02c7c22d208b3fcd"
+    env = {item["name"]: item.get("value") for item in container["env"]}
+    assert env["STALWART_URL"] == "https://stalwart-admin.service.re8ch.com"
+    assert ".svc" not in env["STALWART_URL"] and ".cluster.local" not in env["STALWART_URL"]
