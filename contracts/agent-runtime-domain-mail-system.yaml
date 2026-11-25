@@ -96,6 +96,7 @@ spec:
     - core/ConfigMap/mail-system/stalwart-metrics-secret-bootstrap
     - core/ConfigMap/mail-system/stalwart-unified-identity-bootstrap-plan-v2
     - core/ConfigMap/mail-system/stalwart-userhub-oauth-plan-v1
+    - batch/CronJob/mail-system/stalwart-mailbox-provisioner
     - core/ServiceAccount/mail-system/stalwart-metrics-secret-bootstrap
     - gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-idp-public
     - gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-mta-sts-phonaid
