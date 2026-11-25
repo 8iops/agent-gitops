@@ -316,6 +316,8 @@ spec:
         - python
         - /app/tenant_provider_reconciler.py
         env:
+        - name: STALWART_URL
+          value: https://stalwart-admin.service.re8ch.com
         - name: IDENTITY_REST_URL
           value: http://supabase-identity-rest.supabase-identity.svc:3000
         - name: IDENTITY_SERVICE_KEY
@@ -325,7 +327,7 @@ spec:
               name: tenant-provider-identity
         - name: GRAFANA_DATABASE_BINDINGS_JSON
           value: '[{"database":"anysite","namespace":"re8ch-anysite","secretName":"anysite-db-credentials","secretUID":"ecb4edf3-eb40-4b0e-ab28-7bf3dab490c4","tenantRef":"re8ch"},{"database":"secretary","namespace":"re8ch-secretary","secretName":"secretary-db-credentials","secretUID":"e31d554c-5cf8-4663-adcd-811849a31b3c","tenantRef":"re8ch"}]'
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f52a5c2b6a6a55baae8c7b67ed6de10d5d447fee1e90585f08cdf0d9c5847b28
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:efc3344c17f82b49c6d5c65376e51c02160acd9ea6aeac2b02c7c22d208b3fcd
         name: reconciler
         resources:
           limits:

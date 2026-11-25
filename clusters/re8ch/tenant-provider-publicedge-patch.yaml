@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tenant-provider-reconciler
+  namespace: tenant-infrastructure
+spec:
+  template:
+    spec:
+      containers:
+      - name: reconciler
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:efc3344c17f82b49c6d5c65376e51c02160acd9ea6aeac2b02c7c22d208b3fcd
+        env:
+        - name: STALWART_URL
+          value: https://stalwart-admin.service.re8ch.com
