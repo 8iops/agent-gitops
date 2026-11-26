@@ -22,8 +22,14 @@ spec:
         tenant-runtime: 'true'
     spec:
       affinity:
-        nodeAffinity: null
-        podAffinity: null
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: Exists
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution: []
       automountServiceAccountToken: true
       containers:
       - env:

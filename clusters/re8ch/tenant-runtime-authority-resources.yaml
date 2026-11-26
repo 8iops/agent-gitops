@@ -215,8 +215,14 @@ spec:
         ai.connectool.io/mcp-backend: 'true'
     spec:
       affinity:
-        nodeAffinity: null
-        podAffinity: null
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: Exists
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution: []
       terminationGracePeriodSeconds: 75
       serviceAccountName: tenant-api
       automountServiceAccountToken: true
