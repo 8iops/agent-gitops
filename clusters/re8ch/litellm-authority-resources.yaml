@@ -278,21 +278,29 @@ spec:
         - name: GENERIC_CLIENT_ID
           valueFrom:
             secretKeyRef:
-              name: litellm-dex-sso
+              name: litellm-gotrue-sso
               key: client-id
         - name: GENERIC_CLIENT_SECRET
           valueFrom:
             secretKeyRef:
-              name: litellm-dex-sso
+              name: litellm-gotrue-sso
               key: client-secret
         - name: GENERIC_AUTHORIZATION_ENDPOINT
-          value: https://dex.re8ch.com/auth
+          value: https://db-rw.re8ch.com/auth/v1/oauth/authorize
         - name: GENERIC_TOKEN_ENDPOINT
-          value: https://dex.re8ch.com/token
+          value: https://db-rw.re8ch.com/auth/v1/oauth/token
         - name: GENERIC_USERINFO_ENDPOINT
-          value: https://dex.re8ch.com/userinfo
+          value: https://db-rw.re8ch.com/auth/v1/user
         - name: GENERIC_SCOPE
-          value: openid email profile groups
+          value: openid email profile
+        - name: GENERIC_CLIENT_USE_PKCE
+          value: 'true'
+        - name: GENERIC_USER_ID_ATTRIBUTE
+          value: sub
+        - name: GENERIC_USER_EMAIL_ATTRIBUTE
+          value: email
+        - name: AUTO_REDIRECT_UI_LOGIN_TO_SSO
+          value: 'true'
         - name: DOCS_URL
           value: /docs
         - name: ROOT_REDIRECT_URL

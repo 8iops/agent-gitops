@@ -44,7 +44,7 @@ spec:
         - name: SENTRY_ENVIRONMENT
           value: production
         - name: SENTRY_RELEASE
-          value: tenant-mcp@2cdc6005f2ff1187eb8f902801ac3618d4a579e8
+          value: tenant-mcp@296a404a14f6556a30553be9e8b14e88f40d1c0c
         - name: RE8CH_TOOL_PROFILE
           value: tenant
         - name: RE8CH_TOOL_AUDIENCE
@@ -95,6 +95,8 @@ spec:
           value: http://harbor-supply-chain.tenant-infrastructure.svc
         - name: HARBOR_SUPPLY_CHAIN_REQUIRED
           value: 'false'
+        - name: LITELLM_GATEWAY_URL
+          value: https://litellm.service.re8ch.com/v1
         - name: TENANT_SERVICE_DB
           value: /var/lib/tenant-platform/tenant-services.db
         - name: TENANT_USAGE_CLIENT
@@ -184,7 +186,7 @@ spec:
         - secretRef:
             name: tenant-grafana-credentials
             optional: true
-        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:7336a040432c357ec6f157be2a2f4061a91ff1646be0a263566e92726a504ea7
+        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:54a2154f0197f5782400feb9d1426d4c8a52dcd2ce3bc0242c7c76d56774a3b6
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
