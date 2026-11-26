@@ -4494,6 +4494,7 @@ spec:
           value: 32098a11-be0c-5dd4-9f29-ec87c30faf19
         - name: OIDC_CLIENT_SECRET
           value: ""
+          valueFrom: null
         - name: BETTER_AUTH_URL
           value: https://tools.re8ch.com
         - name: TRUSTED_ORIGINS
