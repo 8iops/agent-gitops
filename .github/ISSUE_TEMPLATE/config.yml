@@ -1,11 +1,8 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
   - name: Runtime observation or investigation
     url: https://github.com/8iops/agent-gitops/discussions
-    about: Put changing observations and investigation notes in Discussions.
-  - name: Observability Wiki
-    url: https://github.com/8iops/agent-gitops/wiki/Observability
-    about: Read or update the repository observability context.
+    about: Put changing observations and investigation narratives in Discussions.
   - name: Default requirement Project
     url: https://github.com/orgs/8iops/projects/5
-    about: Add a new Issue to Others when no narrower requirement Project applies.
+    about: Every actionable Issue must belong to this Project or a narrower approved requirement Project.
