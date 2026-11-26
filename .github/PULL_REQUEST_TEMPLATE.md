@@ -1,16 +1,30 @@
-## Change
-
-<!-- Describe the smallest desired-state or static-context change. -->
-
-## Requirement context
-
-<!-- Required: use a closing keyword. The Issue must belong to one allowed requirement Project. -->
-
 Closes #
 
-<!-- Cross-organization context uses owner/repository#number or a full URL. -->
-Parent: owner/repository#number
+## Outcome
 
-## Validation
+<!-- State the observable Issue outcome delivered by this PR. -->
 
-<!-- List evidence already produced for this exact pull-request head. -->
+## Context
+
+- Parent/upstream: owner/repository#number or none
+- Project: https://github.com/orgs/8iops/projects/5
+- Milestone: name or none
+- Branch/worktree: current branch and task worktree
+
+## Verification
+
+- [ ] The closing Issue has a native Issue Type and belongs to the Project above.
+- [ ] Lifecycle, Work Type, Context Status, Start Date and Target/Completed Date are set.
+- [ ] Static checks ran once for this revision.
+- [ ] Immutable artifact or digest evidence is linked when applicable.
+
+## Evidence
+
+- Static checks:
+- Artifact/revision:
+- Runtime readback or observation Issue:
+
+## Completion
+
+- Delivery state: Reviewed / Merged / Deployed / Verified
+- Remaining work or follow-up Issue: none
