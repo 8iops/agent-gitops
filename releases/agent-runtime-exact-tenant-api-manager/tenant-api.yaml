@@ -21,7 +21,9 @@ spec:
         saas.re8ch.com/tenant: platform
         tenant-runtime: 'true'
     spec:
-      affinity: null
+      affinity:
+        nodeAffinity: null
+        podAffinity: null
       automountServiceAccountToken: true
       containers:
       - env:
