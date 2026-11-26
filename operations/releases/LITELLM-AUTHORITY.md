@@ -14,8 +14,17 @@ Evidence: `op_f127bdd727c84ef28d8338a6a518b912`,
 `op_83f56dd55fba4319a92b29eae9d98aa5`,
 `op_d54ef1be9efa4a5bae9458438c9725b9`.
 
-The live gateway still references retired Dex SSO. This adoption records that
-existing dependency; it does not deploy or restore Dex. SSO retirement remains
-separate work and must preserve authenticated administration. API readiness is
-not evidence that SSO login works. Do not mark that dependency resolved merely
-because this release is accepted.
+The reviewed release replaces retired Dex SSO with the UserHub Supabase GoTrue
+OAuth endpoints published through `https://db-rw.re8ch.com`. LiteLLM uses a
+confidential client from the write-only `litellm-gotrue-sso` Secret, requires
+PKCE, and accepts the exact callback
+`https://litellm.service.re8ch.com/sso/callback`. The Secret payload is not part
+of this repository or the signed release bundle. API readiness is not evidence
+that SSO login works; completion requires an authorization-code login and UI
+session probe through the public hostname.
+
+`agent-runtime-domain-llm-gateway` remains the exact owner of the LiteLLM
+Deployment. The separate `agent-runtime-exact-tenant-api-manager` release keeps
+its existing field manager and only publishes the reviewed tenant API image and
+`LITELLM_GATEWAY_URL`; it does not gain authority over the gateway or its
+credentials.
