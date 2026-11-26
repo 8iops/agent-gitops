@@ -214,6 +214,7 @@ spec:
         saas.re8ch.com/tenant: platform
         ai.connectool.io/mcp-backend: 'true'
     spec:
+      affinity: null
       terminationGracePeriodSeconds: 75
       serviceAccountName: tenant-api
       automountServiceAccountToken: true
