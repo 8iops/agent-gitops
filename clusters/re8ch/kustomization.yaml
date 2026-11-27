@@ -4,6 +4,7 @@ resources:
 - resources.yaml
 - tenant-runtime-authority-resources.yaml
 - tenant-mcp-publication-resources.yaml
+- stalwart-agent-tools-shadow.yaml
 - mail-authority-resources.yaml
 - litellm-authority-resources.yaml
 - cube-recovery-resources.yaml
@@ -11,12 +12,15 @@ resources:
 - compocv-cube-test.yaml
 - dissosy-resources.yaml
 patches:
+- path: tenant-provider-publicedge-patch.yaml
 - path: webmail-session-patch.yaml
 - path: stalwart-client-discovery-patch.yaml
 - path: stalwart-v01627-production-patch.yaml
 - path: stalwart-v1-config-patch.yaml
 - path: stalwart-unified-identity-trust-patch.yaml
 - path: stalwart-userhub-trust-patch.yaml
+- path: stalwart-oidc-reconciler-patch.yaml
+- path: stalwart-agent-tools-broker-patch.yaml
 - target:
     group: gateway.networking.k8s.io
     version: v1

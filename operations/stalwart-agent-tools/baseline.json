@@ -1,0 +1,24 @@
+{
+  "image": "ghcr.io/8iops/stalwart-agent-tools@sha256:1db35ce72d2569a63d6dea7d7778061795ce6a83c4ee29da6a0d0888c8e01f60",
+  "providerContractSha256": "4cd7a2c024a268028acd38bee19e4e62a2d917239a5f50e5f666130a1fc27011",
+  "toolCatalogSha256": "60920e5b8648b1d4f4ecc07dd85571fe5afc63c9a1cb5f663f2e73ac8ef2bbaf",
+  "userOperations": [
+    "collaboration_capabilities",
+    "mail_query",
+    "mail_read",
+    "mail_send",
+    "calendar_query",
+    "calendar_respond",
+    "contacts_query",
+    "files_list",
+    "files_read"
+  ],
+  "requiredScopes": [
+    "mail.read",
+    "mail.send",
+    "calendar.read",
+    "calendar.respond",
+    "contacts.read",
+    "files.read"
+  ]
+}

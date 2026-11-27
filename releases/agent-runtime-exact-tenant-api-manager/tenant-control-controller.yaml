@@ -48,7 +48,7 @@ spec:
       - name: harbor-registry-pull
       containers:
       - name: controller
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:2cb666e928193da520048ef96d034ec534c4364a9ec409dc5f123a9d378acfbf
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:58be167ac6ea988314c7f8d4c8189f1abe228fff601593fb1ec0a64e6fa7d913
         command:
         - python
         - /app/tenant_control_controller.py
@@ -59,13 +59,30 @@ spec:
         - secretRef:
             name: tenant-claim-internal-auth
             optional: true
+        - secretRef:
+            name: tenant-invocation-authority
+            optional: true
         env:
+        - name: SENTRY_DSN
+          value: https://2b6b17d602c68bbb6789de55c05afa1a@o4509349085577216.ingest.us.sentry.io/4509349088985088
+        - name: SENTRY_ENVIRONMENT
+          value: production
+        - name: SENTRY_RELEASE
+          value: tenant-control@f0ccebc180b3ed99ad59b26ed949e8d830502cdd
         - name: LISTEN_PORT
           value: '19447'
         - name: IMAGE_POLICY_URL
           value: http://harbor-supply-chain.tenant-infrastructure.svc
         - name: IDENTITY_REST_URL
           value: http://supabase-identity-rest.supabase-identity.svc:3000
+        - name: IDENTITY_USER_URL
+          value: http://supabase-identity-auth.supabase-identity.svc:9999/user
+        - name: IDENTITY_CONTEXTS_URL
+          value: http://supabase-identity-rest.supabase-identity.svc:3000/rpc/my_tenant_runtime_contexts
+        - name: BINDING_AUTHORITY_URL
+          value: http://supabase-billing-rest-rw.supabase-billing.svc:3000/rpc/resolve_tool_invocation
+        - name: INVOCATION_TOKEN_ISSUER
+          value: https://tools.service.re8ch.com/invocation
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
@@ -111,3 +128,12 @@ spec:
           capabilities:
             drop:
             - ALL
+        volumeMounts:
+        - name: invocation-signing
+          mountPath: /var/run/re8ch-invocation-signing
+          readOnly: true
+      volumes:
+      - name: invocation-signing
+        secret:
+          secretName: tenant-invocation-signing
+          optional: true

@@ -316,6 +316,8 @@ spec:
         - python
         - /app/tenant_provider_reconciler.py
         env:
+        - name: STALWART_URL
+          value: https://stalwart-admin.service.re8ch.com
         - name: IDENTITY_REST_URL
           value: http://supabase-identity-rest.supabase-identity.svc:3000
         - name: IDENTITY_SERVICE_KEY
@@ -325,7 +327,7 @@ spec:
               name: tenant-provider-identity
         - name: GRAFANA_DATABASE_BINDINGS_JSON
           value: '[{"database":"anysite","namespace":"re8ch-anysite","secretName":"anysite-db-credentials","secretUID":"ecb4edf3-eb40-4b0e-ab28-7bf3dab490c4","tenantRef":"re8ch"},{"database":"secretary","namespace":"re8ch-secretary","secretName":"secretary-db-credentials","secretUID":"e31d554c-5cf8-4663-adcd-811849a31b3c","tenantRef":"re8ch"}]'
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:f52a5c2b6a6a55baae8c7b67ed6de10d5d447fee1e90585f08cdf0d9c5847b28
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:d59472f27c9333ad447fead5f540c720a62fee8994c3ed1a37936cfba284fad9
         name: reconciler
         resources:
           limits:
@@ -340,6 +342,10 @@ spec:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /cli
+          name: stalwart-cli
+          readOnly: true
       dnsConfig:
         nameservers:
         - 10.43.0.53
@@ -357,6 +363,11 @@ spec:
       serviceAccountName: tenant-provider-reconciler
       tolerations:
       - operator: Exists
+      volumes:
+      - image:
+          pullPolicy: IfNotPresent
+          reference: ghcr.io/stalwartlabs/cli@sha256:5b70732cb69cdab3ff0894c501544cf0bfa180fa75bcd0eeba4eebe04c1064e1
+        name: stalwart-cli
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -941,6 +952,19 @@ spec:
         value: /tenant-native/mcp
   - backendRefs:
     - name: tenant-api
+      port: 19449
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          replaceFullPath: /mcp
+          type: ReplaceFullPath
+    matches:
+    - path:
+        type: Exact
+        value: /tenant-plugin/mcp
+  - backendRefs:
+    - name: tenant-api
       port: 80
     filters:
     - type: URLRewrite
@@ -966,6 +990,13 @@ spec:
     - path:
         type: Exact
         value: /.well-known/oauth-protected-resource/tenant-native/mcp
+  - backendRefs:
+    - name: tenant-api
+      port: 80
+    matches:
+    - path:
+        type: Exact
+        value: /.well-known/oauth-protected-resource/tenant-plugin/mcp
   - backendRefs:
     - name: tenant-api
       port: 80
@@ -1076,6 +1107,8 @@ spec:
     ports:
     - port: 19448
       protocol: TCP
+    - port: 19449
+      protocol: TCP
   - from:
     - namespaceSelector:
         matchLabels:
@@ -1128,6 +1161,17 @@ spec:
       podSelector:
         matchLabels:
           tenant-runtime: 'true'
+    ports:
+    - port: 19447
+      protocol: TCP
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: observability-system
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: re8ch
+          app.kubernetes.io/name: vmagent
     ports:
     - port: 19447
       protocol: TCP

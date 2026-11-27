@@ -78,7 +78,6 @@ spec:
     - stalwart-smtp-public-v2
     - stalwart-smtps-public-v2
     - stalwart-submission-public-v2
-    - stalwart-tls-reloader
     - stalwart-unified-identity-bootstrap-plan-v2
     - stalwart-userhub-oauth-plan-v1
     - stalwart-webmail
@@ -89,14 +88,17 @@ spec:
     forceConflictObjects:
     - apps/Deployment/mail-system/stalwart-webmail
     - apps/StatefulSet/mail-system/stalwart-flk
+    - cert-manager.io/Certificate/mail-system/stalwart-mail-re8ch
     - cert-manager.io/Certificate/mail-system/stalwart-phonaid-mta-sts
     - cert-manager.io/Issuer/mail-system/stalwart-phonaid-cloudflare-dns01
     - core/ConfigMap/mail-system/stalwart-bootstrap-plan
     - core/ConfigMap/mail-system/stalwart-bot-access-contract
     - core/ConfigMap/mail-system/stalwart-config
+    - core/ConfigMap/mail-system/stalwart-idp-bootstrap-plan-v6
     - core/ConfigMap/mail-system/stalwart-metrics-secret-bootstrap
     - core/ConfigMap/mail-system/stalwart-unified-identity-bootstrap-plan-v2
     - core/ConfigMap/mail-system/stalwart-userhub-oauth-plan-v1
+    - batch/CronJob/mail-system/stalwart-mailbox-provisioner
     - core/ServiceAccount/mail-system/stalwart-metrics-secret-bootstrap
     - gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-idp-public
     - gateway.networking.k8s.io/HTTPRoute/mail-system/stalwart-mta-sts-phonaid
@@ -104,7 +106,7 @@ spec:
     - gateway.networking.k8s.io/ReferenceGrant/mail-system/stalwart-phonaid-mta-sts-certificate
     - operator.victoriametrics.com/VMServiceScrape/mail-system/stalwart-mail
   inventory:
-    digest: sha256:a07b801be81491f49065c95152eee036950bafe1f75298845a8bd0cc37c42c42
+    digest: sha256:0065421923496b96c623c59b05c90501abcdd923cf57dd12b52a0c081b8cb232
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

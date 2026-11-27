@@ -33,11 +33,13 @@ spec:
     - policy/PodDisruptionBudget
     - toolhive.stacklok.dev/MCPExternalAuthConfig
     - toolhive.stacklok.dev/MCPGroup
+    - toolhive.stacklok.dev/MCPServer
     - toolhive.stacklok.dev/MCPTelemetryConfig
     - toolhive.stacklok.dev/MCPToolConfig
     objectNames:
     - admin-tools-public
     - admin-tools-re8ch-com
+    - collaboration-user-shadow
     - connectool-cloud-mcp
     - connectool-tools-re8ch-com
     - ops-admin-tools
@@ -57,6 +59,8 @@ spec:
     - re8ch-plugin-definitions
     - re8ch-plugin-operation-catalog
     - re8ch-plugin-runtime
+    - stalwart-agent-tools
+    - stalwart-agent-tools-shadow
     - tenant-mcp
     - toolhive-cloud-ui
     - toolhive-operator
@@ -81,6 +85,7 @@ spec:
     - core/ServiceAccount/toolhive-system/plugin-public-edge
     - core/ServiceAccount/toolhive-system/plugin-rook-ceph
     - core/ServiceAccount/toolhive-system/re8ch-plugin-runtime
+    - core/ServiceAccount/toolhive-system/stalwart-agent-tools
     - gateway.networking.k8s.io/HTTPRoute/toolhive-system/admin-tools-public
     - gateway.networking.k8s.io/HTTPRoute/toolhive-system/connectool-cloud-mcp
     - gateway.networking.k8s.io/HTTPRoute/toolhive-system/tenant-mcp
@@ -90,20 +95,23 @@ spec:
     - networking.k8s.io/Ingress/toolhive-system/toolhive-cloud-ui
     - networking.k8s.io/Ingress/toolhive-system/tools-re8ch-com
     - networking.k8s.io/NetworkPolicy/toolhive-system/re8ch-plugin-runtime
+    - networking.k8s.io/NetworkPolicy/toolhive-system/stalwart-agent-tools-shadow
     - networking.k8s.io/NetworkPolicy/toolhive-system/vmcp-internal-backends
     - policy/PodDisruptionBudget/toolhive-system/re8ch-plugin-runtime
     - policy/PodDisruptionBudget/toolhive-system/toolhive-operator
     - toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/vmcp-admin-backend-auth
     - toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/vmcp-observe-backend-auth
+    - toolhive.stacklok.dev/MCPGroup/toolhive-system/collaboration-user-shadow
     - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-admin-public
     - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-operate-public
     - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-tools-public
+    - toolhive.stacklok.dev/MCPServer/toolhive-system/stalwart-agent-tools-shadow
     - toolhive.stacklok.dev/MCPTelemetryConfig/toolhive-system/platform-tools-telemetry
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-admin-tools
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-operate-tools
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-public-read-tools
   inventory:
-    digest: sha256:d8d6986c9ec5c35cd7130c73ff5814b8940ad5f8417bff57f637100af1b68c0d
+    digest: sha256:2d0a1c64feb3b64ace3d5ed04d37b5cfc421268c0dabe0cc9228a9b354c0c34e
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

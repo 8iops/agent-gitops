@@ -52,7 +52,9 @@ def accepted_bundle(configmap: Path, contract_path: Path, allow_blocked: bool = 
     expected = f"oci://ghcr.io/8iops/agent-gitops-release/{release_id}"
     if state["bundleReference"] != expected:
         raise ValueError("accepted bundle is outside the release repository")
-    if state["inventoryDigest"] != contract["spec"]["inventory"]["digest"]:
+    # Reset never applies bundle objects. Permit an explicitly opted-in blocked
+    # reset even when the reviewed contract has since changed inventory.
+    if not allow_blocked and state["inventoryDigest"] != contract["spec"]["inventory"]["digest"]:
         raise ValueError("contract inventory changed; publish a reviewed release instead")
     return {"reference": expected, "digest": state["appliedDigest"]}
 

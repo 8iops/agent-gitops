@@ -287,7 +287,7 @@ class Executor:
         manifest, objects = load_archive(bundle_path)
         if manifest["releaseId"] != operation["releaseId"]:
             raise Rejected("bundle is bound to another release")
-        if operation["action"] != "rollback" and manifest["contractDigest"] != contract_digest:
+        if operation["action"] not in {"rollback", "reset"} and manifest["contractDigest"] != contract_digest:
             raise Rejected("bundle is bound to another contract")
         if manifest["inventoryDigest"] != operation["inventoryDigest"]:
             raise Rejected("operation inventory differs from bundle")
@@ -488,6 +488,19 @@ class Executor:
                               for condition in parent.get("conditions", [])
                               if condition.get("type") in {"Accepted", "ResolvedRefs"} and condition.get("status") != "True"})
             return False, "HTTPRoute is not ready" + (f" ({','.join(reasons)})" if reasons else "")
+        if ref["kind"] == "MCPServer" and not matching:
+            argv = ["kubectl", "get", "mcpserver", ref["name"], "--namespace", ref["namespace"], "-o", "json"]
+            live = json.loads(self.kube_get(argv).stdout)
+            status = live.get("status", {})
+            ready = next((value for value in status.get("conditions", []) if value.get("type") == "Ready"), {})
+            generation = live.get("metadata", {}).get("generation", 0)
+            observed = ready.get("observedGeneration", status.get("observedGeneration", 0))
+            if observed < generation:
+                return False, "MCPServer generation not observed"
+            phase = status.get("phase")
+            if phase != "Ready" or ready.get("status") != "True":
+                return False, f"MCPServer phase is {phase or 'absent'}"
+            return True, "MCPServer Ready condition observed"
         if ref["kind"] not in READY_KINDS and not matching:
             return True, "no readiness rule"
         argv = ["kubectl", "get", ref["kind"], ref["name"]]

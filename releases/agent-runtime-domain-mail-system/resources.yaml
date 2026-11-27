@@ -546,9 +546,23 @@ spec:
             app.kubernetes.io/name: stalwart-mailbox-provisioner
         spec:
           containers:
-          - command:
-            - python3
-            - /app/provision.py
+          - args:
+            - 'recovery="${STALWART_RECOVERY_ADMIN}"
+
+              export STALWART_USER="${recovery%%:*}"
+
+              export STALWART_PASSWORD="${recovery#*:}"
+
+              /cli/usr/local/bin/stalwart-cli apply --stdin --json < /plans/plan.ndjson
+
+              unset STALWART_USER STALWART_PASSWORD recovery
+
+              exec python3 /app/provision.py
+
+              '
+            command:
+            - /bin/sh
+            - -ceu
             env:
             - name: STALWART_URL
               value: http://stalwart.mail-system.svc.cluster.local:8080
@@ -573,6 +587,9 @@ spec:
                 - ALL
               readOnlyRootFilesystem: true
             volumeMounts:
+            - mountPath: /plans
+              name: oidc-plan
+              readOnly: true
             - mountPath: /app
               name: app
               readOnly: true
@@ -602,6 +619,9 @@ spec:
             value: closed
           volumes:
           - configMap:
+              name: stalwart-userhub-oauth-plan-v1
+            name: oidc-plan
+          - configMap:
               name: stalwart-mailbox-provisioner
             name: app
           - image:
@@ -613,84 +633,6 @@ spec:
       ttlSecondsAfterFinished: 604800
   schedule: 13 * * * *
   successfulJobsHistoryLimit: 2
----
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: stalwart-tls-reloader
-  namespace: mail-system
-spec:
-  concurrencyPolicy: Forbid
-  failedJobsHistoryLimit: 3
-  jobTemplate:
-    spec:
-      activeDeadlineSeconds: 300
-      backoffLimit: 2
-      template:
-        metadata:
-          labels:
-            app.kubernetes.io/name: stalwart-tls-reloader
-        spec:
-          automountServiceAccountToken: false
-          containers:
-          - args:
-            - 'export STALWART_URL=http://stalwart.mail-system.svc.cluster.local:8080
-
-              export STALWART_USER="${STALWART_RECOVERY_ADMIN%%:*}"
-
-              export STALWART_PASSWORD="${STALWART_RECOVERY_ADMIN#*:}"
-
-              unset STALWART_RECOVERY_ADMIN
-
-              /cli/usr/local/bin/stalwart-cli create Action/ReloadTlsCertificates
-
-              '
-            command:
-            - /bin/sh
-            - -ceu
-            env:
-            - name: XDG_CACHE_HOME
-              value: /cache
-            envFrom:
-            - secretRef:
-                name: stalwart-recovery-admin
-            image: alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659
-            name: reload
-            resources:
-              limits:
-                cpu: 250m
-                memory: 128Mi
-              requests:
-                cpu: 10m
-                memory: 32Mi
-            securityContext:
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop:
-                - ALL
-              readOnlyRootFilesystem: true
-            volumeMounts:
-            - mountPath: /cli
-              name: cli
-              readOnly: true
-            - mountPath: /cache
-              name: cache
-          restartPolicy: Never
-          securityContext:
-            runAsGroup: 65532
-            runAsNonRoot: true
-            runAsUser: 65532
-            seccompProfile:
-              type: RuntimeDefault
-          volumes:
-          - image:
-              pullPolicy: IfNotPresent
-              reference: ghcr.io/stalwartlabs/cli@sha256:fe199affac1d120a8c200ef39ae629765a2976270e0453575c1caf906ee15b52
-            name: cli
-          - emptyDir: {}
-            name: cache
-  schedule: 17 * * * *
-  successfulJobsHistoryLimit: 3
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -904,7 +846,7 @@ metadata:
 apiVersion: v1
 data:
   plan.ndjson: '{"@type":"upsert","object":"Directory","matchOn":["description"],"value":{"re8ch-enterprise-sso":{"@type":"Oidc","description":"RE8CH
-    Enterprise SSO broker","issuerUrl":"https://auth.re8ch.com","requireAudience":"stalwart-webui","requireScopes":{"openid":true,"email":true,"profile":true},"claimUsername":"email","claimName":"name","claimGroups":"groups"}}}
+    Enterprise SSO broker","issuerUrl":"https://db-rw.re8ch.com/auth/v1","requireAudience":"authenticated","requireScopes":{"openid":true,"email":true,"profile":true},"claimUsername":"email","claimName":"name","claimGroups":"groups"}}}
 
     {"@type":"update","object":"Authentication","value":{"directoryId":"#re8ch-enterprise-sso"}}
 
@@ -1158,7 +1100,7 @@ metadata:
 apiVersion: v1
 data:
   plan.ndjson: '{"@type":"upsert","object":"Directory","matchOn":["description"],"value":{"re8ch-enterprise-sso":{"@type":"Oidc","description":"RE8CH
-    Enterprise SSO broker","issuerUrl":"https://auth.re8ch.com","acceptedAudiences":{"stalwart-webui":true},"unscopedTokens":"interoperable","claimUsername":"email","claimName":"name","claimGroups":"groups"}}}
+    Enterprise SSO broker","issuerUrl":"https://db-rw.re8ch.com/auth/v1","requireAudience":"authenticated","requireScopes":{"openid":true,"email":true,"profile":true},"claimUsername":"email","claimName":"name","claimGroups":"groups"}}}
 
     {"@type":"upsert","object":"Domain","matchOn":["name"],"value":{"re8ch-domain":{"name":"re8ch.com","enable":true,"aliases":{},"certificateManagement":{"@type":"Manual"},"dkimManagement":{"@type":"Automatic"},"dnsManagement":{"@type":"Manual"},"subAddressing":{"@type":"Enabled"},"directoryId":"#re8ch-enterprise-sso"}}}
 
@@ -1198,7 +1140,7 @@ metadata:
 apiVersion: v1
 data:
   plan.ndjson: '{"@type":"upsert","object":"Directory","matchOn":["description"],"value":{"re8ch-enterprise-sso":{"@type":"Oidc","description":"RE8CH
-    Enterprise SSO broker","issuerUrl":"https://auth.re8ch.com","acceptedAudiences":{"stalwart-webui":true},"unscopedTokens":"interoperable","claimUsername":"email","claimName":"name","claimGroups":"groups"}}}
+    Enterprise SSO broker","issuerUrl":"https://db-rw.re8ch.com/auth/v1","requireAudience":"authenticated","requireScopes":{"openid":true,"email":true,"profile":true},"claimUsername":"email","claimName":"name","claimGroups":"groups"}}}
 
     {"@type":"upsert","object":"Domain","matchOn":["name"],"value":{"re8ch-domain":{"name":"re8ch.com","enable":true,"aliases":{},"certificateManagement":{"@type":"Manual"},"dkimManagement":{"@type":"Automatic"},"dnsManagement":{"@type":"Manual"},"subAddressing":{"@type":"Enabled"},"directoryId":"#re8ch-enterprise-sso"}}}
 

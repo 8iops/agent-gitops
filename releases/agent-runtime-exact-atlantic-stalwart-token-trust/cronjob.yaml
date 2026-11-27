@@ -1,0 +1,67 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: stalwart-tls-reloader
+  namespace: mail-system
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: stalwart-tls-reloader
+        spec:
+          automountServiceAccountToken: false
+          containers:
+          - args:
+            - |
+              export STALWART_URL=http://stalwart.mail-system.svc.cluster.local:8080
+              export STALWART_USER="${STALWART_RECOVERY_ADMIN%%:*}"
+              export STALWART_PASSWORD="${STALWART_RECOVERY_ADMIN#*:}"
+              unset STALWART_RECOVERY_ADMIN
+              /cli/usr/local/bin/stalwart-cli apply --stdin --json <<'PLAN'
+              {"@type":"upsert","object":"Directory","matchOn":["description"],"value":{"re8ch-enterprise-sso":{"@type":"Oidc","description":"RE8CH Enterprise SSO broker","issuerUrl":"https://db-rw.re8ch.com/auth/v1","acceptedAudiences":{"authenticated":true},"unscopedTokens":"interoperable","allowIdTokenClaims":true,"claimUsername":"email","claimName":"name","claimGroups":"groups"}}}
+              {"@type":"upsert","object":"Domain","matchOn":["name"],"value":{"re8ch-domain":{"name":"re8ch.com","enable":true,"aliases":{},"certificateManagement":{"@type":"Manual"},"dkimManagement":{"@type":"Automatic"},"dnsManagement":{"@type":"Manual"},"subAddressing":{"@type":"Enabled"},"directoryId":"#re8ch-enterprise-sso"}}}
+              {"@type":"update","object":"Authentication","value":{"directoryId":"#re8ch-enterprise-sso"}}
+              PLAN
+              /cli/usr/local/bin/stalwart-cli create Action/ReloadSettings
+              /cli/usr/local/bin/stalwart-cli create Action/InvalidateCaches
+              /cli/usr/local/bin/stalwart-cli create Action/ReloadTlsCertificates
+            command: [/bin/sh, -ceu]
+            env:
+            - name: XDG_CACHE_HOME
+              value: /cache
+            envFrom:
+            - secretRef:
+                name: stalwart-recovery-admin
+            image: alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659
+            name: reload
+            resources:
+              limits: {cpu: 250m, memory: 128Mi}
+              requests: {cpu: 10m, memory: 32Mi}
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities: {drop: [ALL]}
+              readOnlyRootFilesystem: true
+            volumeMounts:
+            - {mountPath: /cli, name: cli, readOnly: true}
+            - {mountPath: /cache, name: cache}
+          restartPolicy: Never
+          securityContext:
+            runAsGroup: 65532
+            runAsNonRoot: true
+            runAsUser: 65532
+            seccompProfile: {type: RuntimeDefault}
+          volumes:
+          - image:
+              pullPolicy: IfNotPresent
+              reference: ghcr.io/stalwartlabs/cli@sha256:5b70732cb69cdab3ff0894c501544cf0bfa180fa75bcd0eeba4eebe04c1064e1
+            name: cli
+          - emptyDir: {}
+            name: cache
+  schedule: '*/2 * * * *'
+  successfulJobsHistoryLimit: 3
