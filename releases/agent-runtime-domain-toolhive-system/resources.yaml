@@ -2105,7 +2105,7 @@ metadata:
   annotations:
     re8ch.com/provider-contract-sha256: 4cd7a2c024a268028acd38bee19e4e62a2d917239a5f50e5f666130a1fc27011
     re8ch.com/rollback-mode: remove-shadow-preserve-tenant-mcp
-    re8ch.com/source-revision: 4a80c7170dc0a5c974cd5288835050eec61cc68d
+    re8ch.com/source-revision: c1e86597abce52936ef0fa0b39623e6ce0cbb43d
     re8ch.com/tool-catalog-sha256: 60920e5b8648b1d4f4ecc07dd85571fe5afc63c9a1cb5f663f2e73ac8ef2bbaf
   labels:
     app.kubernetes.io/name: stalwart-agent-tools
@@ -2127,7 +2127,7 @@ spec:
     value: /var/run/secrets/tokens/stalwart-binding-broker
   groupRef:
     name: collaboration-user-shadow
-  image: ghcr.io/8iops/stalwart-agent-tools@sha256:c6dcb84ef2370fc006671f3485392206a97d11881bef1e18debc5ef08885dad7
+  image: ghcr.io/8iops/stalwart-agent-tools@sha256:1db35ce72d2569a63d6dea7d7778061795ce6a83c4ee29da6a0d0888c8e01f60
   mcpPort: 8088
   podTemplateSpec:
     metadata:
@@ -2180,7 +2180,7 @@ spec:
               expirationSeconds: 600
               path: stalwart-binding-broker
   proxyPort: 8080
-  replicas: 0
+  replicas: 1
   resources:
     limits:
       cpu: 250m
