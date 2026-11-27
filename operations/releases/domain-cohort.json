@@ -83,11 +83,11 @@
     {
       "name": "agent-runtime-domain-toolhive-system",
       "namespace": "toolhive-system",
-      "objects": 63,
+      "objects": 67,
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 341,
+  "publishableObjects": 345,
   "deferred": [
     {
       "identity": "apps/Deployment/tenant-infrastructure/tenant-api",
@@ -368,22 +368,6 @@
     {
       "identity": "toolhive.stacklok.dev/MCPServer/toolhive-system/ops-operate-vmcp-internal",
       "reason": "image-digest-required"
-    },
-    {
-      "identity": "toolhive.stacklok.dev/MCPServerEntry/toolhive-system/admin-api-backend",
-      "reason": "custom-resource-access-required"
-    },
-    {
-      "identity": "toolhive.stacklok.dev/MCPServerEntry/toolhive-system/ops-admin-vmcp-backend",
-      "reason": "custom-resource-access-required"
-    },
-    {
-      "identity": "toolhive.stacklok.dev/MCPServerEntry/toolhive-system/ops-observe-vmcp-backend",
-      "reason": "custom-resource-access-required"
-    },
-    {
-      "identity": "toolhive.stacklok.dev/MCPServerEntry/toolhive-system/ops-operate-vmcp-backend",
-      "reason": "custom-resource-access-required"
     }
   ]
 }
