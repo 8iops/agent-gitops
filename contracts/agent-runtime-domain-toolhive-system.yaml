@@ -113,6 +113,7 @@ spec:
     - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-operate-public
     - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-tools-public
     - toolhive.stacklok.dev/MCPGroup/toolhive-system/tenant-public
+    - toolhive.stacklok.dev/MCPGroup/toolhive-system/tenant-public
     - toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/re8ch-native-issuer
     - toolhive.stacklok.dev/MCPServer/toolhive-system/stalwart-agent-tools-shadow
     - toolhive.stacklok.dev/MCPTelemetryConfig/toolhive-system/platform-tools-telemetry
