@@ -1468,7 +1468,9 @@ rules:
   resources:
   - mcpexternalauthconfigs
   resourceNames:
+  - admin-vmcp-backend-auth
   - vmcp-admin-backend-auth
+  - vmcp-internal-backend
   - vmcp-observe-backend-auth
   verbs:
   - get
@@ -1480,7 +1482,10 @@ rules:
   - mcpgroups
   resourceNames:
   - collaboration-user-shadow
+  - platform-admin
   - platform-admin-public
+  - platform-observe
+  - platform-operate
   - platform-operate-public
   - platform-tools-public
   - tenant-public
@@ -1494,7 +1499,17 @@ rules:
   resources:
   - mcpoidcconfigs
   resourceNames:
+  - admin-workload-identity
+  - external-admin-oidc
+  - external-observe-oidc
+  - external-operate-oidc
+  - observe-workload-identity
+  - operate-workload-identity
+  - re8ch-admin-vmcp-issuer
   - re8ch-native-issuer
+  - re8ch-operate-vmcp-issuer
+  - re8ch-tools-vmcp-issuer
+  - tenant-vmcp-issuer
   verbs:
   - get
   - patch
@@ -1526,6 +1541,7 @@ rules:
   - mcptoolconfigs
   resourceNames:
   - ops-admin-tools
+  - ops-observe-tools
   - ops-operate-tools
   - ops-public-read-tools
   verbs:
@@ -1537,7 +1553,11 @@ rules:
   resources:
   - virtualmcpservers
   resourceNames:
+  - re8ch-admin-vmcp
   - re8ch-native
+  - re8ch-operate-vmcp
+  - re8ch-tools-vmcp
+  - tenant-vmcp
   verbs:
   - get
   - patch
