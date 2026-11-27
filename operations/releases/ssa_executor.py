@@ -556,7 +556,19 @@ class Executor:
         allowed = set(contract["spec"]["lifecycle"].get("deletionAllowlist", []))
         stale = set(previous["inventory"]) - new_inventory
         refs = {f"{ref['apiVersion'].split('/', 1)[0] if '/' in ref['apiVersion'] else 'core'}/{ref['kind']}/{ref.get('namespace', '_')}/{ref['name']}": ref for ref in previous["objectRefs"]}
-        for identity in sorted(stale):
+        # ToolHive provider CRs use finalizers to reject deletion while a
+        # consumer still references them. Delete publications and backend
+        # entries before their referenced policy/authentication objects.
+        prune_kind_order = {
+            "VirtualMCPServer": 0,
+            "MCPServerEntry": 1,
+            "MCPToolConfig": 2,
+            "MCPOIDCConfig": 3,
+            "MCPGroup": 3,
+            "MCPExternalAuthConfig": 3,
+        }
+        ordered = sorted(stale, key=lambda identity: (prune_kind_order.get(refs[identity]["kind"], 50), identity))
+        for identity in ordered:
             ref = refs[identity]
             if identity not in allowed or ref["kind"] in PROTECTED_KINDS or ref["kind"] in set(contract["spec"]["lifecycle"]["protectedKinds"]):
                 raise Rejected(f"stale object is not deletion-authorized: {identity}")
