@@ -269,7 +269,7 @@ data:
     \   \"description\": \"Unified RE8CH tools, selected by the authenticated organization,\
     \ membership and grants.\",\n        \"version\": \"1.0.0\",\n        \"remotes\"\
     : [\n          {\n            \"type\": \"streamable-http\",\n            \"url\"\
-    : \"https://tools.service.re8ch.com/tenant-plugin/mcp\"\n          }\n       \
+    : \"https://tools.service.re8ch.com/tenant-native/mcp\"\n          }\n       \
     \ ],\n        \"websiteUrl\": \"https://re8ch.com\",\n        \"_meta\": {\n \
     \         \"io.modelcontextprotocol.registry/publisher-provided\": {\n       \
     \     \"io.github.stacklok\": {\n              \"streamable-http\": {\n      \

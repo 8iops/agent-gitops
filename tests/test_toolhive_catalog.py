@@ -20,5 +20,5 @@ def test_toolhive_catalog_uses_canonical_openoauth_resource():
 
     assert registry["data"]["servers"][0]["remotes"] == [{
         "type": "streamable-http",
-        "url": "https://tools.service.re8ch.com/tenant-plugin/mcp",
+        "url": "https://tools.service.re8ch.com/tenant-native/mcp",
     }]
