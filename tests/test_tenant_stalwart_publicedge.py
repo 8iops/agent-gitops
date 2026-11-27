@@ -22,7 +22,12 @@ def tenant_runtime_environment(path):
 def test_tenant_stalwart_uses_publicedge_and_reviewed_oauth():
     for path in (SOURCE, EXACT):
         runtime, env = tenant_runtime_environment(path)
-        assert runtime["image"] == "ghcr.io/re8ch/service-backend-tenant-mcp@sha256:b6d5e3f4d568801e448f0269171895d2a33a2345f3bba8a0e38959174a59d589"
+        expected_digest = (
+            "ec6c47e432729ea021294357e13a78d26c6fa52b2806d749692e81dcf1c24455"
+            if path == EXACT
+            else "b6d5e3f4d568801e448f0269171895d2a33a2345f3bba8a0e38959174a59d589"
+        )
+        assert runtime["image"] == f"ghcr.io/re8ch/service-backend-tenant-mcp@sha256:{expected_digest}"
         assert env["LITELLM_GATEWAY_URL"] == "https://litellm.service.re8ch.com/v1"
         assert env["STALWART_URL"] == "https://id.re8ch.com"
         assert "STALWART_CONNECT_URL" not in env
@@ -31,6 +36,12 @@ def test_tenant_stalwart_uses_publicedge_and_reviewed_oauth():
         assert env["STALWART_TOKEN_URL"] == "https://db-rw.re8ch.com/auth/v1/oauth/token"
         for name in ("STALWART_URL", "STALWART_AUTHORIZATION_URL", "STALWART_TOKEN_URL"):
             assert ".svc" not in env[name] and ".cluster.local" not in env[name]
+
+    _, exact_env = tenant_runtime_environment(EXACT)
+    assert exact_env["STALWART_TOOL_CLIENT"] == "system:serviceaccount:toolhive-system:stalwart-agent-tools"
+    assert exact_env["STALWART_TOOL_REF"] == "tool://8iops/stalwart-agent-tools"
+    assert exact_env["STALWART_TOOL_OWNER_ORG_REF"] == "publisher"
+    assert exact_env["STALWART_TOOL_AUDIENCE"] == "re8ch-tenant-tool"
 
 
 def test_tenant_provider_admin_uses_publicedge():
