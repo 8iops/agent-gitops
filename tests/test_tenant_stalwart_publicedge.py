@@ -23,7 +23,7 @@ def test_tenant_stalwart_uses_publicedge_and_reviewed_oauth():
     for path in (SOURCE, EXACT):
         runtime, env = tenant_runtime_environment(path)
         expected_digest = (
-            "e77badc07e9dc5a101ae9fed36bb248eded4312e57934930e3a103ad83fef626"
+            "c278b98ae5f0ac2b3a7eec16cdb94d7e2198bf6abe8b602ba27699d7302f9556"
             if path == EXACT
             else "b6d5e3f4d568801e448f0269171895d2a33a2345f3bba8a0e38959174a59d589"
         )
@@ -42,6 +42,9 @@ def test_tenant_stalwart_uses_publicedge_and_reviewed_oauth():
     assert exact_env["STALWART_TOOL_REF"] == "tool://8iops/stalwart-agent-tools"
     assert exact_env["STALWART_TOOL_OWNER_ORG_REF"] == "publisher"
     assert exact_env["STALWART_TOOL_AUDIENCE"] == "re8ch-tenant-tool"
+    assert exact_env["STALWART_TOOL_ENDPOINT"] == (
+        "http://mcp-stalwart-agent-tools-shadow.toolhive-system.svc.cluster.local:8088/mcp"
+    )
 
 
 def test_tenant_provider_admin_uses_publicedge():
