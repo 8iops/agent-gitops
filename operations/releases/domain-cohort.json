@@ -1,6 +1,6 @@
 {
   "domain": "agent-runtime",
-  "sourceObjects": 418,
+  "sourceObjects": 394,
   "releases": [
     {
       "name": "agent-runtime-domain-ai-operations",
@@ -83,11 +83,11 @@
     {
       "name": "agent-runtime-domain-toolhive-system",
       "namespace": "toolhive-system",
-      "objects": 67,
+      "objects": 43,
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 348,
+  "publishableObjects": 324,
   "deferred": [
     {
       "identity": "apps/Deployment/tenant-infrastructure/tenant-api",
