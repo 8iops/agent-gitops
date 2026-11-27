@@ -5,6 +5,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "clusters/re8ch/tenant-runtime-authority-resources.yaml"
+EXACT_TENANT_API = ROOT / "releases/agent-runtime-exact-tenant-api-manager/tenant-api.yaml"
 
 
 def objects():
@@ -28,6 +29,16 @@ def test_tenant_api_uses_native_resource_and_bound_issuer():
         "key": "TENANT_CLAIM_SERVICE_TOKEN",
         "optional": False,
     }
+
+
+def test_exact_tenant_api_release_keeps_native_resource_parity():
+    exact = yaml.safe_load(EXACT_TENANT_API.read_text())
+    container = exact["spec"]["template"]["spec"]["containers"][0]
+    env = {item["name"]: item for item in container["env"]}
+    assert env["PUBLIC_MCP_URL"]["value"] == "https://tools.service.re8ch.com/tenant-native/mcp"
+    assert env["PUBLIC_RESOURCE_METADATA_URL"]["value"] == (
+        "https://tools.service.re8ch.com/.well-known/oauth-protected-resource/tenant-native/mcp"
+    )
 
 
 def test_issuer_reads_only_managed_secret_refs_and_binding_authority():
