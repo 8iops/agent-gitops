@@ -22,11 +22,7 @@ def tenant_runtime_environment(path):
 def test_tenant_stalwart_uses_publicedge_and_reviewed_oauth():
     for path in (SOURCE, EXACT):
         runtime, env = tenant_runtime_environment(path)
-        expected_digest = (
-            "e77badc07e9dc5a101ae9fed36bb248eded4312e57934930e3a103ad83fef626"
-            if path == EXACT
-            else "b6d5e3f4d568801e448f0269171895d2a33a2345f3bba8a0e38959174a59d589"
-        )
+        expected_digest = "b6d5e3f4d568801e448f0269171895d2a33a2345f3bba8a0e38959174a59d589"
         assert runtime["image"] == f"ghcr.io/re8ch/service-backend-tenant-mcp@sha256:{expected_digest}"
         assert env["LITELLM_GATEWAY_URL"] == "https://litellm.service.re8ch.com/v1"
         assert env["STALWART_URL"] == "https://id.re8ch.com"
@@ -38,10 +34,7 @@ def test_tenant_stalwart_uses_publicedge_and_reviewed_oauth():
             assert ".svc" not in env[name] and ".cluster.local" not in env[name]
 
     _, exact_env = tenant_runtime_environment(EXACT)
-    assert exact_env["STALWART_TOOL_CLIENT"] == "system:serviceaccount:toolhive-system:stalwart-agent-tools"
-    assert exact_env["STALWART_TOOL_REF"] == "tool://8iops/stalwart-agent-tools"
-    assert exact_env["STALWART_TOOL_OWNER_ORG_REF"] == "publisher"
-    assert exact_env["STALWART_TOOL_AUDIENCE"] == "re8ch-tenant-tool"
+    assert not any(name.startswith("STALWART_TOOL_") for name in exact_env)
 
 
 def test_tenant_provider_admin_uses_publicedge():
