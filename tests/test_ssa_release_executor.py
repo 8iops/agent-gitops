@@ -190,6 +190,8 @@ def test_prune_deletes_toolhive_consumers_before_providers():
     executor.Executor(runner=runner).prune(previous, set(), value, "re8ch-release/demo")
 
     deleted_kinds = [json.loads(stdin)["kind"] for argv, stdin in runner.calls if argv[:2] == ["kubectl", "delete"]]
+    delete_commands = [argv for argv, _ in runner.calls if argv[:2] == ["kubectl", "delete"]]
+    assert all("--ignore-not-found=true" in argv for argv in delete_commands)
     assert deleted_kinds == [
         "VirtualMCPServer",
         "MCPServerEntry",

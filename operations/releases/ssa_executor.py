@@ -575,7 +575,9 @@ class Executor:
             manifest = {"apiVersion": ref["apiVersion"], "kind": ref["kind"], "metadata": {"name": ref["name"]}}
             if ref.get("namespace"):
                 manifest["metadata"]["namespace"] = ref["namespace"]
-            self.command(["kubectl", "delete", "--wait=true", "-f", "-"], json.dumps(manifest), timeout=120)
+            self.command(
+                ["kubectl", "delete", "--wait=true", "--ignore-not-found=true", "-f", "-"],
+                json.dumps(manifest), timeout=120)
 
     def rollback(self, previous: dict, attempted_manifest: dict, attempted_objects: list[dict],
                  contract: dict, operation: dict, manager: str, store: Store, reason: str) -> tuple[str, str]:
