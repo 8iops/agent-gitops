@@ -20,6 +20,7 @@ DOMAIN = ENVIRONMENT.removeprefix('release-executor-')
 PREFIX = ('observability' if DOMAIN == 'observability-metering' else DOMAIN) + '-domain-'
 PLURALS = {'ServiceAccount':'serviceaccounts','Service':'services','ConfigMap':'configmaps','PersistentVolumeClaim':'persistentvolumeclaims','Deployment':'deployments','StatefulSet':'statefulsets','DaemonSet':'daemonsets','Job':'jobs','CronJob':'cronjobs','HorizontalPodAutoscaler':'horizontalpodautoscalers','PodDisruptionBudget':'poddisruptionbudgets','NetworkPolicy':'networkpolicies','Ingress':'ingresses','EndpointSlice':'endpointslices','HTTPRoute':'httproutes','CiliumNetworkPolicy':'ciliumnetworkpolicies','Role':'roles','RoleBinding':'rolebindings','MCPServer':'mcpservers','ResourceQuota':'resourcequotas'}
 CUSTOM_TYPES = json.loads((ROOT/'operations/releases/resource-types.json').read_text())
+RETIREMENTS = json.loads((ROOT/'operations/releases/retirements.json').read_text())
 FLUX_GROUPS = {'source.toolkit.fluxcd.io','helm.toolkit.fluxcd.io','kustomize.toolkit.fluxcd.io','notification.toolkit.fluxcd.io','image.toolkit.fluxcd.io'}
 
 def group(item):
@@ -91,7 +92,7 @@ def compile_outputs():
             'provenance':{'repository':REPOSITORY,'workflow':WORKFLOW,'ref':'refs/heads/main','environment':ENVIRONMENT,'audience':AUDIENCE,'signer':SIGNER,'issuer':'https://token.actions.githubusercontent.com'},
             'authorization':{'fieldManager':'re8ch-release/'+name,'resources':sorted({group(d)+'/'+d['kind'] for d in objects}),'objectNames':sorted({d['metadata']['name'] for d in objects}),'allowClusterScoped':False,'requireExisting':name!='agent-runtime-domain-toolhive-system','forceConflictObjects':[object_identity(d) for d in objects if d['kind'] not in {'Namespace','CustomResourceDefinition','PersistentVolume','PersistentVolumeClaim','StorageClass'}]},
             'inventory':{'digest':digest(canonical(inventory))},
-            'lifecycle':{'prune':False,'healthTimeoutSeconds':300,'protectedKinds':['Namespace','CustomResourceDefinition','PersistentVolume','PersistentVolumeClaim','StorageClass'],'deletionAllowlist':[]}}}
+            'lifecycle':{'prune':bool(RETIREMENTS.get(namespace)),'healthTimeoutSeconds':300,'protectedKinds':['Namespace','CustomResourceDefinition','PersistentVolume','PersistentVolumeClaim','StorageClass'],'deletionAllowlist':sorted(RETIREMENTS.get(namespace, []))}}}
         body=yaml.safe_dump_all(objects,sort_keys=False,explicit_start=True)
         if namespace in transfers:
             contract['spec']['authorization']['fieldManager']=transfers[namespace]['fieldManager']
@@ -109,6 +110,14 @@ def compile_outputs():
             if name == 'agent-runtime-domain-toolhive-system' and api == 'toolhive.stacklok.dev' and resource in {'mcpgroups','mcpoidcconfigs','virtualmcpservers'}:
                 verbs.append('create')
             role_rules.append({'apiGroups':['' if api=='core' else api],'resources':[resource],'resourceNames':sorted(names),'verbs':verbs})
+        retirement_rules=defaultdict(set)
+        for identity in RETIREMENTS.get(namespace, []):
+            api,kind,retirement_namespace,object_name=identity.split('/',3)
+            if retirement_namespace != namespace: raise ValueError('cross-namespace retirement: '+identity)
+            resource=PLURALS.get(kind) or CUSTOM_TYPES[api+'/'+kind]
+            retirement_rules[(api,resource)].add(object_name)
+        for (api,resource),names in sorted(retirement_rules.items()):
+            role_rules.append({'apiGroups':['' if api=='core' else api],'resources':[resource],'resourceNames':sorted(names),'verbs':['get','delete']})
         access += [{'apiVersion':'v1','kind':'ConfigMap','metadata':{'name':state,'namespace':namespace,'labels':{'delivery.re8ch.com/state':'accepted','delivery.re8ch.com/authority-domain':DOMAIN}}},
           {'apiVersion':'rbac.authorization.k8s.io/v1','kind':'Role','metadata':{'name':name,'namespace':namespace},'rules':role_rules},
           {'apiVersion':'rbac.authorization.k8s.io/v1','kind':'RoleBinding','metadata':{'name':name,'namespace':namespace},'roleRef':{'apiGroup':'rbac.authorization.k8s.io','kind':'Role','name':name},'subjects':[{'apiGroup':'rbac.authorization.k8s.io','kind':'Group','name':GROUP}]}]

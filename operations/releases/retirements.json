@@ -1,0 +1,28 @@
+{
+  "toolhive-system": [
+    "toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/admin-vmcp-backend-auth",
+    "toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/vmcp-internal-backend",
+    "toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-admin",
+    "toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-observe",
+    "toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-operate",
+    "toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/admin-workload-identity",
+    "toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/external-admin-oidc",
+    "toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/external-observe-oidc",
+    "toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/external-operate-oidc",
+    "toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/observe-workload-identity",
+    "toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/operate-workload-identity",
+    "toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/re8ch-admin-vmcp-issuer",
+    "toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/re8ch-operate-vmcp-issuer",
+    "toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/re8ch-tools-vmcp-issuer",
+    "toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/tenant-vmcp-issuer",
+    "toolhive.stacklok.dev/MCPServerEntry/toolhive-system/admin-api-backend",
+    "toolhive.stacklok.dev/MCPServerEntry/toolhive-system/ops-admin-vmcp-backend",
+    "toolhive.stacklok.dev/MCPServerEntry/toolhive-system/ops-observe-vmcp-backend",
+    "toolhive.stacklok.dev/MCPServerEntry/toolhive-system/ops-operate-vmcp-backend",
+    "toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-observe-tools",
+    "toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/re8ch-admin-vmcp",
+    "toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/re8ch-operate-vmcp",
+    "toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/re8ch-tools-vmcp",
+    "toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/tenant-vmcp"
+  ]
+}
