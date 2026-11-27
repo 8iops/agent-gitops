@@ -12,6 +12,7 @@ resources:
 - cube-warehouse-s3.yaml
 - compocv-cube-test.yaml
 patches:
+- path: tenant-api-current-runtime-patch.yaml
 - path: tenant-provider-publicedge-patch.yaml
 - path: webmail-session-patch.yaml
 - path: stalwart-client-discovery-patch.yaml
