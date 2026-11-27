@@ -8,7 +8,9 @@
   "governance.re8ch.com/GitWorkspace": "gitworkspaces",
   "toolhive.stacklok.dev/MCPExternalAuthConfig": "mcpexternalauthconfigs",
   "toolhive.stacklok.dev/MCPGroup": "mcpgroups",
+  "toolhive.stacklok.dev/MCPOIDCConfig": "mcpoidcconfigs",
   "toolhive.stacklok.dev/MCPTelemetryConfig": "mcptelemetryconfigs",
   "toolhive.stacklok.dev/MCPToolConfig": "mcptoolconfigs",
+  "toolhive.stacklok.dev/VirtualMCPServer": "virtualmcpservers",
   "operator.victoriametrics.com/VMServiceScrape": "vmservicescrapes"
 }

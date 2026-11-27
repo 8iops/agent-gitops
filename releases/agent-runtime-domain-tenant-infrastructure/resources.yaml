@@ -952,19 +952,6 @@ spec:
         value: /tenant-native/mcp
   - backendRefs:
     - name: tenant-api
-      port: 19449
-    filters:
-    - type: URLRewrite
-      urlRewrite:
-        path:
-          replaceFullPath: /mcp
-          type: ReplaceFullPath
-    matches:
-    - path:
-        type: Exact
-        value: /tenant-plugin/mcp
-  - backendRefs:
-    - name: tenant-api
       port: 80
     filters:
     - type: URLRewrite
@@ -990,13 +977,6 @@ spec:
     - path:
         type: Exact
         value: /.well-known/oauth-protected-resource/tenant-native/mcp
-  - backendRefs:
-    - name: tenant-api
-      port: 80
-    matches:
-    - path:
-        type: Exact
-        value: /.well-known/oauth-protected-resource/tenant-plugin/mcp
   - backendRefs:
     - name: tenant-api
       port: 80
