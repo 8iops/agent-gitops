@@ -2120,7 +2120,7 @@ spec:
   backendReplicas: 1
   env:
   - name: LISTEN_ADDRESS
-    value: :8080
+    value: :8088
   - name: BINDING_BROKER_URL
     value: http://tenant-api.tenant-infrastructure.svc.cluster.local/v1/collaboration/resolve
   - name: BINDING_BROKER_TOKEN_FILE
@@ -2128,7 +2128,7 @@ spec:
   groupRef:
     name: collaboration-user-shadow
   image: ghcr.io/8iops/stalwart-agent-tools@sha256:c6dcb84ef2370fc006671f3485392206a97d11881bef1e18debc5ef08885dad7
-  mcpPort: 8080
+  mcpPort: 8088
   podTemplateSpec:
     metadata:
       labels:
@@ -2142,7 +2142,7 @@ spec:
           failureThreshold: 3
           httpGet:
             path: /healthz
-            port: 8080
+            port: 8088
           periodSeconds: 15
           timeoutSeconds: 3
         name: mcp
@@ -2150,7 +2150,7 @@ spec:
           failureThreshold: 3
           httpGet:
             path: /readyz
-            port: 8080
+            port: 8088
           periodSeconds: 5
           timeoutSeconds: 3
         resources:
