@@ -311,6 +311,23 @@ def test_http_route_requires_accepted_parent_with_resolved_references():
         False, "HTTPRoute is not ready (NoMatchingParent)")
 
 
+@pytest.mark.parametrize(("live", "expected"), [
+    ({"metadata": {"generation": 2}, "status": {"phase": "Pending", "conditions": [
+        {"type": "Ready", "status": "False", "observedGeneration": 2}
+    ]}}, (False, "MCPServer phase is Pending")),
+    ({"metadata": {"generation": 2}, "status": {"phase": "Ready", "conditions": [
+        {"type": "Ready", "status": "True", "observedGeneration": 1}
+    ]}}, (False, "MCPServer generation not observed")),
+    ({"metadata": {"generation": 2}, "status": {"phase": "Ready", "conditions": [
+        {"type": "Ready", "status": "True", "observedGeneration": 2}
+    ]}}, (True, "MCPServer Ready condition observed")),
+])
+def test_mcpserver_requires_current_ready_condition(live, expected):
+    item = {"apiVersion": "toolhive.stacklok.dev/v1beta1", "kind": "MCPServer",
+            "metadata": {"name": "stalwart", "namespace": "toolhive-system"}}
+    assert executor.Executor(runner=Runner(live=live)).healthy(item) == expected
+
+
 def test_rollback_pull_keeps_oci_scheme(tmp_path):
     value, operation, bundle_path = prepare(tmp_path)
     archive = bundle_path.read_bytes()
