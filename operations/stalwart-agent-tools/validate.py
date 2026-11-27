@@ -39,7 +39,16 @@ assert token == {"audience": "stalwart-binding-broker", "expirationSeconds": 600
 assert {entry["name"] for entry in server["spec"]["env"]} == {
     "LISTEN_ADDRESS", "BINDING_BROKER_URL", "BINDING_BROKER_TOKEN_FILE"
 }
-assert policy["spec"]["policyTypes"] == ["Egress"]
+assert policy["spec"]["policyTypes"] == ["Ingress", "Egress"]
+assert policy["spec"]["ingress"] == [{
+    "from": [{
+        "namespaceSelector": {
+            "matchLabels": {"kubernetes.io/metadata.name": "tenant-infrastructure"}
+        },
+        "podSelector": {"matchLabels": {"app": "tenant-api"}},
+    }],
+    "ports": [{"protocol": "TCP", "port": 8088}],
+}]
 
 broker = named(documents(CLUSTER / "stalwart-agent-tools-broker-patch.yaml"), "Deployment", "tenant-api")
 broker_env = broker["spec"]["template"]["spec"]["containers"][0]["env"]

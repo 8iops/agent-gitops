@@ -124,7 +124,19 @@ spec:
     matchLabels:
       app.kubernetes.io/name: stalwart-agent-tools
   policyTypes:
+  - Ingress
   - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: tenant-infrastructure
+      podSelector:
+        matchLabels:
+          app: tenant-api
+    ports:
+    - protocol: TCP
+      port: 8088
   egress:
   - to:
     - namespaceSelector:
