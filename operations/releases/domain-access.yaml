@@ -1483,10 +1483,23 @@ rules:
   - platform-admin-public
   - platform-operate-public
   - platform-tools-public
+  - tenant-public
   verbs:
   - get
   - patch
   - update
+  - create
+- apiGroups:
+  - toolhive.stacklok.dev
+  resources:
+  - mcpoidcconfigs
+  resourceNames:
+  - re8ch-native-issuer
+  verbs:
+  - get
+  - patch
+  - update
+  - create
 - apiGroups:
   - toolhive.stacklok.dev
   resources:
@@ -1519,6 +1532,17 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - toolhive.stacklok.dev
+  resources:
+  - virtualmcpservers
+  resourceNames:
+  - re8ch-native
+  verbs:
+  - get
+  - patch
+  - update
+  - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
