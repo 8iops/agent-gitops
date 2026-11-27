@@ -22,6 +22,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: python operations/github/validate_pr_context.py --event "$GITHUB_EVENT_PATH"
       - run: python operations/cube-recovery/render.py --check
+      - run: python operations/stalwart-agent-tools/validate.py
       - run: kubectl kustomize clusters/re8ch >/dev/null
       - run: python3 policies/validate.py
       - name: Validate static release shadow bundle

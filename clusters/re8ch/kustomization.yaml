@@ -4,6 +4,7 @@ resources:
 - resources.yaml
 - tenant-runtime-authority-resources.yaml
 - tenant-mcp-publication-resources.yaml
+- stalwart-agent-tools-shadow.yaml
 - mail-authority-resources.yaml
 - litellm-authority-resources.yaml
 - cube-recovery-resources.yaml
@@ -18,6 +19,7 @@ patches:
 - path: stalwart-unified-identity-trust-patch.yaml
 - path: stalwart-userhub-trust-patch.yaml
 - path: stalwart-oidc-reconciler-patch.yaml
+- path: stalwart-agent-tools-broker-patch.yaml
 - target:
     group: gateway.networking.k8s.io
     version: v1
