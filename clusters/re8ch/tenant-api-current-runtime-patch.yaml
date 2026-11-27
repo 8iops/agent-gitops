@@ -1,15 +1,3 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: tenant-api
-  namespace: tenant-infrastructure
-spec:
-  template:
-    spec:
-      containers:
-      - name: runtime
-        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:9627dec87e6f4217693dae060b6324fa1481bddc612faca984c3fba9ee427ecb
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
