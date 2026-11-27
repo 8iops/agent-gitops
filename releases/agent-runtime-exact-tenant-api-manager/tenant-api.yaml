@@ -170,14 +170,6 @@ spec:
               name: admin-vmcp-backend-auth
         - name: ADMIN_LISTEN_PORT
           value: '19450'
-        - name: STALWART_TOOL_CLIENT
-          value: system:serviceaccount:toolhive-system:stalwart-agent-tools
-        - name: STALWART_TOOL_REF
-          value: tool://8iops/stalwart-agent-tools
-        - name: STALWART_TOOL_OWNER_ORG_REF
-          value: publisher
-        - name: STALWART_TOOL_AUDIENCE
-          value: re8ch-tenant-tool
         envFrom:
         - secretRef:
             name: tenant-claim-internal-auth
@@ -188,7 +180,7 @@ spec:
         - secretRef:
             name: tenant-grafana-credentials
             optional: true
-        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:ec6c47e432729ea021294357e13a78d26c6fa52b2806d749692e81dcf1c24455
+        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:b6d5e3f4d568801e448f0269171895d2a33a2345f3bba8a0e38959174a59d589
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
