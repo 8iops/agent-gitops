@@ -70,13 +70,13 @@ spec:
         - name: LISTEN_PORT
           value: '19448'
         - name: PUBLIC_MCP_URL
-          value: https://tools.service.re8ch.com/tenant-plugin/mcp
+          value: https://tools.service.re8ch.com/tenant-native/mcp
         - name: OPENAI_APPS_CHALLENGE_TOKEN
           value: 6n3O48vy3O89euYVrri4aHJMeUJ_vkofxLpzxv-6TTE
         - name: PUBLIC_ORIGIN
           value: https://tools.service.re8ch.com
         - name: PUBLIC_RESOURCE_METADATA_URL
-          value: https://tools.service.re8ch.com/.well-known/oauth-protected-resource/tenant-plugin/mcp
+          value: https://tools.service.re8ch.com/.well-known/oauth-protected-resource/tenant-native/mcp
         - name: TENANT_CONTROL_URL
           value: http://tenant-control-controller.tenant-infrastructure.svc
         - name: AUTH_DISCOVERY_URL
