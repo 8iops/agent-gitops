@@ -263,6 +263,25 @@ _re8chSopsSource: '{"apiVersion":"v1","kind":"ConfigMap","metadata":{"name":"ops
 ---
 apiVersion: v1
 data:
+  registry.json: "{\n  \"version\": \"1.0.0\",\n  \"meta\": {\n    \"last_updated\"\
+    : \"2026-11-27T00:00:00Z\"\n  },\n  \"data\": {\n    \"servers\": [\n      {\n\
+    \        \"name\": \"com.re8ch/re8ch\",\n        \"title\": \"RE8CH\",\n     \
+    \   \"description\": \"Unified RE8CH tools, selected by the authenticated organization,\
+    \ membership and grants.\",\n        \"version\": \"1.0.0\",\n        \"remotes\"\
+    : [\n          {\n            \"type\": \"streamable-http\",\n            \"url\"\
+    : \"https://tools.service.re8ch.com/tenant-native/mcp\"\n          }\n       \
+    \ ],\n        \"websiteUrl\": \"https://re8ch.com\",\n        \"_meta\": {\n \
+    \         \"io.modelcontextprotocol.registry/publisher-provided\": {\n       \
+    \     \"io.github.stacklok\": {\n              \"streamable-http\": {\n      \
+    \          \"status\": \"active\"\n              }\n            }\n          }\n\
+    \        }\n      }\n    ]\n  }\n}\n"
+kind: ConfigMap
+metadata:
+  name: re8ch-approved-tool-catalog
+  namespace: toolhive-system
+---
+apiVersion: v1
+data:
   advanced-fabrics.json: "{\n  \"apiVersion\": \"plugins.re8ch.com/v1alpha1\",\n \
     \ \"kind\": \"PluginDefinition\",\n  \"metadata\": {\"name\": \"advanced-fabrics\"\
     },\n  \"spec\": {\n    \"source\": {\"type\": \"kubernetes\"},\n    \"discovery\"\
