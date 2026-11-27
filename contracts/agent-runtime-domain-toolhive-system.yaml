@@ -41,15 +41,26 @@ spec:
     objectNames:
     - admin-tools-public
     - admin-tools-re8ch-com
+    - admin-vmcp-backend-auth
+    - admin-workload-identity
     - collaboration-user-shadow
     - connectool-cloud-mcp
     - connectool-tools-re8ch-com
+    - external-admin-oidc
+    - external-observe-oidc
+    - external-operate-oidc
+    - observe-workload-identity
+    - operate-workload-identity
     - ops-admin-tools
     - ops-mcp-public
     - ops-mcp-server-code
+    - ops-observe-tools
     - ops-operate-tools
     - ops-public-read-tools
+    - platform-admin
     - platform-admin-public
+    - platform-observe
+    - platform-operate
     - platform-operate-public
     - platform-tools-public
     - platform-tools-telemetry
@@ -58,20 +69,29 @@ spec:
     - plugin-mihomos-cluster
     - plugin-public-edge
     - plugin-rook-ceph
+    - re8ch-admin-vmcp
+    - re8ch-admin-vmcp-issuer
     - re8ch-approved-tool-catalog
     - re8ch-native
     - re8ch-native-issuer
+    - re8ch-operate-vmcp
+    - re8ch-operate-vmcp-issuer
     - re8ch-plugin-definitions
     - re8ch-plugin-operation-catalog
     - re8ch-plugin-runtime
+    - re8ch-tools-vmcp
+    - re8ch-tools-vmcp-issuer
     - stalwart-agent-tools
     - stalwart-agent-tools-shadow
     - tenant-mcp
     - tenant-public
+    - tenant-vmcp
+    - tenant-vmcp-issuer
     - toolhive-cloud-ui
     - toolhive-operator
     - tools-re8ch-com
     - vmcp-admin-backend-auth
+    - vmcp-internal-backend
     - vmcp-internal-backends
     - vmcp-observe-backend-auth
     allowClusterScoped: false
@@ -106,22 +126,42 @@ spec:
     - networking.k8s.io/NetworkPolicy/toolhive-system/vmcp-internal-backends
     - policy/PodDisruptionBudget/toolhive-system/re8ch-plugin-runtime
     - policy/PodDisruptionBudget/toolhive-system/toolhive-operator
+    - toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/admin-vmcp-backend-auth
     - toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/vmcp-admin-backend-auth
+    - toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/vmcp-internal-backend
     - toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/vmcp-observe-backend-auth
     - toolhive.stacklok.dev/MCPGroup/toolhive-system/collaboration-user-shadow
+    - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-admin
     - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-admin-public
+    - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-observe
+    - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-operate
     - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-operate-public
     - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-tools-public
     - toolhive.stacklok.dev/MCPGroup/toolhive-system/tenant-public
+    - toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/admin-workload-identity
+    - toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/external-admin-oidc
+    - toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/external-observe-oidc
+    - toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/external-operate-oidc
+    - toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/observe-workload-identity
+    - toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/operate-workload-identity
+    - toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/re8ch-admin-vmcp-issuer
     - toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/re8ch-native-issuer
+    - toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/re8ch-operate-vmcp-issuer
+    - toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/re8ch-tools-vmcp-issuer
+    - toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/tenant-vmcp-issuer
     - toolhive.stacklok.dev/MCPServer/toolhive-system/stalwart-agent-tools-shadow
     - toolhive.stacklok.dev/MCPTelemetryConfig/toolhive-system/platform-tools-telemetry
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-admin-tools
+    - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-observe-tools
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-operate-tools
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-public-read-tools
+    - toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/re8ch-admin-vmcp
     - toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/re8ch-native
+    - toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/re8ch-operate-vmcp
+    - toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/re8ch-tools-vmcp
+    - toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/tenant-vmcp
   inventory:
-    digest: sha256:d2784903dffa78878ab408b1aab7bf31e7bb9681cfd2ac0e688762a81b9e7b80
+    digest: sha256:92251d87ae1a1eae06606b30a09d46b2e208bab802cef8923d959f2a62a1f6d2
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300
