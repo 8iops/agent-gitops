@@ -1640,6 +1640,16 @@ metadata:
   name: re8ch-plugin-runtime
   namespace: toolhive-system
 ---
+apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/name: stalwart-agent-tools
+    app.kubernetes.io/part-of: re8ch-collaboration
+  name: stalwart-agent-tools
+  namespace: toolhive-system
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -1931,6 +1941,44 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
+  name: stalwart-agent-tools-shadow
+  namespace: toolhive-system
+spec:
+  egress:
+  - ports:
+    - port: 19448
+      protocol: TCP
+    to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: tenant-infrastructure
+      podSelector:
+        matchLabels:
+          app: tenant-api
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+  - ports:
+    - port: 443
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: stalwart-agent-tools
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
   name: vmcp-internal-backends
   namespace: toolhive-system
 spec:
@@ -2019,6 +2067,17 @@ spec:
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPGroup
 metadata:
+  labels:
+    re8ch.com/publication-stage: shadow
+  name: collaboration-user-shadow
+  namespace: toolhive-system
+spec:
+  description: Additive user-bound Stalwart parity surface; existing tenant-mcp collaboration
+    tools remain active.
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPGroup
+metadata:
   name: platform-admin-public
   namespace: toolhive-system
 spec:
@@ -2039,6 +2098,101 @@ metadata:
   namespace: toolhive-system
 spec:
   description: Observe tools aggregated only through the ConnecTool vMCP.
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  annotations:
+    re8ch.com/provider-contract-sha256: 4cd7a2c024a268028acd38bee19e4e62a2d917239a5f50e5f666130a1fc27011
+    re8ch.com/rollback-mode: remove-shadow-preserve-tenant-mcp
+    re8ch.com/source-revision: 4a80c7170dc0a5c974cd5288835050eec61cc68d
+    re8ch.com/tool-catalog-sha256: 60920e5b8648b1d4f4ecc07dd85571fe5afc63c9a1cb5f663f2e73ac8ef2bbaf
+  labels:
+    app.kubernetes.io/name: stalwart-agent-tools
+    app.kubernetes.io/part-of: re8ch-collaboration
+    re8ch.com/publication-stage: shadow
+    re8ch.com/risk: user-delegated-write
+  name: stalwart-agent-tools-shadow
+  namespace: toolhive-system
+spec:
+  audit:
+    enabled: true
+  backendReplicas: 1
+  env:
+  - name: LISTEN_ADDRESS
+    value: :8080
+  - name: BINDING_BROKER_URL
+    value: http://tenant-api.tenant-infrastructure.svc.cluster.local/v1/collaboration/resolve
+  - name: BINDING_BROKER_TOKEN_FILE
+    value: /var/run/secrets/tokens/stalwart-binding-broker
+  groupRef:
+    name: collaboration-user-shadow
+  image: ghcr.io/8iops/stalwart-agent-tools@sha256:c6dcb84ef2370fc006671f3485392206a97d11881bef1e18debc5ef08885dad7
+  mcpPort: 8080
+  podTemplateSpec:
+    metadata:
+      labels:
+        app.kubernetes.io/name: stalwart-agent-tools
+        app.kubernetes.io/part-of: re8ch-collaboration
+        re8ch.com/publication-stage: shadow
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: 8080
+          periodSeconds: 15
+          timeoutSeconds: 3
+        name: mcp
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /readyz
+            port: 8080
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 25m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /var/run/secrets/tokens
+          name: broker-token
+          readOnly: true
+      volumes:
+      - name: broker-token
+        projected:
+          defaultMode: 420
+          sources:
+          - serviceAccountToken:
+              audience: stalwart-binding-broker
+              expirationSeconds: 600
+              path: stalwart-binding-broker
+  proxyPort: 8080
+  replicas: 0
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 25m
+      memory: 64Mi
+  serviceAccount: stalwart-agent-tools
+  sessionAffinity: ClientIP
+  sessionStorage:
+    provider: memory
+  transport: streamable-http
 ---
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPTelemetryConfig
