@@ -2131,6 +2131,32 @@ spec:
   description: Observe tools aggregated only through the ConnecTool vMCP.
 ---
 apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPGroup
+metadata:
+  labels:
+    ai.connectool.io/distribution-plane: toolhive
+    ai.connectool.io/identity-provider: oidc
+  name: tenant-public
+  namespace: toolhive-system
+spec:
+  description: Unified RE8CH native tools
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPOIDCConfig
+metadata:
+  labels:
+    ai.connectool.io/distribution-plane: toolhive
+    ai.connectool.io/identity-provider: oidc
+  name: re8ch-native-issuer
+  namespace: toolhive-system
+spec:
+  inline:
+    clientId: 2981225a-da08-5aaa-9e84-8fd151696113
+    issuer: https://db-rw.re8ch.com/auth/v1
+    jwksAllowPrivateIP: true
+  type: inline
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServer
 metadata:
   annotations:
@@ -2304,3 +2330,94 @@ spec:
   - get_artifact_platform_status
   - get_database_routing_status
   - get_external_publication_readiness
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: VirtualMCPServer
+metadata:
+  labels:
+    ai.connectool.io/distribution-plane: toolhive
+    ai.connectool.io/identity-provider: oidc
+  name: re8ch-native
+  namespace: toolhive-system
+spec:
+  config:
+    aggregation:
+      conflictResolution: prefix
+      conflictResolutionConfig:
+        prefixFormat: '{workload}_'
+      tools:
+      - workload: tenant-api-backend
+    audit:
+      component: re8ch-native
+      enabled: true
+      includeRequestData: false
+      includeResponseData: false
+    operational:
+      failureHandling:
+        circuitBreaker:
+          enabled: false
+          failureThreshold: 5
+          timeout: 1m
+        healthCheckInterval: 30s
+        healthCheckTimeout: 10s
+        partialFailureMode: best_effort
+        unhealthyThreshold: 3
+      listChanged:
+        disabledWorkloads:
+        - tenant-api-backend
+  groupRef:
+    name: tenant-public
+  incomingAuth:
+    authzConfig:
+      groupClaimName: groups
+      inline:
+        policies:
+        - permit(principal, action, resource);
+      type: inline
+    oidcConfigRef:
+      audience: 2981225a-da08-5aaa-9e84-8fd151696113
+      name: re8ch-native-issuer
+      resourceUrl: https://tools.service.re8ch.com/tenant-native/mcp
+      scopes:
+      - openid
+      - profile
+      - email
+      - offline_access
+    type: oidc
+  outgoingAuth:
+    default:
+      externalAuthConfigRef:
+        name: tenant-vmcp-backend-auth
+      type: externalAuthConfigRef
+    source: inline
+  podTemplateSpec:
+    spec:
+      containers:
+      - name: vmcp
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+      hostAliases:
+      - hostnames:
+        - id.re8ch.com
+        - auth.re8ch.com
+        ip: 10.251.0.4
+      nodeSelector:
+        scheduling.re8ch.com/network-serving: 'true'
+        scheduling.re8ch.com/pool-service-core-r640: 'true'
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        operator: Exists
+      - effect: NoSchedule
+        key: scheduling.re8ch.com/capacity-window
+        operator: Equal
+        value: closed
+  replicas: 1
+  sessionAffinity: ClientIP
+  sessionStorage:
+    provider: memory

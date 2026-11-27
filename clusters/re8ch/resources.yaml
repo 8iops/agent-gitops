@@ -7744,3 +7744,86 @@ kind: ConfigMap
 metadata:
   name: re8ch-approved-tool-catalog
   namespace: toolhive-system
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPGroup
+metadata:
+  name: tenant-public
+  namespace: toolhive-system
+  labels:
+    ai.connectool.io/distribution-plane: toolhive
+    ai.connectool.io/identity-provider: oidc
+spec:
+  description: Unified RE8CH native tools
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPOIDCConfig
+metadata:
+  name: re8ch-native-issuer
+  namespace: toolhive-system
+  labels:
+    ai.connectool.io/distribution-plane: toolhive
+    ai.connectool.io/identity-provider: oidc
+spec:
+  type: inline
+  inline:
+    issuer: https://db-rw.re8ch.com/auth/v1
+    clientId: 2981225a-da08-5aaa-9e84-8fd151696113
+    jwksAllowPrivateIP: true
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: VirtualMCPServer
+metadata:
+  name: re8ch-native
+  namespace: toolhive-system
+  labels:
+    ai.connectool.io/distribution-plane: toolhive
+    ai.connectool.io/identity-provider: oidc
+spec:
+  groupRef: {name: tenant-public}
+  replicas: 1
+  sessionAffinity: ClientIP
+  sessionStorage: {provider: memory}
+  incomingAuth:
+    type: oidc
+    oidcConfigRef:
+      name: re8ch-native-issuer
+      audience: 2981225a-da08-5aaa-9e84-8fd151696113
+      resourceUrl: https://tools.service.re8ch.com/tenant-native/mcp
+      scopes: [openid, profile, email, offline_access]
+    authzConfig:
+      type: inline
+      groupClaimName: groups
+      inline: {policies: ["permit(principal, action, resource);"]}
+  outgoingAuth:
+    source: inline
+    default: {type: externalAuthConfigRef, externalAuthConfigRef: {name: tenant-vmcp-backend-auth}}
+  config:
+    aggregation:
+      conflictResolution: prefix
+      conflictResolutionConfig: {prefixFormat: "{workload}_"}
+      tools: [{workload: tenant-api-backend}]
+    operational:
+      failureHandling:
+        partialFailureMode: best_effort
+        healthCheckInterval: 30s
+        healthCheckTimeout: 10s
+        unhealthyThreshold: 3
+        circuitBreaker: {enabled: false, failureThreshold: 5, timeout: 1m}
+      listChanged: {disabledWorkloads: [tenant-api-backend]}
+    audit: {enabled: true, component: re8ch-native, includeRequestData: false, includeResponseData: false}
+  podTemplateSpec:
+    spec:
+      nodeSelector:
+        scheduling.re8ch.com/network-serving: "true"
+        scheduling.re8ch.com/pool-service-core-r640: "true"
+      tolerations:
+        - {effect: NoSchedule, key: node-role.kubernetes.io/control-plane, operator: Exists}
+        - {effect: NoSchedule, key: scheduling.re8ch.com/capacity-window, operator: Equal, value: closed}
+      hostAliases:
+        - {ip: 10.251.0.4, hostnames: [id.re8ch.com, auth.re8ch.com]}
+      containers:
+        - name: vmcp
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
