@@ -56,6 +56,7 @@ spec:
     - plugin-mihomos-cluster
     - plugin-public-edge
     - plugin-rook-ceph
+    - re8ch-approved-tool-catalog
     - re8ch-plugin-definitions
     - re8ch-plugin-operation-catalog
     - re8ch-plugin-runtime
@@ -74,6 +75,7 @@ spec:
     - apps/Deployment/toolhive-system/re8ch-plugin-runtime
     - apps/Deployment/toolhive-system/toolhive-cloud-ui
     - core/ConfigMap/toolhive-system/ops-mcp-server-code
+    - core/ConfigMap/toolhive-system/re8ch-approved-tool-catalog
     - core/ConfigMap/toolhive-system/re8ch-plugin-definitions
     - core/ConfigMap/toolhive-system/re8ch-plugin-operation-catalog
     - core/Service/toolhive-system/re8ch-plugin-runtime
@@ -111,7 +113,7 @@ spec:
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-operate-tools
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-public-read-tools
   inventory:
-    digest: sha256:2d0a1c64feb3b64ace3d5ed04d37b5cfc421268c0dabe0cc9228a9b354c0c34e
+    digest: sha256:72c6a698ca410b1f480d4bd6196791b055dd9d72a1802450b99d364f75ea26af
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300
