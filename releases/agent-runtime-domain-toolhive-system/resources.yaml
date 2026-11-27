@@ -2180,7 +2180,7 @@ spec:
               expirationSeconds: 600
               path: stalwart-binding-broker
   proxyPort: 8080
-  replicas: 0
+  replicas: 1
   resources:
     limits:
       cpu: 250m
