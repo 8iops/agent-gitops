@@ -35,10 +35,12 @@ spec:
     - toolhive.stacklok.dev/MCPGroup
     - toolhive.stacklok.dev/MCPOIDCConfig
     - toolhive.stacklok.dev/MCPServer
+    - toolhive.stacklok.dev/MCPServerEntry
     - toolhive.stacklok.dev/MCPTelemetryConfig
     - toolhive.stacklok.dev/MCPToolConfig
     - toolhive.stacklok.dev/VirtualMCPServer
     objectNames:
+    - admin-api-backend
     - admin-tools-public
     - admin-tools-re8ch-com
     - admin-vmcp-backend-auth
@@ -52,10 +54,13 @@ spec:
     - observe-workload-identity
     - operate-workload-identity
     - ops-admin-tools
+    - ops-admin-vmcp-backend
     - ops-mcp-public
     - ops-mcp-server-code
     - ops-observe-tools
+    - ops-observe-vmcp-backend
     - ops-operate-tools
+    - ops-operate-vmcp-backend
     - ops-public-read-tools
     - platform-admin
     - platform-admin-public
@@ -150,6 +155,10 @@ spec:
     - toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/re8ch-tools-vmcp-issuer
     - toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/tenant-vmcp-issuer
     - toolhive.stacklok.dev/MCPServer/toolhive-system/stalwart-agent-tools-shadow
+    - toolhive.stacklok.dev/MCPServerEntry/toolhive-system/admin-api-backend
+    - toolhive.stacklok.dev/MCPServerEntry/toolhive-system/ops-admin-vmcp-backend
+    - toolhive.stacklok.dev/MCPServerEntry/toolhive-system/ops-observe-vmcp-backend
+    - toolhive.stacklok.dev/MCPServerEntry/toolhive-system/ops-operate-vmcp-backend
     - toolhive.stacklok.dev/MCPTelemetryConfig/toolhive-system/platform-tools-telemetry
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-admin-tools
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-observe-tools
@@ -161,7 +170,7 @@ spec:
     - toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/re8ch-tools-vmcp
     - toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/tenant-vmcp
   inventory:
-    digest: sha256:92251d87ae1a1eae06606b30a09d46b2e208bab802cef8923d959f2a62a1f6d2
+    digest: sha256:6469051299a238d0e8ad1cf3c1e3c3182328bacc459308e2e54a2355b1f10107
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300

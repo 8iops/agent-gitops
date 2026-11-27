@@ -2508,6 +2508,69 @@ spec:
   transport: streamable-http
 ---
 apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServerEntry
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    delivery.re8ch.com/retirement-phase: adoption
+    helm.toolkit.fluxcd.io/name: birfucate-metering
+    helm.toolkit.fluxcd.io/namespace: flux-observability-system
+  name: admin-api-backend
+  namespace: toolhive-system
+spec:
+  externalAuthConfigRef:
+    name: admin-vmcp-backend-auth
+  groupRef:
+    name: platform-admin-public
+  remoteUrl: http://admin-api.tenant-infrastructure.svc/mcp
+  transport: streamable-http
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServerEntry
+metadata:
+  labels:
+    delivery.re8ch.com/retirement-phase: adoption
+  name: ops-admin-vmcp-backend
+  namespace: toolhive-system
+spec:
+  externalAuthConfigRef:
+    name: vmcp-internal-backend
+  groupRef:
+    name: platform-admin
+  remoteUrl: https://admin.re8ch.com:8443/backend/admin/mcp
+  transport: streamable-http
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServerEntry
+metadata:
+  labels:
+    delivery.re8ch.com/retirement-phase: adoption
+  name: ops-observe-vmcp-backend
+  namespace: toolhive-system
+spec:
+  externalAuthConfigRef:
+    name: vmcp-internal-backend
+  groupRef:
+    name: platform-observe
+  remoteUrl: https://admin.re8ch.com:8443/backend/observe/mcp
+  transport: streamable-http
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServerEntry
+metadata:
+  labels:
+    delivery.re8ch.com/retirement-phase: adoption
+  name: ops-operate-vmcp-backend
+  namespace: toolhive-system
+spec:
+  externalAuthConfigRef:
+    name: vmcp-internal-backend
+  groupRef:
+    name: platform-operate
+  remoteUrl: https://admin.re8ch.com:8443/backend/operate/mcp
+  transport: streamable-http
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPTelemetryConfig
 metadata:
   name: platform-tools-telemetry

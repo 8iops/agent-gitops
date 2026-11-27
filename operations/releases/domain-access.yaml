@@ -1521,6 +1521,19 @@ rules:
 - apiGroups:
   - toolhive.stacklok.dev
   resources:
+  - mcpserverentries
+  resourceNames:
+  - admin-api-backend
+  - ops-admin-vmcp-backend
+  - ops-observe-vmcp-backend
+  - ops-operate-vmcp-backend
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - toolhive.stacklok.dev
+  resources:
   - mcpservers
   resourceNames:
   - stalwart-agent-tools-shadow

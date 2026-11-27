@@ -42,3 +42,18 @@ def test_current_native_publication_is_not_adopted_for_retirement():
         "MCPServer/cloud-disk-mcp",
         "MCPServer/stalwart-agent-tools-shadow",
     })
+
+
+def test_mcp_server_entries_enter_the_bounded_release_and_rbac():
+    contract = yaml.safe_load((ROOT / "contracts/agent-runtime-domain-toolhive-system.yaml").read_text())
+    assert "toolhive.stacklok.dev/MCPServerEntry" in contract["spec"]["authorization"]["resources"]
+
+    access = list(yaml.safe_load_all((ROOT / "operations/releases/domain-access.yaml").read_text()))
+    role = next(obj for obj in access if obj.get("kind") == "Role" and obj["metadata"]["name"] == "agent-runtime-domain-toolhive-system")
+    rule = next(item for item in role["rules"] if item["resources"] == ["mcpserverentries"])
+    assert set(rule["resourceNames"]) == {
+        "admin-api-backend",
+        "ops-admin-vmcp-backend",
+        "ops-observe-vmcp-backend",
+        "ops-operate-vmcp-backend",
+    }
