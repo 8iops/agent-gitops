@@ -1211,66 +1211,6 @@ subjects:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ssa-state-agent-runtime-domain-supabase-pg-re8ch
-  namespace: supabase-pg-re8ch
-  labels:
-    delivery.re8ch.com/state: accepted
-    delivery.re8ch.com/authority-domain: agent-runtime
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: agent-runtime-domain-supabase-pg-re8ch
-  namespace: supabase-pg-re8ch
-rules:
-- apiGroups:
-  - ''
-  resources:
-  - configmaps
-  resourceNames:
-  - ssa-state-agent-runtime-domain-supabase-pg-re8ch
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
-  - rolebindings
-  resourceNames:
-  - pg-re8ch-mcp-upstream-credential
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
-  - roles
-  resourceNames:
-  - pg-re8ch-mcp-upstream-credential
-  verbs:
-  - get
-  - patch
-  - update
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: agent-runtime-domain-supabase-pg-re8ch
-  namespace: supabase-pg-re8ch
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: agent-runtime-domain-supabase-pg-re8ch
-subjects:
-- apiGroup: rbac.authorization.k8s.io
-  kind: Group
-  name: re8ch:release-executor:agent-runtime
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
   name: ssa-state-agent-runtime-domain-tenant-infrastructure
   namespace: tenant-infrastructure
   labels:

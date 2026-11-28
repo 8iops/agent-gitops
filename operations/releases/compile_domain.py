@@ -32,8 +32,6 @@ PUBLISHABLE_EMPTY_SECRETS = {
 DOMAIN_OWNED_BOOTSTRAP_RBAC = {
     'rbac.authorization.k8s.io/Role/tenant-infrastructure/agent-runtime-exact-pg-re8ch-mcp',
     'rbac.authorization.k8s.io/RoleBinding/tenant-infrastructure/agent-runtime-exact-pg-re8ch-mcp',
-    'rbac.authorization.k8s.io/Role/supabase-pg-re8ch/pg-re8ch-mcp-upstream-credential',
-    'rbac.authorization.k8s.io/RoleBinding/supabase-pg-re8ch/pg-re8ch-mcp-upstream-credential',
 }
 
 def group(item):

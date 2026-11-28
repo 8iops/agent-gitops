@@ -75,12 +75,6 @@
       "contract": "contracts/agent-runtime-domain-mcp-registry.yaml"
     },
     {
-      "name": "agent-runtime-domain-supabase-pg-re8ch",
-      "namespace": "supabase-pg-re8ch",
-      "objects": 2,
-      "contract": "contracts/agent-runtime-domain-supabase-pg-re8ch.yaml"
-    },
-    {
       "name": "agent-runtime-domain-tenant-infrastructure",
       "namespace": "tenant-infrastructure",
       "objects": 30,
@@ -93,7 +87,7 @@
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 329,
+  "publishableObjects": 327,
   "deferred": [
     {
       "identity": "apps/Deployment/tenant-infrastructure/re8ch-catalog-runtime",
@@ -272,6 +266,10 @@
       "reason": "platform-owned-rbac"
     },
     {
+      "identity": "rbac.authorization.k8s.io/Role/supabase-pg-re8ch/pg-re8ch-mcp-upstream-credential",
+      "reason": "platform-owned-rbac"
+    },
+    {
       "identity": "rbac.authorization.k8s.io/Role/supabase-pg-re8ch/postgresql-provider-admin-credential",
       "reason": "platform-owned-rbac"
     },
@@ -385,6 +383,10 @@
     },
     {
       "identity": "rbac.authorization.k8s.io/RoleBinding/supabase-pg-re8ch/ops-admin-postgres-credential",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/supabase-pg-re8ch/pg-re8ch-mcp-upstream-credential",
       "reason": "platform-owned-rbac"
     },
     {
