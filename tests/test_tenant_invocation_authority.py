@@ -76,7 +76,7 @@ def test_canonical_native_mcp_and_metadata_route_to_toolhive():
         assert rules[path]["backendRefs"] == [{
             "group": "",
             "kind": "Service",
-            "name": "vmcp-re8ch-native-vmcp",
+            "name": "vmcp-re8ch-native",
             "namespace": "toolhive-system",
             "port": 4483,
         }]

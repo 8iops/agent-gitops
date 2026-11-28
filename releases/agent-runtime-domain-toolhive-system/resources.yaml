@@ -1795,7 +1795,7 @@ spec:
   to:
   - group: ''
     kind: Service
-    name: vmcp-re8ch-native-vmcp
+    name: vmcp-re8ch-native
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -2090,6 +2090,21 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: toolhive-operator
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPExternalAuthConfig
+metadata:
+  labels:
+    ai.connectool.io/distribution-plane: toolhive
+    ai.connectool.io/identity-provider: oidc
+  name: tenant-vmcp-backend-auth
+  namespace: toolhive-system
+spec:
+  tokenExchange:
+    audience: re8ch-tenant
+    subjectTokenType: access_token
+    tokenUrl: https://db-rw.re8ch.com/auth/v1/oauth/token
+  type: tokenExchange
 ---
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPExternalAuthConfig

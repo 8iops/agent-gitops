@@ -67,9 +67,20 @@ def test_native_toolhive_instance_matches_pg_identity_oauth_chain():
         "to": [{
             "group": "",
             "kind": "Service",
-            "name": "vmcp-re8ch-native-vmcp",
+            "name": "vmcp-re8ch-native",
         }],
     }
+
+    outgoing = by_identity[("MCPExternalAuthConfig", "tenant-vmcp-backend-auth")]
+    assert outgoing["spec"] == {
+        "type": "tokenExchange",
+        "tokenExchange": {
+            "tokenUrl": "https://db-rw.re8ch.com/auth/v1/oauth/token",
+            "audience": "re8ch-tenant",
+            "subjectTokenType": "access_token",
+        },
+    }
+    assert "tenant-api" not in str(outgoing)
 
 
 def test_toolhive_release_can_create_only_reviewed_native_crs():

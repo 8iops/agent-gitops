@@ -1429,7 +1429,7 @@ spec:
     backendRefs:
     - group: ""
       kind: Service
-      name: vmcp-re8ch-native-vmcp
+      name: vmcp-re8ch-native
       namespace: toolhive-system
       port: 4483
   - matches:
@@ -1459,7 +1459,7 @@ spec:
     backendRefs:
     - group: ""
       kind: Service
-      name: vmcp-re8ch-native-vmcp
+      name: vmcp-re8ch-native
       namespace: toolhive-system
       port: 4483
   - matches:

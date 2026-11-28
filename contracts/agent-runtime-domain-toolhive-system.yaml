@@ -71,6 +71,7 @@ spec:
     - stalwart-agent-tools-shadow
     - tenant-mcp
     - tenant-public
+    - tenant-vmcp-backend-auth
     - toolhive-cloud-ui
     - toolhive-operator
     - tools-re8ch-com
@@ -111,6 +112,7 @@ spec:
     - networking.k8s.io/NetworkPolicy/toolhive-system/vmcp-internal-backends
     - policy/PodDisruptionBudget/toolhive-system/re8ch-plugin-runtime
     - policy/PodDisruptionBudget/toolhive-system/toolhive-operator
+    - toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/tenant-vmcp-backend-auth
     - toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/vmcp-admin-backend-auth
     - toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/vmcp-observe-backend-auth
     - toolhive.stacklok.dev/MCPGroup/toolhive-system/collaboration-user-shadow
@@ -127,7 +129,7 @@ spec:
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-public-read-tools
     - toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/re8ch-native
   inventory:
-    digest: sha256:4f6111a0dd5891214fffb0db0b7599faf87578a1a0fbe817ec1586c335077df7
+    digest: sha256:167e7ef3bbbfdc1885ac1110753c8e2ae9d2df689925b4dd12b3e0f73932dcf9
   lifecycle:
     prune: true
     healthTimeoutSeconds: 300
