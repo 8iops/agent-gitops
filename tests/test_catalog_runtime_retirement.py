@@ -47,6 +47,30 @@ def test_catalog_runtime_has_independent_identity_and_database_contract():
     pvc = by_identity[("PersistentVolumeClaim", "re8ch-catalog-runtime-state-rbd")]
     assert pvc["spec"]["storageClassName"] == "rbd-r640"
     assert ("PersistentVolumeClaim", "re8ch-catalog-runtime-state") in by_identity
+    route = by_identity[("HTTPRoute", "catalog-runtime-mcp")]
+    assert route["metadata"]["annotations"] == {
+        "external-dns.alpha.kubernetes.io/cloudflare-proxied": "false",
+        "external-dns.alpha.kubernetes.io/hostname": "catalog-runtime.service.re8ch.com",
+        "external-dns.alpha.kubernetes.io/ttl": "60",
+    }
+    assert route["metadata"]["labels"] == {"public.re8ch.com/external-dns": "enabled"}
+    assert route["spec"]["parentRefs"] == [{
+        "name": "re8ch-gateway-canary", "namespace": "kube-system",
+        "sectionName": "service-wildcard-https",
+    }]
+    assert route["spec"]["hostnames"] == ["catalog-runtime.service.re8ch.com"]
+    rules = {item["matches"][0]["path"]["value"]: item for item in route["spec"]["rules"]}
+    assert set(rules) == {"/mcp", "/.well-known/oauth-protected-resource/mcp"}
+    assert all(item["backendRefs"] == [{"name": "re8ch-catalog-runtime", "port": 19448}]
+               for item in rules.values())
+    policy = by_identity[("NetworkPolicy", "re8ch-catalog-runtime")]
+    namespaces = {
+        source["namespaceSelector"]["matchLabels"]["kubernetes.io/metadata.name"]
+        for rule in policy["spec"]["ingress"]
+        for source in rule.get("from", [])
+        if "namespaceSelector" in source
+    }
+    assert {"toolhive-system", "kube-system"} <= namespaces
     assert "tenant-api" not in {item["metadata"]["name"] for item in objects}
 
 
@@ -69,6 +93,7 @@ def test_catalog_runtime_release_is_create_capable_and_bounded():
     assert contract["spec"]["lifecycle"]["prune"] is True
     assert contract["spec"]["lifecycle"]["deletionAllowlist"] == []
     assert set(auth["objectNames"]) == {
+        "catalog-runtime-mcp",
         "postgresql-provider-catalog-runtime",
         "re8ch-catalog-runtime",
         "re8ch-catalog-runtime-state",
@@ -87,5 +112,13 @@ def test_catalog_runtime_exact_access_tracks_rbd_claim():
     }
     assert "re8ch-catalog-runtime-state-rbd" in update_names
     assert "re8ch-catalog-runtime-state" in update_names
+    route_rules = [rule for rule in role["rules"]
+                   if rule.get("apiGroups") == ["gateway.networking.k8s.io"]]
+    assert route_rules == [
+        {"apiGroups": ["gateway.networking.k8s.io"], "resources": ["httproutes"],
+         "verbs": ["create"]},
+        {"apiGroups": ["gateway.networking.k8s.io"], "resources": ["httproutes"],
+         "resourceNames": ["catalog-runtime-mcp"], "verbs": ["get", "patch", "update"]},
+    ]
     delete_rules = [rule for rule in role["rules"] if "delete" in rule.get("verbs", [])]
     assert delete_rules == []

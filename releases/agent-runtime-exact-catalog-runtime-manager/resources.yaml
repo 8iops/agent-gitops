@@ -366,6 +366,40 @@ spec:
     port: 19450
     targetPort: skill-admin
 ---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
+    external-dns.alpha.kubernetes.io/hostname: catalog-runtime.service.re8ch.com
+    external-dns.alpha.kubernetes.io/ttl: '60'
+  labels:
+    public.re8ch.com/external-dns: enabled
+  name: catalog-runtime-mcp
+  namespace: tenant-infrastructure
+spec:
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: service-wildcard-https
+  hostnames:
+  - catalog-runtime.service.re8ch.com
+  rules:
+  - matches:
+    - path:
+        type: Exact
+        value: /mcp
+    backendRefs:
+    - name: re8ch-catalog-runtime
+      port: 19448
+  - matches:
+    - path:
+        type: Exact
+        value: /.well-known/oauth-protected-resource/mcp
+    backendRefs:
+    - name: re8ch-catalog-runtime
+      port: 19448
+---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -382,6 +416,13 @@ spec:
     - namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: toolhive-system
+    ports:
+    - protocol: TCP
+      port: 19448
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
     ports:
     - protocol: TCP
       port: 19448

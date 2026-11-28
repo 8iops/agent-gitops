@@ -27,9 +27,11 @@ spec:
     - core/PersistentVolumeClaim
     - core/Service
     - core/ServiceAccount
+    - gateway.networking.k8s.io/HTTPRoute
     - networking.k8s.io/NetworkPolicy
     - policy/PodDisruptionBudget
     objectNames:
+    - catalog-runtime-mcp
     - postgresql-provider-catalog-runtime
     - re8ch-catalog-runtime
     - re8ch-catalog-runtime-state
@@ -38,7 +40,7 @@ spec:
     requireExisting: false
     forceConflictObjects: []
   inventory:
-    digest: sha256:61c4dc26932a06166ec44c0a024799341c409d2f344706866f660510fc9df6d2
+    digest: sha256:e6ad2ab45371fac10403530d57d7723718e78f2ab7266d86df0b4da98f107e49
   lifecycle:
     prune: true
     healthTimeoutSeconds: 300

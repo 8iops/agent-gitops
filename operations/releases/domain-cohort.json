@@ -1,6 +1,6 @@
 {
   "domain": "agent-runtime",
-  "sourceObjects": 407,
+  "sourceObjects": 408,
   "releases": [
     {
       "name": "agent-runtime-domain-ai-operations",
@@ -155,6 +155,10 @@
     },
     {
       "identity": "core/ServiceAccount/tenant-infrastructure/re8ch-catalog-runtime",
+      "reason": "existing-release-contract"
+    },
+    {
+      "identity": "gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/catalog-runtime-mcp",
       "reason": "existing-release-contract"
     },
     {
