@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RELEASE_ID = "agent-runtime-exact-tenant-provider-reconciler"
 IMAGE = (
     "registry.re8ch.com/image/re8ch-ai-operations@sha256:"
-    "cd47325ab6f192e7d2d0960e709cac3048b5920d8fb1212d4384967f979ac655"
+    "18797cd778da64fc66c645b1e7c5d615447ca899cd0bef39ad6a825857026306"
 )
 
 
