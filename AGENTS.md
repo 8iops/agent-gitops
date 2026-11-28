@@ -21,6 +21,9 @@
   controller. GitHub Actions and runtime read-back remain delivery evidence.
 - Wiki, Projects and Gists are projections or task evidence. Stable context and
   desired state must be reviewed in Git; never place credentials in them.
+- Public evidence follows the [shared privacy contract](https://github.com/re8ch/service-backend/blob/main/contracts/public-evidence-privacy/README.md).
+  Public surfaces contain sanitized claims and commitments, never raw personal
+  mappings, topology, telemetry, exact event timing or commitment nonces.
 - Every change pull request must close an Issue. Every change Issue must belong
   to exactly one requirement Project declared in `governance/context.json`;
   use the `Others` Project when no narrower context applies.

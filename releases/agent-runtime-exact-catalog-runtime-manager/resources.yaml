@@ -303,8 +303,6 @@ spec:
         - svc.cluster.local
         - cluster.local
       dnsPolicy: None
-      imagePullSecrets:
-      - name: harbor-registry-pull
       securityContext:
         fsGroup: 101
         fsGroupChangePolicy: OnRootMismatch
@@ -314,16 +312,30 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       serviceAccountName: re8ch-catalog-runtime
+      imagePullSecrets: []
       terminationGracePeriodSeconds: 75
       tolerations:
       - operator: Exists
       volumes:
       - name: runtime-state
         persistentVolumeClaim:
-          claimName: re8ch-catalog-runtime-state
+          claimName: re8ch-catalog-runtime-state-rbd
       - configMap:
           name: tenant-platform-modules
         name: platform-modules
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: re8ch-catalog-runtime-state-rbd
+  namespace: tenant-infrastructure
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: rbd-r640
+  resources:
+    requests:
+      storage: 4Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

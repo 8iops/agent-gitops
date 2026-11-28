@@ -6,6 +6,7 @@ import yaml
 ROOT = Path(__file__).parents[1]
 RELEASE = ROOT / "releases/agent-runtime-exact-catalog-runtime-manager/resources.yaml"
 CONTRACT = ROOT / "contracts/agent-runtime-exact-catalog-runtime-manager.yaml"
+ACCESS = ROOT / "operations/releases/catalog-runtime-exact-release-access.yaml"
 
 
 def test_catalog_runtime_has_independent_identity_and_database_contract():
@@ -17,6 +18,7 @@ def test_catalog_runtime_has_independent_identity_and_database_contract():
         "rollingUpdate": {"maxUnavailable": 0, "maxSurge": 1},
     }
     assert deployment["spec"]["template"]["spec"]["serviceAccountName"] == "re8ch-catalog-runtime"
+    assert deployment["spec"]["template"]["spec"]["imagePullSecrets"] == []
     containers = deployment["spec"]["template"]["spec"]["containers"]
     assert [item["name"] for item in containers] == ["runtime"]
     env = {item["name"]: item for item in containers[0]["env"]}
@@ -26,6 +28,8 @@ def test_catalog_runtime_has_independent_identity_and_database_contract():
         "optional": False,
     }
     assert env["AUTH_DISCOVERY_URL"]["value"].endswith("/.well-known/oauth-authorization-server")
+    pvc = by_identity[("PersistentVolumeClaim", "re8ch-catalog-runtime-state-rbd")]
+    assert pvc["spec"]["storageClassName"] == "rbd-r640"
     assert "tenant-api" not in {item["metadata"]["name"] for item in objects}
 
 
@@ -35,8 +39,25 @@ def test_catalog_runtime_release_is_create_capable_and_bounded():
     assert auth["requireExisting"] is False
     assert auth["allowClusterScoped"] is False
     assert contract["spec"]["lifecycle"]["prune"] is True
+    assert contract["spec"]["lifecycle"]["deletionAllowlist"] == []
     assert set(auth["objectNames"]) == {
         "postgresql-provider-catalog-runtime",
         "re8ch-catalog-runtime",
         "re8ch-catalog-runtime-state",
+        "re8ch-catalog-runtime-state-rbd",
     }
+
+
+def test_catalog_runtime_exact_access_tracks_rbd_claim():
+    objects = [item for item in yaml.safe_load_all(ACCESS.read_text()) if item]
+    role = next(item for item in objects if item["kind"] == "Role")
+    update_names = {
+        name
+        for rule in role["rules"]
+        if "update" in rule.get("verbs", [])
+        for name in rule.get("resourceNames", [])
+    }
+    assert "re8ch-catalog-runtime-state-rbd" in update_names
+    assert "re8ch-catalog-runtime-state" in update_names
+    delete_rules = [rule for rule in role["rules"] if "delete" in rule.get("verbs", [])]
+    assert delete_rules == []

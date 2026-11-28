@@ -1,11 +1,11 @@
 {
   "domain": "agent-runtime",
-  "sourceObjects": 410,
+  "sourceObjects": 412,
   "releases": [
     {
       "name": "agent-runtime-domain-ai-operations",
       "namespace": "ai-operations",
-      "objects": 18,
+      "objects": 15,
       "contract": "contracts/agent-runtime-domain-ai-operations.yaml"
     },
     {
@@ -77,7 +77,7 @@
     {
       "name": "agent-runtime-domain-tenant-infrastructure",
       "namespace": "tenant-infrastructure",
-      "objects": 27,
+      "objects": 28,
       "contract": "contracts/agent-runtime-domain-tenant-infrastructure.yaml"
     },
     {
@@ -87,7 +87,7 @@
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 327,
+  "publishableObjects": 325,
   "deferred": [
     {
       "identity": "apps/Deployment/tenant-infrastructure/re8ch-catalog-runtime",
@@ -118,7 +118,7 @@
       "reason": "one-shot-job-platform-owned"
     },
     {
-      "identity": "core/PersistentVolumeClaim/tenant-infrastructure/re8ch-catalog-runtime-state",
+      "identity": "core/PersistentVolumeClaim/tenant-infrastructure/re8ch-catalog-runtime-state-rbd",
       "reason": "existing-release-contract"
     },
     {
@@ -266,11 +266,19 @@
       "reason": "platform-owned-rbac"
     },
     {
+      "identity": "rbac.authorization.k8s.io/Role/supabase-pg-re8ch/pg-re8ch-mcp-upstream-credential",
+      "reason": "platform-owned-rbac"
+    },
+    {
       "identity": "rbac.authorization.k8s.io/Role/supabase-pg-re8ch/postgresql-provider-admin-credential",
       "reason": "platform-owned-rbac"
     },
     {
       "identity": "rbac.authorization.k8s.io/Role/supabase-pg-re8ch/re8ch:toolhive-platform-restart",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/Role/tenant-infrastructure/agent-runtime-exact-pg-re8ch-mcp",
       "reason": "platform-owned-rbac"
     },
     {
@@ -382,11 +390,19 @@
       "reason": "platform-owned-rbac"
     },
     {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/supabase-pg-re8ch/pg-re8ch-mcp-upstream-credential",
+      "reason": "platform-owned-rbac"
+    },
+    {
       "identity": "rbac.authorization.k8s.io/RoleBinding/supabase-pg-re8ch/postgresql-provider-admin-credential",
       "reason": "platform-owned-rbac"
     },
     {
       "identity": "rbac.authorization.k8s.io/RoleBinding/supabase-pg-re8ch/re8ch:toolhive-platform-restart",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/tenant-infrastructure/agent-runtime-exact-pg-re8ch-mcp",
       "reason": "platform-owned-rbac"
     },
     {

@@ -100,8 +100,6 @@ spec:
               topologyKey: kubernetes.io/hostname
       tolerations:
       - operator: Exists
-      imagePullSecrets:
-      - name: harbor-registry-pull
       securityContext:
         runAsNonRoot: true
         runAsUser: 100
@@ -1937,8 +1935,7 @@ spec:
         - svc.cluster.local
         - cluster.local
       dnsPolicy: None
-      imagePullSecrets:
-      - name: harbor-registry-pull
+      imagePullSecrets: []
       securityContext:
         fsGroup: 101
         fsGroupChangePolicy: OnRootMismatch
@@ -1954,7 +1951,7 @@ spec:
       volumes:
       - name: runtime-state
         persistentVolumeClaim:
-          claimName: re8ch-catalog-runtime-state
+          claimName: re8ch-catalog-runtime-state-rbd
       - configMap:
           name: tenant-platform-modules
         name: platform-modules
@@ -1962,11 +1959,12 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: re8ch-catalog-runtime-state
+  name: re8ch-catalog-runtime-state-rbd
   namespace: tenant-infrastructure
 spec:
   accessModes:
   - ReadWriteOnce
+  storageClassName: rbd-r640
   resources:
     requests:
       storage: 4Gi

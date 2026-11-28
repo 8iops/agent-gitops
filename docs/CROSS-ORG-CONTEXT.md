@@ -9,6 +9,7 @@ Projects and adjacent GitOps authorities that may appear in parent Issues,
 sub-issues, pull requests and evidence links. GitHub resolves the reference;
 repository visibility and the reader's permissions determine what can be read.
 
-Static project context is published through GitHub Pages. Runtime observations,
-captured Kubernetes output and investigation timelines belong in Discussions,
-the Observability Wiki or the observability backend.
+Static sanitized context is published through GitHub Pages. Public Issues,
+Discussions and Wiki pages follow the shared evidence privacy contract. Raw
+runtime observations, Kubernetes output and investigations remain in the
+private observation Project or an approved evidence system.

@@ -33,11 +33,12 @@ spec:
     - postgresql-provider-catalog-runtime
     - re8ch-catalog-runtime
     - re8ch-catalog-runtime-state
+    - re8ch-catalog-runtime-state-rbd
     allowClusterScoped: false
     requireExisting: false
     forceConflictObjects: []
   inventory:
-    digest: sha256:a267b0655bbfe843735ba721f9af8281fcbd6e36ca95e07a2adba4ba7ba4ebd1
+    digest: sha256:61c4dc26932a06166ec44c0a024799341c409d2f344706866f660510fc9df6d2
   lifecycle:
     prune: true
     healthTimeoutSeconds: 300

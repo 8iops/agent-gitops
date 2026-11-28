@@ -19,13 +19,11 @@ def test_tenant_api_uses_reviewed_image_and_runtime_discovery_registry():
         item for item in deployment["spec"]["template"]["spec"]["containers"]
         if item["name"] == "runtime"
     )
-    assert container["image"] == "ghcr.io/re8ch/service-backend-tenant-mcp@sha256:8a85eb61f4a6922a6f56d8a2e90c8b826a023861e379b0345f95dc9673047f82"
-    catalog_database = next(item for item in container["env"] if item["name"] == "MCP_CATALOG_DATABASE_URL")
-    assert catalog_database["valueFrom"]["secretKeyRef"] == {
-        "name": "mcp-catalog-database",
-        "key": "MCP_CATALOG_DATABASE_URL",
-        "optional": False,
-    }
+    assert "imagePullSecrets" not in deployment["spec"]["template"]["spec"]
+    assert container["image"] == "ghcr.io/re8ch/service-backend-tenant-mcp@sha256:9627dec87e6f4217693dae060b6324fa1481bddc612faca984c3fba9ee427ecb"
+    release = next(item for item in container["env"] if item["name"] == "SENTRY_RELEASE")
+    assert release["value"] == "tenant-mcp@296a404a14f6556a30553be9e8b14e88f40d1c0c"
+    assert not any(item["name"] == "MCP_CATALOG_DATABASE_URL" for item in container["env"])
 
     registry = json.loads(config["data"]["modules.json"])
     assert set(registry["backends"]) == {

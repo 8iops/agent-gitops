@@ -1264,6 +1264,7 @@ rules:
   - configmaps
   resourceNames:
   - ssa-state-agent-runtime-domain-tenant-infrastructure
+  - ssa-state-agent-runtime-exact-pg-re8ch-mcp
   - tenant-platform-modules
   verbs:
   - get

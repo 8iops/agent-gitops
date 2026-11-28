@@ -173,8 +173,6 @@ spec:
         - svc.cluster.local
         - cluster.local
       dnsPolicy: None
-      imagePullSecrets:
-      - name: harbor-registry-pull
       securityContext:
         fsGroup: 101
         fsGroupChangePolicy: OnRootMismatch
@@ -338,6 +336,15 @@ spec:
         protocol: TCP
       - port: '19449'
         protocol: TCP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    delivery.re8ch.com/authority-domain: agent-runtime
+    delivery.re8ch.com/state: accepted
+  name: ssa-state-agent-runtime-exact-pg-re8ch-mcp
+  namespace: tenant-infrastructure
 ---
 apiVersion: v1
 data:
