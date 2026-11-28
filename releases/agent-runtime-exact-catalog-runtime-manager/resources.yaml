@@ -9,7 +9,7 @@ metadata:
   name: re8ch-catalog-runtime
   namespace: tenant-infrastructure
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: re8ch-catalog-runtime
@@ -45,7 +45,7 @@ spec:
         - name: SENTRY_ENVIRONMENT
           value: production
         - name: SENTRY_RELEASE
-          value: re8ch-catalog-runtime@376a7fc4bb668c301d8459b2510e17f9761c6ac0
+          value: re8ch-catalog-runtime@43b6af33eee60292c5608464f51c136234c357ac
         - name: RE8CH_TOOL_PROFILE
           value: tenant
         - name: RE8CH_TOOL_AUDIENCE
@@ -73,6 +73,8 @@ spec:
               key: MCP_CATALOG_DATABASE_URL
               name: mcp-catalog-database
               optional: false
+        - name: TENANT_MCP_HERMETIC_SQLITE
+          value: '0'
         - name: SERVICE_API_TOKEN
           valueFrom:
             secretKeyRef:
@@ -83,13 +85,13 @@ spec:
         - name: LISTEN_PORT
           value: '19448'
         - name: PUBLIC_MCP_URL
-          value: https://tools.service.re8ch.com/tenant-native/mcp
+          value: https://catalog-runtime.service.re8ch.com/mcp
         - name: OPENAI_APPS_CHALLENGE_TOKEN
           value: 6n3O48vy3O89euYVrri4aHJMeUJ_vkofxLpzxv-6TTE
         - name: PUBLIC_ORIGIN
-          value: https://tools.service.re8ch.com
+          value: https://catalog-runtime.service.re8ch.com
         - name: PUBLIC_RESOURCE_METADATA_URL
-          value: https://tools.service.re8ch.com/.well-known/oauth-protected-resource/tenant-native/mcp
+          value: https://catalog-runtime.service.re8ch.com/.well-known/oauth-protected-resource/mcp
         - name: TENANT_CONTROL_URL
           value: http://tenant-control-controller.tenant-infrastructure.svc
         - name: AUTH_DISCOVERY_URL
@@ -104,12 +106,8 @@ spec:
           value: 'false'
         - name: LITELLM_GATEWAY_URL
           value: https://litellm.service.re8ch.com/v1
-        - name: TENANT_SERVICE_DB
-          value: /var/lib/tenant-platform/tenant-services.db
         - name: TENANT_USAGE_CLIENT
           value: system:serviceaccount:observability-ai:birfucate-metering
-        - name: DEVICE_REGISTRY_PATH
-          value: /var/lib/tenant-platform/tenant-devices.db
         - name: GITHUB_GOVERNANCE_APP_ID
           valueFrom:
             secretKeyRef:
@@ -214,8 +212,6 @@ spec:
           value: https://tools.service.re8ch.com/collaboration/oauth/callback
         - name: PLATFORM_MODULE_REGISTRY
           value: /etc/re8ch/modules/modules.json
-        - name: DYNAMIC_SKILL_DB
-          value: /var/lib/tenant-platform/dynamic-skills.db
         - name: DYNAMIC_SKILL_ADMIN_TOKEN
           valueFrom:
             secretKeyRef:
@@ -243,7 +239,7 @@ spec:
         - secretRef:
             name: tenant-grafana-credentials
             optional: true
-        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:8a85eb61f4a6922a6f56d8a2e90c8b826a023861e379b0345f95dc9673047f82
+        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:f2ea38a7b54587c25da579fbe664bb4d30c41aa8b3decb4049c6c4555e6020d2
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -286,8 +282,6 @@ spec:
           periodSeconds: 2
           timeoutSeconds: 3
         volumeMounts:
-        - mountPath: /var/lib/tenant-platform
-          name: runtime-state
         - mountPath: /etc/re8ch/modules
           name: platform-modules
           readOnly: true
@@ -317,9 +311,6 @@ spec:
       tolerations:
       - operator: Exists
       volumes:
-      - name: runtime-state
-        persistentVolumeClaim:
-          claimName: re8ch-catalog-runtime-state-rbd
       - configMap:
           name: tenant-platform-modules
         name: platform-modules
