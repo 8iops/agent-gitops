@@ -17,7 +17,7 @@ def test_catalog_runtime_has_independent_identity_and_database_contract():
         "rollingUpdate": {"maxUnavailable": 0, "maxSurge": 1},
     }
     assert deployment["spec"]["template"]["spec"]["serviceAccountName"] == "re8ch-catalog-runtime"
-    assert "imagePullSecrets" not in deployment["spec"]["template"]["spec"]
+    assert deployment["spec"]["template"]["spec"]["imagePullSecrets"] == []
     containers = deployment["spec"]["template"]["spec"]["containers"]
     assert [item["name"] for item in containers] == ["runtime"]
     env = {item["name"]: item for item in containers[0]["env"]}
@@ -27,7 +27,7 @@ def test_catalog_runtime_has_independent_identity_and_database_contract():
         "optional": False,
     }
     assert env["AUTH_DISCOVERY_URL"]["value"].endswith("/.well-known/oauth-authorization-server")
-    pvc = by_identity[("PersistentVolumeClaim", "re8ch-catalog-runtime-state")]
+    pvc = by_identity[("PersistentVolumeClaim", "re8ch-catalog-runtime-state-rbd")]
     assert pvc["spec"]["storageClassName"] == "rbd-r640"
     assert "tenant-api" not in {item["metadata"]["name"] for item in objects}
 
@@ -41,5 +41,5 @@ def test_catalog_runtime_release_is_create_capable_and_bounded():
     assert set(auth["objectNames"]) == {
         "postgresql-provider-catalog-runtime",
         "re8ch-catalog-runtime",
-        "re8ch-catalog-runtime-state",
+        "re8ch-catalog-runtime-state-rbd",
     }
