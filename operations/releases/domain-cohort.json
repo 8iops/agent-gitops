@@ -1,6 +1,6 @@
 {
   "domain": "agent-runtime",
-  "sourceObjects": 391,
+  "sourceObjects": 396,
   "releases": [
     {
       "name": "agent-runtime-domain-ai-operations",
@@ -77,7 +77,7 @@
     {
       "name": "agent-runtime-domain-tenant-infrastructure",
       "namespace": "tenant-infrastructure",
-      "objects": 26,
+      "objects": 28,
       "contract": "contracts/agent-runtime-domain-tenant-infrastructure.yaml"
     },
     {
@@ -87,7 +87,7 @@
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 321,
+  "publishableObjects": 323,
   "deferred": [
     {
       "identity": "apps/Deployment/tenant-infrastructure/tenant-api",
@@ -120,6 +120,10 @@
     {
       "identity": "core/Secret/tenant-infrastructure/admin-vmcp-backend-auth",
       "reason": "secret-provisioning"
+    },
+    {
+      "identity": "core/Secret/tenant-infrastructure/mcp-catalog-database",
+      "reason": "custom-resource-access-required"
     },
     {
       "identity": "core/Secret/tenant-infrastructure/tenant-claim-internal-auth",
@@ -234,6 +238,10 @@
       "reason": "platform-owned-rbac"
     },
     {
+      "identity": "rbac.authorization.k8s.io/Role/tenant-infrastructure/postgresql-provider-catalog-projection",
+      "reason": "platform-owned-rbac"
+    },
+    {
       "identity": "rbac.authorization.k8s.io/Role/toolhive-system/api-conformance-pull-source",
       "reason": "platform-owned-rbac"
     },
@@ -339,6 +347,10 @@
     },
     {
       "identity": "rbac.authorization.k8s.io/RoleBinding/supabase-pg-re8ch/re8ch:toolhive-platform-restart",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/tenant-infrastructure/postgresql-provider-catalog-projection",
       "reason": "platform-owned-rbac"
     },
     {

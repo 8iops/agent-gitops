@@ -286,6 +286,12 @@ spec:
             secretKeyRef:
               name: tenant-claim-internal-auth
               key: TENANT_CLAIM_SERVICE_TOKEN
+        - name: MCP_CATALOG_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: mcp-catalog-database
+              key: MCP_CATALOG_DATABASE_URL
+              optional: false
         - name: SERVICE_API_TOKEN
           valueFrom:
             secretKeyRef:
@@ -706,7 +712,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: provider
-        image: registry.re8ch.com/image/re8ch-postgresql-provider@sha256:ef4fa640b79c77a66d87a75ac630afa1eead87c9b16cb4a25d8525516dbf1235
+        image: registry.re8ch.com/image/re8ch-postgresql-provider@sha256:77f1fb1cc23e3d3db77573fb2a2e8c2e08c296c183c7e098ce9056fcc3ab0522
         imagePullPolicy: IfNotPresent
         envFrom:
         - secretRef:
@@ -717,13 +723,6 @@ spec:
           value: '8080'
         - name: PIGSTY_PRIMARY_HOST
           value: pg-re8ch-primary.pigsty-external.svc.cluster.local
-        - name: MCP_CATALOG_ADMIN_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: admin-vmcp-backend-auth
-              key: token
-        - name: MCP_CATALOG_ADMIN_URL
-          value: http://tenant-api.tenant-infrastructure.svc:19450/internal/mcp/catalog
         ports:
         - name: mcp
           containerPort: 8080
@@ -752,6 +751,62 @@ spec:
           capabilities:
             drop:
             - ALL
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mcp-catalog-database
+  namespace: tenant-infrastructure
+  labels:
+    credentials.re8ch.com/provider: postgresql
+    credentials.re8ch.com/type: catalog-runtime-projection
+type: Opaque
+---
+apiVersion: tenancy.re8ch.com/v1alpha1
+kind: TenantServiceInstance
+metadata:
+  name: mcp-catalog-runtime
+  namespace: tenant-infrastructure
+  labels:
+    app.kubernetes.io/part-of: birfucate-metering
+    tenancy.re8ch.com/tenant: platform
+  annotations:
+    tenancy.re8ch.com/idempotency-key: platform-mcp-catalog-runtime-v1
+    credentials.re8ch.com/rotation: '1'
+spec:
+  tenantRef: platform
+  serviceClass: database.postgresql.shared.v1
+  plan: standard
+  lifecycle: Requested
+  parameters:
+    profile: mcp-catalog-runtime-v1
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: postgresql-provider-egress
+  namespace: tenant-infrastructure
+spec:
+  endpointSelector:
+    matchLabels:
+      app: postgresql-provider
+  egress:
+  - toEntities: [kube-apiserver]
+  - toServices:
+    - k8sService:
+        serviceName: pg-re8ch-primary
+        namespace: pigsty-external
+    toPorts:
+    - ports:
+      - {port: '5432', protocol: TCP}
+  - toEndpoints:
+    - matchLabels:
+        k8s:io.kubernetes.pod.namespace: kube-system
+        k8s:k8s-app: kube-dns
+    toPorts:
+    - ports:
+      - {port: '53', protocol: UDP}
+      - {port: '53', protocol: TCP}
 ---
 apiVersion: v1
 kind: Service

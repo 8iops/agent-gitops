@@ -1250,6 +1250,7 @@ rules:
   resources:
   - ciliumnetworkpolicies
   resourceNames:
+  - postgresql-provider-egress
   - tenant-api-gateway
   verbs:
   - get
@@ -1327,6 +1328,16 @@ rules:
   - poddisruptionbudgets
   resourceNames:
   - tenant-control-controller
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - tenancy.re8ch.com
+  resources:
+  - tenantserviceinstances
+  resourceNames:
+  - mcp-catalog-runtime
   verbs:
   - get
   - patch

@@ -98,7 +98,7 @@ metadata:
 rules:
 - apiGroups: ['']
   resources: [secrets]
-  verbs: [get, create]
+  verbs: [get, create, patch]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -109,6 +109,31 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: postgresql-provider-credential-broker
+subjects:
+- kind: ServiceAccount
+  name: postgresql-provider
+  namespace: tenant-infrastructure
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: postgresql-provider-catalog-projection
+  namespace: tenant-infrastructure
+rules:
+- apiGroups: ['']
+  resources: [secrets]
+  resourceNames: [mcp-catalog-database]
+  verbs: [get, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: postgresql-provider-catalog-projection
+  namespace: tenant-infrastructure
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: postgresql-provider-catalog-projection
 subjects:
 - kind: ServiceAccount
   name: postgresql-provider
