@@ -31,7 +31,7 @@ rules:
   verbs: [create]
 - apiGroups: ['']
   resources: [persistentvolumeclaims, services, serviceaccounts]
-  resourceNames: [re8ch-catalog-runtime, re8ch-catalog-runtime-state]
+  resourceNames: [re8ch-catalog-runtime, re8ch-catalog-runtime-state-rbd]
   verbs: [get, patch, update]
 - apiGroups: [apps]
   resources: [deployments]
