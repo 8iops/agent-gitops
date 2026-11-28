@@ -1333,6 +1333,26 @@ rules:
   - patch
   - update
 - apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  resourceNames:
+  - agent-runtime-exact-pg-re8ch-mcp
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  resourceNames:
+  - agent-runtime-exact-pg-re8ch-mcp
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - tenancy.re8ch.com
   resources:
   - tenantserviceinstances

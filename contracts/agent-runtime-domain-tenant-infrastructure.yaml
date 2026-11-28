@@ -32,9 +32,12 @@ spec:
     - gateway.networking.k8s.io/HTTPRoute
     - networking.k8s.io/NetworkPolicy
     - policy/PodDisruptionBudget
+    - rbac.authorization.k8s.io/Role
+    - rbac.authorization.k8s.io/RoleBinding
     - tenancy.re8ch.com/TenantServiceInstance
     objectNames:
     - admin-api
+    - agent-runtime-exact-pg-re8ch-mcp
     - mcp-catalog-runtime
     - postgresql-provider
     - postgresql-provider-egress
@@ -86,7 +89,7 @@ spec:
     - policy/PodDisruptionBudget/tenant-infrastructure/tenant-control-controller
     - tenancy.re8ch.com/TenantServiceInstance/tenant-infrastructure/mcp-catalog-runtime
   inventory:
-    digest: sha256:d9c821dbbad50a89b4486ccd56b612bb3b73bff8f546538c10d32f1f60879847
+    digest: sha256:c84a200d3c0d2105f4993c8a55ceb96eb8994097d0946327d36818831fc77a23
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300
