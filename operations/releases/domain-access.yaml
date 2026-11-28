@@ -1295,6 +1295,7 @@ rules:
   resources:
   - httproutes
   resourceNames:
+  - catalog-runtime-mcp
   - tenant-billing-auth-center
   - tenant-billing-read
   - tenant-credential-redemption

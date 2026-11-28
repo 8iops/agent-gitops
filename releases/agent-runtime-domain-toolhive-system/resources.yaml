@@ -2202,7 +2202,7 @@ spec:
   backendReplicas: 1
   env:
   - name: TENANT_CORE_URL
-    value: http://re8ch-catalog-runtime.tenant-infrastructure.svc.cluster.local:19448
+    value: https://catalog-runtime.service.re8ch.com/mcp
   - name: LISTEN_ADDR
     value: :19449
   groupRef:

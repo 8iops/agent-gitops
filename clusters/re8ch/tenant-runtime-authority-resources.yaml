@@ -1341,6 +1341,34 @@ spec:
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
+  name: catalog-runtime-mcp
+  namespace: tenant-infrastructure
+spec:
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: service-wildcard-https
+  hostnames:
+  - catalog-runtime.service.re8ch.com
+  rules:
+  - matches:
+    - path:
+        type: Exact
+        value: /mcp
+    backendRefs:
+    - name: re8ch-catalog-runtime
+      port: 19448
+  - matches:
+    - path:
+        type: Exact
+        value: /.well-known/oauth-protected-resource/mcp
+    backendRefs:
+    - name: re8ch-catalog-runtime
+      port: 19448
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
   name: tenant-native-mcp
   namespace: tenant-infrastructure
 spec:

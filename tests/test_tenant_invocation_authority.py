@@ -79,3 +79,13 @@ def test_canonical_native_mcp_and_metadata_route_to_toolhive():
             "namespace": "toolhive-system",
             "port": 4483,
         }]
+
+
+def test_catalog_runtime_resource_route_is_public_and_separate_from_aggregate():
+    route = next(item for item in objects()
+                 if item["kind"] == "HTTPRoute" and item["metadata"]["name"] == "catalog-runtime-mcp")
+    assert route["spec"]["hostnames"] == ["catalog-runtime.service.re8ch.com"]
+    rules = {rule["matches"][0]["path"]["value"]: rule for rule in route["spec"]["rules"]}
+    assert set(rules) == {"/mcp", "/.well-known/oauth-protected-resource/mcp"}
+    for rule in rules.values():
+        assert rule["backendRefs"] == [{"name": "re8ch-catalog-runtime", "port": 19448}]

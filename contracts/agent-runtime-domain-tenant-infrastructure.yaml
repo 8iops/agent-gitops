@@ -35,6 +35,7 @@ spec:
     - tenancy.re8ch.com/TenantServiceInstance
     objectNames:
     - admin-api
+    - catalog-runtime-mcp
     - mcp-catalog-runtime
     - postgresql-provider
     - postgresql-provider-egress
@@ -66,6 +67,7 @@ spec:
     - core/ServiceAccount/tenant-infrastructure/tenant-provider-reconciler
     - gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-billing-auth-center
     - gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-billing-read
+    - gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/catalog-runtime-mcp
     - gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-credential-redemption
     - gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-native-mcp
     - gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-self-service-capabilities
@@ -75,7 +77,7 @@ spec:
     - policy/PodDisruptionBudget/tenant-infrastructure/tenant-control-controller
     - tenancy.re8ch.com/TenantServiceInstance/tenant-infrastructure/mcp-catalog-runtime
   inventory:
-    digest: sha256:75bcf81c48edacfc36b49cab8d07d6a50e7bb5ebc4467fa00ae21db62ea7cb6c
+    digest: sha256:baf6145fcba2a24d41fd18c0cd9ad4e715e03dbdff4f06ce8f6df483321a8d62
   lifecycle:
     prune: true
     healthTimeoutSeconds: 300

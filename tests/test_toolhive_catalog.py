@@ -52,7 +52,7 @@ def test_native_toolhive_instance_matches_pg_identity_oauth_chain():
     assert backend["spec"]["groupRef"]["name"] == "tenant-public"
     assert backend["spec"]["serviceAccount"] == "re8ch-catalog-runtime-backend"
     assert {item["name"]: item["value"] for item in backend["spec"]["env"]} == {
-        "TENANT_CORE_URL": "http://re8ch-catalog-runtime.tenant-infrastructure.svc.cluster.local:19448",
+        "TENANT_CORE_URL": "https://catalog-runtime.service.re8ch.com/mcp",
         "LISTEN_ADDR": ":19449",
     }
 

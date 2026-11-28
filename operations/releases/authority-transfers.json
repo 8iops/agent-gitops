@@ -6,7 +6,7 @@
     "previousSourceCommit": "a527dc8383b6dcfd99a520f7c04e0aea2aa3056f",
     "fieldManager": "re8ch-release/observability-chart-birfucate-metering-tenant-infrastructure",
     "sourcePath": "clusters/re8ch/tenant-runtime-authority-resources.yaml",
-    "sourceDigest": "sha256:43504dcc0e20da3c693de9716864cd3db63fe1d6d54b37003cf61bf214b7b9b6",
+    "sourceDigest": "sha256:0d294630314d2aaf52c8286bbe24123ca02c55c5fd3fdb963aba0c8436732f34",
     "mode": "accepted-runtime-update",
     "forceConflictObjects": [
       "apps/DaemonSet/tenant-infrastructure/tenant-runtime-image-cache",
@@ -25,6 +25,7 @@
       "core/ServiceAccount/tenant-infrastructure/tenant-provider-reconciler",
       "gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-billing-auth-center",
       "gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-billing-read",
+      "gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/catalog-runtime-mcp",
       "gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-credential-redemption",
       "gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-native-mcp",
       "gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-self-service-capabilities",
