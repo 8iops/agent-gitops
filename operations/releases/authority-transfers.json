@@ -6,7 +6,7 @@
     "previousSourceCommit": "a527dc8383b6dcfd99a520f7c04e0aea2aa3056f",
     "fieldManager": "re8ch-release/observability-chart-birfucate-metering-tenant-infrastructure",
     "sourcePath": "clusters/re8ch/tenant-runtime-authority-resources.yaml",
-    "sourceDigest": "sha256:766267b054b5c40d15db5999036521adcff9057d80eb4a2fc09cd96c30ad1934",
+    "sourceDigest": "sha256:1633eab434bfc5ef0998a7cd5ebfef4e61b4d96cf89a8b4db12370b1ea9618b2",
     "mode": "accepted-runtime-update",
     "forceConflictObjects": [
       "apps/DaemonSet/tenant-infrastructure/tenant-runtime-image-cache",
@@ -38,8 +38,8 @@
       "networking.k8s.io/NetworkPolicy/tenant-infrastructure/tenant-api",
       "networking.k8s.io/NetworkPolicy/tenant-infrastructure/tenant-control-controller",
       "networking.k8s.io/NetworkPolicy/tenant-infrastructure/postgresql-provider",
-      "policy/PodDisruptionBudget/tenant-infrastructure/tenant-control-controller"
-      ,"tenancy.re8ch.com/TenantServiceInstance/tenant-infrastructure/mcp-catalog-runtime"
+      "policy/PodDisruptionBudget/tenant-infrastructure/tenant-control-controller",
+      "tenancy.re8ch.com/TenantServiceInstance/tenant-infrastructure/mcp-catalog-runtime"
     ]
   },
   "mail-system": {

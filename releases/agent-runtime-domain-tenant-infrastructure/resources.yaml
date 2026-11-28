@@ -234,7 +234,7 @@ spec:
         - secretRef:
             name: tenant-claim-internal-auth
             optional: false
-        image: registry.re8ch.com/image/re8ch-postgresql-provider@sha256:e1bd08b7e3307761768fb4c8cf98e8726cfb2d1b2eec0ecde9cf6d82de375a24
+        image: registry.re8ch.com/image/re8ch-postgresql-provider@sha256:952eb68c47989e143fe1da14c33216b79ca426ec9a8b14eb762b473668cbb6b7
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -277,91 +277,6 @@ spec:
       tolerations:
       - operator: Exists
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: tenant-provider-reconciler
-  namespace: tenant-infrastructure
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: tenant-provider-reconciler
-  strategy:
-    type: Recreate
-  template:
-    metadata:
-      labels:
-        app: tenant-provider-reconciler
-        saas.re8ch.com/tenant: platform
-    spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                - r640
-      containers:
-      - command:
-        - python
-        - /app/tenant_provider_reconciler.py
-        env:
-        - name: STALWART_URL
-          value: https://stalwart-admin.service.re8ch.com
-        - name: IDENTITY_REST_URL
-          value: http://supabase-identity-rest.supabase-identity.svc:3000
-        - name: IDENTITY_SERVICE_KEY
-          valueFrom:
-            secretKeyRef:
-              key: service-role-key
-              name: tenant-provider-identity
-        - name: GRAFANA_DATABASE_BINDINGS_JSON
-          value: '[{"database":"anysite","namespace":"re8ch-anysite","secretName":"anysite-db-credentials","secretUID":"ecb4edf3-eb40-4b0e-ab28-7bf3dab490c4","tenantRef":"re8ch"},{"database":"secretary","namespace":"re8ch-secretary","secretName":"secretary-db-credentials","secretUID":"e31d554c-5cf8-4663-adcd-811849a31b3c","tenantRef":"re8ch"}]'
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:d59472f27c9333ad447fead5f540c720a62fee8994c3ed1a37936cfba284fad9
-        name: reconciler
-        resources:
-          limits:
-            cpu: 500m
-            memory: 256Mi
-          requests:
-            cpu: 25m
-            memory: 64Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          readOnlyRootFilesystem: true
-        volumeMounts:
-        - mountPath: /cli
-          name: stalwart-cli
-          readOnly: true
-      dnsConfig:
-        nameservers:
-        - 10.43.0.53
-        options:
-        - name: ndots
-          value: '5'
-        searches:
-        - observability-ai.svc.cluster.local
-        - tenant-infrastructure.svc.cluster.local
-        - svc.cluster.local
-        - cluster.local
-      dnsPolicy: None
-      imagePullSecrets:
-      - name: harbor-registry-pull
-      serviceAccountName: tenant-provider-reconciler
-      tolerations:
-      - operator: Exists
-      volumes:
-      - image:
-          pullPolicy: IfNotPresent
-          reference: ghcr.io/stalwartlabs/cli@sha256:5b70732cb69cdab3ff0894c501544cf0bfa180fa75bcd0eeba4eebe04c1064e1
-        name: stalwart-cli
----
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -379,10 +294,22 @@ spec:
     - k8sService:
         namespace: pigsty-external
         serviceName: pg-re8ch-primary
+  - toCIDR:
+    - 10.250.0.128/32
+    toPorts:
+    - ports:
+      - port: '5432'
+        protocol: TCP
+  - toEntities:
+    - host
+    toPorts:
+    - ports:
+      - port: '5432'
+        protocol: TCP
   - toEndpoints:
     - matchLabels:
+        k8s:app.kubernetes.io/name: advanced-fabric-doh
         k8s:io.kubernetes.pod.namespace: kube-system
-        k8s:k8s-app: kube-dns
     toPorts:
     - ports:
       - port: '53'

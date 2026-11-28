@@ -712,7 +712,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: provider
-        image: registry.re8ch.com/image/re8ch-postgresql-provider@sha256:e1bd08b7e3307761768fb4c8cf98e8726cfb2d1b2eec0ecde9cf6d82de375a24
+        image: registry.re8ch.com/image/re8ch-postgresql-provider@sha256:952eb68c47989e143fe1da14c33216b79ca426ec9a8b14eb762b473668cbb6b7
         imagePullPolicy: IfNotPresent
         envFrom:
         - secretRef:
@@ -799,10 +799,23 @@ spec:
     toPorts:
     - ports:
       - {port: '5432', protocol: TCP}
+  # Cilium does not currently expand selectorless Service EndpointSlices into
+  # toServices identities; retain the Service rule and pin its reviewed primary.
+  - toCIDR:
+    - 10.250.0.128/32
+    toPorts:
+    - ports:
+      - {port: '5432', protocol: TCP}
+  # Same-node selectorless Service translation is classified as Cilium's
+  # reserved host identity; this is database traffic, not Kubernetes control.
+  - toEntities: [host]
+    toPorts:
+    - ports:
+      - {port: '5432', protocol: TCP}
   - toEndpoints:
     - matchLabels:
         k8s:io.kubernetes.pod.namespace: kube-system
-        k8s:k8s-app: kube-dns
+        k8s:app.kubernetes.io/name: advanced-fabric-doh
     toPorts:
     - ports:
       - {port: '53', protocol: UDP}

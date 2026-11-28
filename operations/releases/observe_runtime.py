@@ -31,6 +31,9 @@ def tenant_api_rollout(executor):
         details['pods'] = [{
             'name': item.get('metadata', {}).get('name'),
             'phase': item.get('status', {}).get('phase'),
+            'conditions': [
+                {key: condition.get(key) for key in ('type', 'status', 'reason')}
+                for condition in item.get('status', {}).get('conditions', [])],
             'containers': [{
                 'name': container.get('name'), 'ready': container.get('ready', False),
                 'restartCount': container.get('restartCount', 0),
@@ -41,6 +44,32 @@ def tenant_api_rollout(executor):
         } for item in value.get('items', [])]
     except Exception as error:
         details['pods'] = {'observation': 'not-authorized-or-unavailable', 'errorType': type(error).__name__}
+    try:
+        value = json.loads(executor.command([
+            'kubectl', '--request-timeout=8s', 'get', 'replicasets', '-n', 'tenant-infrastructure',
+            '-l', 'app=tenant-api', '-o', 'json'], timeout=12).stdout)
+        details['replicaSets'] = [{
+            'name': item.get('metadata', {}).get('name'),
+            'replicas': {key: item.get('status', {}).get(key, 0) for key in
+                         ('replicas', 'readyReplicas', 'availableReplicas')},
+            'conditions': [
+                {key: condition.get(key) for key in ('type', 'status', 'reason')}
+                for condition in item.get('status', {}).get('conditions', [])],
+        } for item in value.get('items', [])]
+    except Exception as error:
+        details['replicaSets'] = {'observation': 'not-authorized-or-unavailable', 'errorType': type(error).__name__}
+    try:
+        value = json.loads(executor.command([
+            'kubectl', '--request-timeout=8s', 'get', 'events', '-n', 'tenant-infrastructure',
+            '-o', 'json'], timeout=12).stdout)
+        details['events'] = [{
+            'type': item.get('type'), 'reason': item.get('reason'),
+            'involvedObject': {key: item.get('involvedObject', {}).get(key) for key in ('kind', 'name')},
+            'count': item.get('count', 0),
+        } for item in value.get('items', [])
+            if item.get('involvedObject', {}).get('name', '').startswith('tenant-api')]
+    except Exception as error:
+        details['events'] = {'observation': 'not-authorized-or-unavailable', 'errorType': type(error).__name__}
     return details
 
 

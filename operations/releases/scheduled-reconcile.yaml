@@ -5,5 +5,6 @@ metadata:
 spec:
   releases:
   - agent-runtime-exact-tenant-api-manager
+  - agent-runtime-exact-tenant-provider-reconciler
   - agent-runtime-tenant-crd-authority
   - agent-runtime-toolhive-operator

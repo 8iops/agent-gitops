@@ -22,6 +22,10 @@ PLURALS = {'ServiceAccount':'serviceaccounts','Service':'services','ConfigMap':'
 CUSTOM_TYPES = json.loads((ROOT/'operations/releases/resource-types.json').read_text())
 RETIREMENTS = json.loads((ROOT/'operations/releases/retirements.json').read_text())
 FLUX_GROUPS = {'source.toolkit.fluxcd.io','helm.toolkit.fluxcd.io','kustomize.toolkit.fluxcd.io','notification.toolkit.fluxcd.io','image.toolkit.fluxcd.io'}
+TENANT_RUNTIME_OBSERVATION_RULES = [
+    {'apiGroups':[''],'resources':['pods','events'],'verbs':['get','list']},
+    {'apiGroups':['apps'],'resources':['replicasets'],'verbs':['get','list']},
+]
 PUBLISHABLE_EMPTY_SECRETS = {
     'core/Secret/tenant-infrastructure/mcp-catalog-database',
 }
@@ -115,6 +119,8 @@ def compile_outputs():
             if name == 'agent-runtime-domain-toolhive-system' and api == 'toolhive.stacklok.dev' and resource in {'mcpgroups','mcpoidcconfigs','virtualmcpservers'}:
                 verbs.append('create')
             role_rules.append({'apiGroups':['' if api=='core' else api],'resources':[resource],'resourceNames':sorted(names),'verbs':verbs})
+        if name == 'agent-runtime-domain-tenant-infrastructure':
+            role_rules.extend(TENANT_RUNTIME_OBSERVATION_RULES)
         retirement_rules=defaultdict(set)
         for identity in RETIREMENTS.get(namespace, []):
             api,kind,retirement_namespace,object_name=identity.split('/',3)

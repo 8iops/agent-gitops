@@ -1,0 +1,44 @@
+apiVersion: delivery.re8ch.com/v1alpha1
+kind: ReleaseContract
+metadata:
+  name: agent-runtime-exact-tenant-provider-reconciler
+spec:
+  authorityDomain: agent-runtime
+  target:
+    cluster: re8ch
+    namespace: tenant-infrastructure
+  source:
+    renderer: kustomize
+    revision: github-main-reviewed
+    repository: 8iops/agent-gitops
+    path: releases/agent-runtime-exact-tenant-provider-reconciler
+  provenance:
+    repository: 8iops/agent-gitops
+    workflow: .github/workflows/static-release.yml
+    ref: refs/heads/main
+    environment: release-executor-agent-runtime
+    audience: https://kube-api.re8ch.com/release-executor-agent-runtime
+    signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
+    issuer: https://token.actions.githubusercontent.com
+  authorization:
+    fieldManager: re8ch-release/agent-runtime-exact-tenant-provider-reconciler
+    resources:
+    - apps/Deployment
+    objectNames:
+    - tenant-provider-reconciler
+    allowClusterScoped: false
+    requireExisting: true
+    forceConflictObjects:
+    - apps/Deployment/tenant-infrastructure/tenant-provider-reconciler
+  inventory:
+    digest: sha256:287640be9057295f7d4cfc9d7f97b70482f55713cbfa75c4121642b3b734c1e5
+  lifecycle:
+    prune: false
+    healthTimeoutSeconds: 300
+    protectedKinds:
+    - Namespace
+    - CustomResourceDefinition
+    - PersistentVolume
+    - PersistentVolumeClaim
+    - StorageClass
+    deletionAllowlist: []

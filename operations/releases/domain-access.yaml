@@ -1243,7 +1243,6 @@ rules:
   resourceNames:
   - admin-api
   - postgresql-provider
-  - tenant-provider-reconciler
   verbs:
   - get
   - patch
@@ -1345,6 +1344,21 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  - events
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - apps
+  resources:
+  - replicasets
+  verbs:
+  - get
+  - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

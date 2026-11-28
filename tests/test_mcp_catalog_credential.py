@@ -18,7 +18,7 @@ def test_catalog_runtime_uses_immutable_provider_and_metadata_only_projection():
     container = deployment["spec"]["template"]["spec"]["containers"][0]
     assert container["image"] == (
         "registry.re8ch.com/image/re8ch-postgresql-provider@sha256:"
-        "e1bd08b7e3307761768fb4c8cf98e8726cfb2d1b2eec0ecde9cf6d82de375a24"
+        "952eb68c47989e143fe1da14c33216b79ca426ec9a8b14eb762b473668cbb6b7"
     )
     assert not {"MCP_CATALOG_ADMIN_TOKEN", "MCP_CATALOG_ADMIN_URL"} & {
         value["name"] for value in container["env"]
@@ -41,8 +41,19 @@ def test_catalog_runtime_profile_projection_and_network_are_bounded():
         "name": "mcp-catalog-database", "key": "MCP_CATALOG_DATABASE_URL", "optional": False}
     policy = next(item for item in items if item.get("kind") == "CiliumNetworkPolicy" and
                   item["metadata"]["name"] == "postgresql-provider-egress")
+    dns = next(rule for rule in policy["spec"]["egress"] if rule.get("toEndpoints"))
+    assert dns["toEndpoints"] == [{"matchLabels": {
+        "k8s:io.kubernetes.pod.namespace": "kube-system",
+        "k8s:app.kubernetes.io/name": "advanced-fabric-doh",
+    }}]
     assert policy["spec"]["egress"][1]["toServices"][0]["k8sService"] == {
         "serviceName": "pg-re8ch-primary", "namespace": "pigsty-external"}
+    primary = next(rule for rule in policy["spec"]["egress"] if rule.get("toCIDR"))
+    assert primary == {"toCIDR": ["10.250.0.128/32"], "toPorts": [{"ports": [
+        {"port": "5432", "protocol": "TCP"},
+    ]}]}
+    host = next(rule for rule in policy["spec"]["egress"] if rule.get("toEntities") == ["host"])
+    assert host["toPorts"] == [{"ports": [{"port": "5432", "protocol": "TCP"}]}]
 
 
 def test_catalog_projection_rbac_is_exact_and_broker_only_adds_patch():

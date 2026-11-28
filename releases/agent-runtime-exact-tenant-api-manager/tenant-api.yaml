@@ -38,7 +38,7 @@ spec:
         - name: SENTRY_ENVIRONMENT
           value: production
         - name: SENTRY_RELEASE
-          value: tenant-mcp@296a404a14f6556a30553be9e8b14e88f40d1c0c
+          value: tenant-mcp@376a7fc4bb668c301d8459b2510e17f9761c6ac0
         - name: RE8CH_TOOL_PROFILE
           value: tenant
         - name: RE8CH_TOOL_AUDIENCE
@@ -60,6 +60,12 @@ spec:
             secretKeyRef:
               key: TENANT_CLAIM_SERVICE_TOKEN
               name: tenant-claim-internal-auth
+        - name: MCP_CATALOG_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              key: MCP_CATALOG_DATABASE_URL
+              name: mcp-catalog-database
+              optional: false
         - name: SERVICE_API_TOKEN
           valueFrom:
             secretKeyRef:
@@ -190,7 +196,7 @@ spec:
         - secretRef:
             name: tenant-grafana-credentials
             optional: true
-        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:9627dec87e6f4217693dae060b6324fa1481bddc612faca984c3fba9ee427ecb
+        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:8a85eb61f4a6922a6f56d8a2e90c8b826a023861e379b0345f95dc9673047f82
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
