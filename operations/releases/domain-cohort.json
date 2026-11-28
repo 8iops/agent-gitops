@@ -1,6 +1,6 @@
 {
   "domain": "agent-runtime",
-  "sourceObjects": 396,
+  "sourceObjects": 398,
   "releases": [
     {
       "name": "agent-runtime-domain-ai-operations",
@@ -182,6 +182,10 @@
       "reason": "platform-owned-rbac"
     },
     {
+      "identity": "rbac.authorization.k8s.io/Role/credential-broker/postgresql-provider-catalog-broker-patch",
+      "reason": "platform-owned-rbac"
+    },
+    {
       "identity": "rbac.authorization.k8s.io/Role/credential-broker/postgresql-provider-credential-broker",
       "reason": "platform-owned-rbac"
     },
@@ -287,6 +291,10 @@
     },
     {
       "identity": "rbac.authorization.k8s.io/RoleBinding/credential-broker/credential-broker",
+      "reason": "platform-owned-rbac"
+    },
+    {
+      "identity": "rbac.authorization.k8s.io/RoleBinding/credential-broker/postgresql-provider-catalog-broker-patch",
       "reason": "platform-owned-rbac"
     },
     {

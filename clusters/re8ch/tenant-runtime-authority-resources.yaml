@@ -712,7 +712,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: provider
-        image: registry.re8ch.com/image/re8ch-postgresql-provider@sha256:77f1fb1cc23e3d3db77573fb2a2e8c2e08c296c183c7e098ce9056fcc3ab0522
+        image: registry.re8ch.com/image/re8ch-postgresql-provider@sha256:e1bd08b7e3307761768fb4c8cf98e8726cfb2d1b2eec0ecde9cf6d82de375a24
         imagePullPolicy: IfNotPresent
         envFrom:
         - secretRef:
