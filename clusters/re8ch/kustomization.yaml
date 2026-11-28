@@ -10,11 +10,8 @@ resources:
 - cube-recovery-resources.yaml
 - cube-warehouse-s3.yaml
 - compocv-cube-test.yaml
-<<<<<<< HEAD
 - dissosy-resources.yaml
-=======
 - pg-re8ch-mcp-exact-release-access.yaml
->>>>>>> origin/main
 patches:
 - path: tenant-api-current-runtime-patch.yaml
 - path: tenant-provider-publicedge-patch.yaml
