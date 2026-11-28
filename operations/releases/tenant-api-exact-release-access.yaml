@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-exact-tenant-api-manager
+  namespace: tenant-infrastructure
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-exact-tenant-api-manager
+  namespace: tenant-infrastructure
+rules:
+- apiGroups: ['']
+  resources: [configmaps]
+  resourceNames: [ssa-state-agent-runtime-exact-tenant-api-manager]
+  verbs: [get, patch, update]
+- apiGroups: [apps]
+  resources: [deployments]
+  resourceNames: [tenant-api]
+  verbs: [get, patch, update]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-exact-tenant-api-manager
+  namespace: tenant-infrastructure
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-exact-tenant-api-manager
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
