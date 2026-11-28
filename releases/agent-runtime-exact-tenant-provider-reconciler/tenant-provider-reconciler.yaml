@@ -41,7 +41,7 @@ spec:
               name: tenant-provider-identity
         - name: GRAFANA_DATABASE_BINDINGS_JSON
           value: '[{"database":"anysite","namespace":"re8ch-anysite","secretName":"anysite-db-credentials","secretUID":"ecb4edf3-eb40-4b0e-ab28-7bf3dab490c4","tenantRef":"re8ch"},{"database":"secretary","namespace":"re8ch-secretary","secretName":"secretary-db-credentials","secretUID":"e31d554c-5cf8-4663-adcd-811849a31b3c","tenantRef":"re8ch"}]'
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:cd47325ab6f192e7d2d0960e709cac3048b5920d8fb1212d4384967f979ac655
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:18797cd778da64fc66c645b1e7c5d615447ca899cd0bef39ad6a825857026306
         name: reconciler
         resources:
           limits:
