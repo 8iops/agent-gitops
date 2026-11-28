@@ -36,7 +36,7 @@ def test_replay_requires_exact_healthy_acceptance(tmp_path,monkeypatch,fault):
 def test_matrix_and_workflow_have_no_publishing_inputs(monkeypatch):
     monkeypatch.chdir(ROOT)
     matrix=replay_matrix()
-    assert len(matrix)==17
+    assert len(matrix)==18
     assert all(p['audience']==REPLAY_AUDIENCE for p in matrix)
     text=(ROOT/'.github/workflows/agent-runtime-reconcile.yml').read_text()
     workflow=yaml.safe_load(text)
@@ -60,6 +60,7 @@ def test_scheduled_matrix_is_small_explicit_control_plane_scope(monkeypatch):
     scheduled = scheduled_replay_matrix()
     assert [entry['release-id'] for entry in scheduled] == [
         'agent-runtime-exact-tenant-api-manager',
+        'agent-runtime-exact-tenant-provider-reconciler',
         'agent-runtime-tenant-crd-authority',
         'agent-runtime-toolhive-operator',
     ]

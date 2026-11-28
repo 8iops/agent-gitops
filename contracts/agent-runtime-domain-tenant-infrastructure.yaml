@@ -85,7 +85,7 @@ spec:
     - policy/PodDisruptionBudget/tenant-infrastructure/tenant-control-controller
     - tenancy.re8ch.com/TenantServiceInstance/tenant-infrastructure/mcp-catalog-runtime
   inventory:
-    digest: sha256:235b88d7f90a2f2329f721c72d892145e2836fbf6de2be20344b20598bb67bba
+    digest: sha256:a82195dea295af73859eb698bfa78859110d8aa671c40952d700e7d1e1ffe2d1
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300
