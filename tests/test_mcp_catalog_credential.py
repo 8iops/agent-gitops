@@ -18,7 +18,7 @@ def test_catalog_runtime_uses_immutable_provider_and_metadata_only_projection():
     container = deployment["spec"]["template"]["spec"]["containers"][0]
     assert container["image"] == (
         "registry.re8ch.com/image/re8ch-postgresql-provider@sha256:"
-        "e1bd08b7e3307761768fb4c8cf98e8726cfb2d1b2eec0ecde9cf6d82de375a24"
+        "4ce638d6d96aa769d470f5fe997e0dfbee70594ef7b4b8a5f265548c1e7cd1c7"
     )
     assert not {"MCP_CATALOG_ADMIN_TOKEN", "MCP_CATALOG_ADMIN_URL"} & {
         value["name"] for value in container["env"]
