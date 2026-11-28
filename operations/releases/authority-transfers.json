@@ -6,7 +6,7 @@
     "previousSourceCommit": "a527dc8383b6dcfd99a520f7c04e0aea2aa3056f",
     "fieldManager": "re8ch-release/observability-chart-birfucate-metering-tenant-infrastructure",
     "sourcePath": "clusters/re8ch/tenant-runtime-authority-resources.yaml",
-    "sourceDigest": "sha256:9fc335df890d0a1a8e4bce87fa6838c383fc0fe72e038a9489a27fb264423f79",
+    "sourceDigest": "sha256:02d9e33fa4924dcaab0589c596c03a80f67d41d87a7e3a44fa5efa8f139ac660",
     "mode": "accepted-runtime-update",
     "forceConflictObjects": [
       "apps/DaemonSet/tenant-infrastructure/tenant-runtime-image-cache",
@@ -16,7 +16,9 @@
       "apps/Deployment/tenant-infrastructure/postgresql-provider",
       "apps/Deployment/tenant-infrastructure/tenant-provider-reconciler",
       "cilium.io/CiliumNetworkPolicy/tenant-infrastructure/tenant-api-gateway",
+      "cilium.io/CiliumNetworkPolicy/tenant-infrastructure/postgresql-provider-egress",
       "core/ConfigMap/tenant-infrastructure/tenant-platform-modules",
+      "core/Secret/tenant-infrastructure/mcp-catalog-database",
       "core/Service/tenant-infrastructure/admin-api",
       "core/Service/tenant-infrastructure/tenant-api",
       "core/Service/tenant-infrastructure/tenant-control-controller",
@@ -37,6 +39,7 @@
       "networking.k8s.io/NetworkPolicy/tenant-infrastructure/tenant-control-controller",
       "networking.k8s.io/NetworkPolicy/tenant-infrastructure/postgresql-provider",
       "policy/PodDisruptionBudget/tenant-infrastructure/tenant-control-controller"
+      ,"tenancy.re8ch.com/TenantServiceInstance/tenant-infrastructure/mcp-catalog-runtime"
     ]
   },
   "mail-system": {

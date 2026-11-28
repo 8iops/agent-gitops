@@ -22,6 +22,9 @@ PLURALS = {'ServiceAccount':'serviceaccounts','Service':'services','ConfigMap':'
 CUSTOM_TYPES = json.loads((ROOT/'operations/releases/resource-types.json').read_text())
 RETIREMENTS = json.loads((ROOT/'operations/releases/retirements.json').read_text())
 FLUX_GROUPS = {'source.toolkit.fluxcd.io','helm.toolkit.fluxcd.io','kustomize.toolkit.fluxcd.io','notification.toolkit.fluxcd.io','image.toolkit.fluxcd.io'}
+PUBLISHABLE_EMPTY_SECRETS = {
+    'core/Secret/tenant-infrastructure/mcp-catalog-database',
+}
 
 def group(item):
     return item['apiVersion'].split('/')[0] if '/' in item['apiVersion'] else 'core'
@@ -45,7 +48,9 @@ def classify(item,reserved):
     if ident in reserved:return 'existing-release-contract'
     if group(item)=='rbac.authorization.k8s.io':return 'platform-owned-rbac'
     if item['kind']=='Job':return 'one-shot-job-platform-owned'
-    if item['kind']=='Secret':return 'secret-provisioning'
+    if item['kind']=='Secret':
+        if ident not in PUBLISHABLE_EMPTY_SECRETS:return 'secret-provisioning'
+        if item.get('data') or item.get('stringData'):raise ValueError('publishable Secret must be metadata-only: '+ident)
     if contains_encrypted(item):
         try:validate_envelope(item)
         except RestrictedConfigError:return 'restricted-cloud-decryption'

@@ -14,4 +14,5 @@
   "toolhive.stacklok.dev/MCPToolConfig": "mcptoolconfigs",
   "toolhive.stacklok.dev/VirtualMCPServer": "virtualmcpservers",
   "operator.victoriametrics.com/VMServiceScrape": "vmservicescrapes"
+  ,"tenancy.re8ch.com/TenantServiceInstance": "tenantserviceinstances"
 }
