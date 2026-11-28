@@ -331,6 +331,7 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
+  storageClassName: rbd-r640
   resources:
     requests:
       storage: 4Gi

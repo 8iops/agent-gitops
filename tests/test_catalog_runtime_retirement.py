@@ -27,6 +27,8 @@ def test_catalog_runtime_has_independent_identity_and_database_contract():
         "optional": False,
     }
     assert env["AUTH_DISCOVERY_URL"]["value"].endswith("/.well-known/oauth-authorization-server")
+    pvc = by_identity[("PersistentVolumeClaim", "re8ch-catalog-runtime-state")]
+    assert pvc["spec"]["storageClassName"] == "rbd-r640"
     assert "tenant-api" not in {item["metadata"]["name"] for item in objects}
 
 
