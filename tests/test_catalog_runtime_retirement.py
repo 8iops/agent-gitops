@@ -6,6 +6,7 @@ import yaml
 ROOT = Path(__file__).parents[1]
 RELEASE = ROOT / "releases/agent-runtime-exact-catalog-runtime-manager/resources.yaml"
 CONTRACT = ROOT / "contracts/agent-runtime-exact-catalog-runtime-manager.yaml"
+ACCESS = ROOT / "operations/releases/catalog-runtime-exact-release-access.yaml"
 
 
 def test_catalog_runtime_has_independent_identity_and_database_contract():
@@ -43,3 +44,11 @@ def test_catalog_runtime_release_is_create_capable_and_bounded():
         "re8ch-catalog-runtime",
         "re8ch-catalog-runtime-state-rbd",
     }
+
+
+def test_catalog_runtime_exact_access_tracks_rbd_claim():
+    objects = [item for item in yaml.safe_load_all(ACCESS.read_text()) if item]
+    role = next(item for item in objects if item["kind"] == "Role")
+    names = {name for rule in role["rules"] for name in rule.get("resourceNames", [])}
+    assert "re8ch-catalog-runtime-state-rbd" in names
+    assert "re8ch-catalog-runtime-state" not in names
