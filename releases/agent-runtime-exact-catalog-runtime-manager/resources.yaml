@@ -312,13 +312,14 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       serviceAccountName: re8ch-catalog-runtime
+      imagePullSecrets: []
       terminationGracePeriodSeconds: 75
       tolerations:
       - operator: Exists
       volumes:
       - name: runtime-state
         persistentVolumeClaim:
-          claimName: re8ch-catalog-runtime-state
+          claimName: re8ch-catalog-runtime-state-rbd
       - configMap:
           name: tenant-platform-modules
         name: platform-modules
@@ -326,7 +327,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: re8ch-catalog-runtime-state
+  name: re8ch-catalog-runtime-state-rbd
   namespace: tenant-infrastructure
 spec:
   accessModes:

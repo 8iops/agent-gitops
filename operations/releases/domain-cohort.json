@@ -118,7 +118,7 @@
       "reason": "one-shot-job-platform-owned"
     },
     {
-      "identity": "core/PersistentVolumeClaim/tenant-infrastructure/re8ch-catalog-runtime-state",
+      "identity": "core/PersistentVolumeClaim/tenant-infrastructure/re8ch-catalog-runtime-state-rbd",
       "reason": "existing-release-contract"
     },
     {
