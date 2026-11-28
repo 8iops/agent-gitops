@@ -2021,6 +2021,32 @@ spec:
       port: 19448
 ---
 apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
+    external-dns.alpha.kubernetes.io/hostname: catalog-runtime.service.re8ch.com
+    external-dns.alpha.kubernetes.io/target: tools.service.re8ch.com
+    external-dns.alpha.kubernetes.io/ttl: '60'
+  labels:
+    networking.re8ch.com/dns-authority: public-edge
+  name: catalog-runtime-dns-authority
+  namespace: tenant-infrastructure
+spec:
+  ingressClassName: external-dns-only
+  rules:
+  - host: catalog-runtime.service.re8ch.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: re8ch-catalog-runtime
+            port:
+              number: 19448
+        path: /
+        pathType: Prefix
+---
+apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: re8ch-catalog-runtime

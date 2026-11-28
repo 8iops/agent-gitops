@@ -1,6 +1,6 @@
 {
   "domain": "agent-runtime",
-  "sourceObjects": 408,
+  "sourceObjects": 409,
   "releases": [
     {
       "name": "agent-runtime-domain-ai-operations",
@@ -168,6 +168,10 @@
     {
       "identity": "kustomize.toolkit.fluxcd.io/Kustomization/flux-agent-system/api-conformance-runner-bootstrap",
       "reason": "retired-flux-control-resource"
+    },
+    {
+      "identity": "networking.k8s.io/Ingress/tenant-infrastructure/catalog-runtime-dns-authority",
+      "reason": "existing-release-contract"
     },
     {
       "identity": "networking.k8s.io/NetworkPolicy/tenant-infrastructure/postgresql-provider-catalog-runtime",

@@ -63,6 +63,17 @@ def test_catalog_runtime_has_independent_identity_and_database_contract():
     assert set(rules) == {"/mcp", "/.well-known/oauth-protected-resource/mcp"}
     assert all(item["backendRefs"] == [{"name": "re8ch-catalog-runtime", "port": 19448}]
                for item in rules.values())
+    dns = by_identity[("Ingress", "catalog-runtime-dns-authority")]
+    assert dns["metadata"]["labels"] == {
+        "networking.re8ch.com/dns-authority": "public-edge",
+    }
+    assert dns["metadata"]["annotations"] == {
+        "external-dns.alpha.kubernetes.io/cloudflare-proxied": "false",
+        "external-dns.alpha.kubernetes.io/hostname": "catalog-runtime.service.re8ch.com",
+        "external-dns.alpha.kubernetes.io/target": "tools.service.re8ch.com",
+        "external-dns.alpha.kubernetes.io/ttl": "60",
+    }
+    assert dns["spec"]["ingressClassName"] == "external-dns-only"
     policy = by_identity[("NetworkPolicy", "re8ch-catalog-runtime")]
     namespaces = {
         source["namespaceSelector"]["matchLabels"]["kubernetes.io/metadata.name"]
@@ -93,6 +104,7 @@ def test_catalog_runtime_release_is_create_capable_and_bounded():
     assert contract["spec"]["lifecycle"]["prune"] is True
     assert contract["spec"]["lifecycle"]["deletionAllowlist"] == []
     assert set(auth["objectNames"]) == {
+        "catalog-runtime-dns-authority",
         "catalog-runtime-mcp",
         "postgresql-provider-catalog-runtime",
         "re8ch-catalog-runtime",
@@ -119,6 +131,16 @@ def test_catalog_runtime_exact_access_tracks_rbd_claim():
          "verbs": ["create"]},
         {"apiGroups": ["gateway.networking.k8s.io"], "resources": ["httproutes"],
          "resourceNames": ["catalog-runtime-mcp"], "verbs": ["get", "patch", "update"]},
+    ]
+    ingress_rules = [rule for rule in role["rules"]
+                     if rule.get("apiGroups") == ["networking.k8s.io"]
+                     and rule.get("resources") == ["ingresses"]]
+    assert ingress_rules == [
+        {"apiGroups": ["networking.k8s.io"], "resources": ["ingresses"],
+         "verbs": ["create"]},
+        {"apiGroups": ["networking.k8s.io"], "resources": ["ingresses"],
+         "resourceNames": ["catalog-runtime-dns-authority"],
+         "verbs": ["get", "patch", "update"]},
     ]
     delete_rules = [rule for rule in role["rules"] if "delete" in rule.get("verbs", [])]
     assert delete_rules == []
