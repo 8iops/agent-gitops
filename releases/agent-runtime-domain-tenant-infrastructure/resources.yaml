@@ -234,7 +234,7 @@ spec:
         - secretRef:
             name: tenant-claim-internal-auth
             optional: false
-        image: registry.re8ch.com/image/re8ch-postgresql-provider@sha256:a80d8ad2638e522e2546dad6a0b0fd4df3a35f4b69ff7c42c8c19b01e7a98eff
+        image: registry.re8ch.com/image/re8ch-postgresql-provider@sha256:952eb68c47989e143fe1da14c33216b79ca426ec9a8b14eb762b473668cbb6b7
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
