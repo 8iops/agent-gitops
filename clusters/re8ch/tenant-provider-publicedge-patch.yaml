@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: reconciler
-        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:d59472f27c9333ad447fead5f540c720a62fee8994c3ed1a37936cfba284fad9
+        image: registry.re8ch.com/image/re8ch-ai-operations@sha256:cd47325ab6f192e7d2d0960e709cac3048b5920d8fb1212d4384967f979ac655
         env:
         - name: STALWART_URL
           value: https://stalwart-admin.service.re8ch.com
