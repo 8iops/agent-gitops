@@ -381,8 +381,8 @@ spec:
         serviceName: pg-re8ch-primary
   - toEndpoints:
     - matchLabels:
+        k8s:app.kubernetes.io/name: advanced-fabric-doh
         k8s:io.kubernetes.pod.namespace: kube-system
-        k8s:k8s-app: kube-dns
     toPorts:
     - ports:
       - port: '53'

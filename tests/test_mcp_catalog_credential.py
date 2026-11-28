@@ -41,6 +41,11 @@ def test_catalog_runtime_profile_projection_and_network_are_bounded():
         "name": "mcp-catalog-database", "key": "MCP_CATALOG_DATABASE_URL", "optional": False}
     policy = next(item for item in items if item.get("kind") == "CiliumNetworkPolicy" and
                   item["metadata"]["name"] == "postgresql-provider-egress")
+    dns = next(rule for rule in policy["spec"]["egress"] if rule.get("toEndpoints"))
+    assert dns["toEndpoints"] == [{"matchLabels": {
+        "k8s:io.kubernetes.pod.namespace": "kube-system",
+        "k8s:app.kubernetes.io/name": "advanced-fabric-doh",
+    }}]
     assert policy["spec"]["egress"][1]["toServices"][0]["k8sService"] == {
         "serviceName": "pg-re8ch-primary", "namespace": "pigsty-external"}
 
