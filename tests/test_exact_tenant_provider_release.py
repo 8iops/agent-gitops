@@ -27,7 +27,12 @@ def test_exact_provider_release_has_one_digest_pinned_deployment():
         "namespace": "tenant-infrastructure",
     }
     assert deployment["spec"]["template"]["spec"]["containers"][0]["image"] == IMAGE
-    assert "imagePullSecrets" not in deployment["spec"]["template"]["spec"]
+    pod_spec = deployment["spec"]["template"]["spec"]
+    assert pod_spec["imagePullSecrets"] == []
+    assert pod_spec["volumes"][0]["image"]["reference"] == (
+        "ghcr.io/stalwartlabs/cli@sha256:"
+        "5b70732cb69cdab3ff0894c501544cf0bfa180fa75bcd0eeba4eebe04c1064e1"
+    )
     serialized = yaml.safe_dump(deployment)
     assert "tenant-api" not in serialized
     assert "HTTPRoute" not in serialized
