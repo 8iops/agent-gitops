@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssa-state-agent-runtime-exact-pg-re8ch-mcp
+  namespace: tenant-infrastructure
+  labels:
+    delivery.re8ch.com/state: accepted
+    delivery.re8ch.com/authority-domain: agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-exact-pg-re8ch-mcp
+  namespace: tenant-infrastructure
+rules:
+- apiGroups: [""]
+  resources: [configmaps]
+  resourceNames: [ssa-state-agent-runtime-exact-pg-re8ch-mcp]
+  verbs: [get, patch, update]
+- apiGroups: [""]
+  resources: [configmaps, services, serviceaccounts]
+  verbs: [create]
+- apiGroups: [apps]
+  resources: [deployments]
+  verbs: [create]
+- apiGroups: [cilium.io]
+  resources: [ciliumnetworkpolicies]
+  verbs: [create]
+- apiGroups: [gateway.networking.k8s.io]
+  resources: [httproutes]
+  verbs: [create]
+- apiGroups: [networking.k8s.io]
+  resources: [ingresses, networkpolicies]
+  verbs: [create]
+- apiGroups: [policy]
+  resources: [poddisruptionbudgets]
+  verbs: [create]
+- apiGroups: [""]
+  resources: [configmaps, services, serviceaccounts]
+  resourceNames: [pg-re8ch-mcp, pg-re8ch-mcp-modules]
+  verbs: [get, patch, update]
+- apiGroups: [apps]
+  resources: [deployments]
+  resourceNames: [pg-re8ch-mcp]
+  verbs: [get, patch, update]
+- apiGroups: [cilium.io]
+  resources: [ciliumnetworkpolicies]
+  resourceNames: [pg-re8ch-mcp-egress]
+  verbs: [get, patch, update]
+- apiGroups: [gateway.networking.k8s.io]
+  resources: [httproutes]
+  resourceNames: [pg-re8ch-mcp-http, pg-re8ch-mcp-https]
+  verbs: [get, patch, update]
+- apiGroups: [networking.k8s.io]
+  resources: [ingresses]
+  resourceNames: [pg-re8ch-mcp-dns-authority]
+  verbs: [get, patch, update]
+- apiGroups: [networking.k8s.io]
+  resources: [networkpolicies]
+  resourceNames: [pg-re8ch-mcp]
+  verbs: [get, patch, update]
+- apiGroups: [policy]
+  resources: [poddisruptionbudgets]
+  resourceNames: [pg-re8ch-mcp]
+  verbs: [get, patch, update]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-exact-pg-re8ch-mcp
+  namespace: tenant-infrastructure
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-exact-pg-re8ch-mcp
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pg-re8ch-mcp-upstream-credential
+  namespace: supabase-pg-re8ch
+rules:
+- apiGroups: [""]
+  resources: [secrets]
+  resourceNames: [supabase-pg-re8ch-secrets]
+  verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pg-re8ch-mcp-upstream-credential
+  namespace: supabase-pg-re8ch
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pg-re8ch-mcp-upstream-credential
+subjects:
+- kind: ServiceAccount
+  name: pg-re8ch-mcp
+  namespace: tenant-infrastructure
