@@ -823,6 +823,150 @@ spec:
     matchLabels:
       app: tenant-control-controller
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agent-runtime-exact-pg-re8ch-mcp
+  namespace: tenant-infrastructure
+rules:
+- apiGroups:
+  - ''
+  resourceNames:
+  - ssa-state-agent-runtime-exact-pg-re8ch-mcp
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  - services
+  - serviceaccounts
+  verbs:
+  - create
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+- apiGroups:
+  - cilium.io
+  resources:
+  - ciliumnetworkpolicies
+  verbs:
+  - create
+- apiGroups:
+  - gateway.networking.k8s.io
+  resources:
+  - httproutes
+  verbs:
+  - create
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  - networkpolicies
+  verbs:
+  - create
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - create
+- apiGroups:
+  - ''
+  resourceNames:
+  - pg-re8ch-mcp
+  - pg-re8ch-mcp-modules
+  resources:
+  - configmaps
+  - services
+  - serviceaccounts
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - apps
+  resourceNames:
+  - pg-re8ch-mcp
+  resources:
+  - deployments
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - cilium.io
+  resourceNames:
+  - pg-re8ch-mcp-egress
+  resources:
+  - ciliumnetworkpolicies
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - gateway.networking.k8s.io
+  resourceNames:
+  - pg-re8ch-mcp-http
+  - pg-re8ch-mcp-https
+  resources:
+  - httproutes
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resourceNames:
+  - pg-re8ch-mcp-dns-authority
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resourceNames:
+  - pg-re8ch-mcp
+  resources:
+  - networkpolicies
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - policy
+  resourceNames:
+  - pg-re8ch-mcp
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agent-runtime-exact-pg-re8ch-mcp
+  namespace: tenant-infrastructure
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agent-runtime-exact-pg-re8ch-mcp
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: re8ch:release-executor:agent-runtime
+---
 apiVersion: tenancy.re8ch.com/v1alpha1
 kind: TenantServiceInstance
 metadata:

@@ -43,8 +43,29 @@ def test_runtime_profiles_cannot_write_rbac_or_escalate():
     for role in access:
         if role['kind']!='Role':continue
         for rule in role['rules']:
-            assert 'rbac.authorization.k8s.io' not in rule['apiGroups']
+            if 'rbac.authorization.k8s.io' in rule['apiGroups']:
+                assert role['metadata']['name'] in {
+                    'agent-runtime-domain-tenant-infrastructure',
+                    'agent-runtime-domain-supabase-pg-re8ch',
+                }
+                assert set(rule['resources']) <= {'roles','rolebindings'}
+                assert set(rule['resourceNames']) <= {
+                    'agent-runtime-exact-pg-re8ch-mcp',
+                    'pg-re8ch-mcp-upstream-credential',
+                }
             assert not {'bind','escalate','impersonate'} & set(rule['verbs'])
+
+
+def test_pg_re8ch_bootstrap_rbac_is_domain_owned_and_exactly_bounded():
+    import yaml
+    expected=compiler.DOMAIN_OWNED_BOOTSTRAP_RBAC
+    rendered={compiler.object_identity(item):item
+              for path in (ROOT/'releases').glob('agent-runtime-domain-*/resources.yaml')
+              for item in yaml.safe_load_all(path.read_text()) if item}
+    assert expected <= rendered.keys()
+    credential=rendered['rbac.authorization.k8s.io/Role/supabase-pg-re8ch/pg-re8ch-mcp-upstream-credential']
+    assert credential['rules']==[{'apiGroups':[''], 'resources':['secrets'],
+                                  'resourceNames':['supabase-pg-re8ch-secrets'], 'verbs':['get']}]
 
 
 def test_tenant_runtime_observation_is_namespace_bounded_and_read_only():

@@ -29,6 +29,12 @@ TENANT_RUNTIME_OBSERVATION_RULES = [
 PUBLISHABLE_EMPTY_SECRETS = {
     'core/Secret/tenant-infrastructure/mcp-catalog-database',
 }
+DOMAIN_OWNED_BOOTSTRAP_RBAC = {
+    'rbac.authorization.k8s.io/Role/tenant-infrastructure/agent-runtime-exact-pg-re8ch-mcp',
+    'rbac.authorization.k8s.io/RoleBinding/tenant-infrastructure/agent-runtime-exact-pg-re8ch-mcp',
+    'rbac.authorization.k8s.io/Role/supabase-pg-re8ch/pg-re8ch-mcp-upstream-credential',
+    'rbac.authorization.k8s.io/RoleBinding/supabase-pg-re8ch/pg-re8ch-mcp-upstream-credential',
+}
 
 def group(item):
     return item['apiVersion'].split('/')[0] if '/' in item['apiVersion'] else 'core'
@@ -50,7 +56,7 @@ def release_name(namespace):
 def classify(item,reserved):
     ident=object_identity(item)
     if ident in reserved:return 'existing-release-contract'
-    if group(item)=='rbac.authorization.k8s.io':return 'platform-owned-rbac'
+    if group(item)=='rbac.authorization.k8s.io' and ident not in DOMAIN_OWNED_BOOTSTRAP_RBAC:return 'platform-owned-rbac'
     if item['kind']=='Job':return 'one-shot-job-platform-owned'
     if item['kind']=='Secret':
         if ident not in PUBLISHABLE_EMPTY_SECRETS:return 'secret-provisioning'
