@@ -338,6 +338,15 @@ spec:
         protocol: TCP
 ---
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    delivery.re8ch.com/authority-domain: agent-runtime
+    delivery.re8ch.com/state: accepted
+  name: ssa-state-agent-runtime-exact-pg-re8ch-mcp
+  namespace: tenant-infrastructure
+---
+apiVersion: v1
 data:
   modules.json: "{\n  \"version\": 1,\n  \"backends\": {\n    \"native\": {\n    \
     \  \"namespace\": \"ai-operations\",\n      \"secret\": \"cluster-infra-service-auth\"\

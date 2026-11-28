@@ -38,6 +38,7 @@ spec:
     - mcp-catalog-runtime
     - postgresql-provider
     - postgresql-provider-egress
+    - ssa-state-agent-runtime-exact-pg-re8ch-mcp
     - tenant-api
     - tenant-api-gateway
     - tenant-billing-auth-center
@@ -85,7 +86,7 @@ spec:
     - policy/PodDisruptionBudget/tenant-infrastructure/tenant-control-controller
     - tenancy.re8ch.com/TenantServiceInstance/tenant-infrastructure/mcp-catalog-runtime
   inventory:
-    digest: sha256:a82195dea295af73859eb698bfa78859110d8aa671c40952d700e7d1e1ffe2d1
+    digest: sha256:d9c821dbbad50a89b4486ccd56b612bb3b73bff8f546538c10d32f1f60879847
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300
