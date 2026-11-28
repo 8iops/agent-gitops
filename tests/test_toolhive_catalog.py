@@ -44,6 +44,15 @@ def test_native_toolhive_instance_matches_pg_identity_oauth_chain():
     assert native["spec"]["config"]["aggregation"]["tools"] == [{"workload": "tenant-api-backend"}]
     assert native["spec"]["outgoingAuth"]["default"]["externalAuthConfigRef"]["name"] == "tenant-vmcp-backend-auth"
 
+    backend = by_identity[("MCPServer", "re8ch-catalog-runtime-backend")]
+    assert backend["metadata"]["labels"]["re8ch.com/publication-stage"] == "shadow"
+    assert backend["spec"]["groupRef"]["name"] == "tenant-public"
+    assert backend["spec"]["serviceAccount"] == "re8ch-catalog-runtime-backend"
+    assert {item["name"]: item["value"] for item in backend["spec"]["env"]} == {
+        "TENANT_CORE_URL": "http://re8ch-catalog-runtime.tenant-infrastructure.svc.cluster.local:19448",
+        "LISTEN_ADDR": ":19449",
+    }
+
 
 def test_toolhive_release_can_create_only_reviewed_native_crs():
     contract = yaml.safe_load((ROOT / "contracts/agent-runtime-domain-toolhive-system.yaml").read_text())
@@ -54,4 +63,6 @@ def test_toolhive_release_can_create_only_reviewed_native_crs():
     access = [item for item in yaml.safe_load_all((ROOT / "operations/releases/domain-access.yaml").read_text()) if item]
     role = next(item for item in access if item["kind"] == "Role" and item["metadata"]["name"] == "agent-runtime-domain-toolhive-system")
     create_rules = [rule for rule in role["rules"] if "create" in rule["verbs"]]
-    assert {rule["resources"][0] for rule in create_rules} == {"mcpgroups", "mcpoidcconfigs", "virtualmcpservers"}
+    assert {rule["resources"][0] for rule in create_rules} == {
+        "mcpgroups", "mcpoidcconfigs", "mcpservers", "serviceaccounts", "virtualmcpservers",
+    }

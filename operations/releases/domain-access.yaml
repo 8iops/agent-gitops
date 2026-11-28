@@ -1425,12 +1425,14 @@ rules:
   - plugin-mihomos-cluster
   - plugin-public-edge
   - plugin-rook-ceph
+  - re8ch-catalog-runtime-backend
   - re8ch-plugin-runtime
   - stalwart-agent-tools
   verbs:
   - get
   - patch
   - update
+  - create
 - apiGroups:
   - ''
   resources:
@@ -1533,11 +1535,13 @@ rules:
   resources:
   - mcpservers
   resourceNames:
+  - re8ch-catalog-runtime-backend
   - stalwart-agent-tools-shadow
   verbs:
   - get
   - patch
   - update
+  - create
 - apiGroups:
   - toolhive.stacklok.dev
   resources:

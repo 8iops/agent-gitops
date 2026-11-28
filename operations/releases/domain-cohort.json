@@ -1,6 +1,6 @@
 {
   "domain": "agent-runtime",
-  "sourceObjects": 401,
+  "sourceObjects": 410,
   "releases": [
     {
       "name": "agent-runtime-domain-ai-operations",
@@ -83,12 +83,16 @@
     {
       "name": "agent-runtime-domain-toolhive-system",
       "namespace": "toolhive-system",
-      "objects": 43,
+      "objects": 45,
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 325,
+  "publishableObjects": 327,
   "deferred": [
+    {
+      "identity": "apps/Deployment/tenant-infrastructure/re8ch-catalog-runtime",
+      "reason": "existing-release-contract"
+    },
     {
       "identity": "apps/Deployment/tenant-infrastructure/tenant-api",
       "reason": "existing-release-contract"
@@ -112,6 +116,10 @@
     {
       "identity": "batch/Job/flux-system/retire-toolhive-session-redis-v3",
       "reason": "one-shot-job-platform-owned"
+    },
+    {
+      "identity": "core/PersistentVolumeClaim/tenant-infrastructure/re8ch-catalog-runtime-state",
+      "reason": "existing-release-contract"
     },
     {
       "identity": "core/PersistentVolumeClaim/tenant-infrastructure/tenant-platform-state",
@@ -142,12 +150,32 @@
       "reason": "secret-provisioning"
     },
     {
+      "identity": "core/Service/tenant-infrastructure/re8ch-catalog-runtime",
+      "reason": "existing-release-contract"
+    },
+    {
+      "identity": "core/ServiceAccount/tenant-infrastructure/re8ch-catalog-runtime",
+      "reason": "existing-release-contract"
+    },
+    {
       "identity": "helm.toolkit.fluxcd.io/HelmRelease/flux-agent-system/toolhive-operator",
       "reason": "helm-render"
     },
     {
       "identity": "kustomize.toolkit.fluxcd.io/Kustomization/flux-agent-system/api-conformance-runner-bootstrap",
       "reason": "retired-flux-control-resource"
+    },
+    {
+      "identity": "networking.k8s.io/NetworkPolicy/tenant-infrastructure/postgresql-provider-catalog-runtime",
+      "reason": "existing-release-contract"
+    },
+    {
+      "identity": "networking.k8s.io/NetworkPolicy/tenant-infrastructure/re8ch-catalog-runtime",
+      "reason": "existing-release-contract"
+    },
+    {
+      "identity": "policy/PodDisruptionBudget/tenant-infrastructure/re8ch-catalog-runtime",
+      "reason": "existing-release-contract"
     },
     {
       "identity": "rbac.authorization.k8s.io/ClusterRole/_/postgresql-provider",

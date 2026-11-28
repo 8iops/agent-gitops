@@ -116,7 +116,10 @@ def compile_outputs():
         role_rules=[]
         for (api,resource),names in sorted(rules.items()):
             verbs=['get','patch','update']
-            if name == 'agent-runtime-domain-toolhive-system' and api == 'toolhive.stacklok.dev' and resource in {'mcpgroups','mcpoidcconfigs','virtualmcpservers'}:
+            if name == 'agent-runtime-domain-toolhive-system' and (
+                (api == 'toolhive.stacklok.dev' and resource in {'mcpgroups','mcpoidcconfigs','mcpservers','virtualmcpservers'})
+                or (api == 'core' and resource == 'serviceaccounts')
+            ):
                 verbs.append('create')
             role_rules.append({'apiGroups':['' if api=='core' else api],'resources':[resource],'resourceNames':sorted(names),'verbs':verbs})
         if name == 'agent-runtime-domain-tenant-infrastructure':

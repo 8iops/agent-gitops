@@ -86,7 +86,15 @@ def validate_contract(path: Path) -> dict[str, str]:
             and spec.get("lifecycle", {}).get("prune") is False
             and source_path.startswith("releases/agent-runtime-exact-")
         )
-        if source.get("renderer") != "kustomize" or not (source_path.startswith(generated_prefix) or exact_crd_authority or exact_object_authority or exact_job_authority):
+        exact_object_create_authority = (
+            authorization.get("requireExisting") is False
+            and authorization.get("allowClusterScoped") is False
+            and bool(authorization.get("resources"))
+            and bool(authorization.get("objectNames"))
+            and spec.get("lifecycle", {}).get("prune") is True
+            and source_path.startswith("releases/agent-runtime-exact-")
+        )
+        if source.get("renderer") != "kustomize" or not (source_path.startswith(generated_prefix) or exact_crd_authority or exact_object_authority or exact_job_authority or exact_object_create_authority):
             raise ValueError("static domain source must use its generated namespace cohort")
     else:
         if source.get("renderer") != "kustomize" or "@sha256:" not in source.get("chartOCI", ""):
