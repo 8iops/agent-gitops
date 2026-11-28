@@ -1,0 +1,46 @@
+apiVersion: delivery.re8ch.com/v1alpha1
+kind: ReleaseContract
+metadata:
+  name: agent-runtime-exact-catalog-runtime-manager
+spec:
+  authorityDomain: agent-runtime
+  target:
+    cluster: re8ch
+    namespace: tenant-infrastructure
+  source:
+    renderer: kustomize
+    revision: github-main-reviewed
+    repository: 8iops/agent-gitops
+    path: releases/agent-runtime-exact-catalog-runtime-manager
+  provenance:
+    repository: 8iops/agent-gitops
+    workflow: .github/workflows/static-release.yml
+    ref: refs/heads/main
+    environment: release-executor-agent-runtime
+    audience: https://kube-api.re8ch.com/release-executor-agent-runtime
+    signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
+    issuer: https://token.actions.githubusercontent.com
+  authorization:
+    fieldManager: re8ch-release/agent-runtime-exact-catalog-runtime-manager
+    resources:
+    - apps/Deployment
+    - core/PersistentVolumeClaim
+    - core/Service
+    - core/ServiceAccount
+    - networking.k8s.io/NetworkPolicy
+    - policy/PodDisruptionBudget
+    objectNames:
+    - postgresql-provider-catalog-runtime
+    - re8ch-catalog-runtime
+    - re8ch-catalog-runtime-state
+    allowClusterScoped: false
+    requireExisting: false
+    forceConflictObjects: []
+  inventory:
+    digest: sha256:a267b0655bbfe843735ba721f9af8281fcbd6e36ca95e07a2adba4ba7ba4ebd1
+  lifecycle:
+    prune: true
+    healthTimeoutSeconds: 300
+    protectedKinds:
+    - PersistentVolumeClaim
+    deletionAllowlist: []

@@ -1,0 +1,433 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    ai.connectool.io/mcp-backend: 'true'
+    re8ch.com/publication-stage: release-gated
+    app.kubernetes.io/name: re8ch-catalog-runtime
+  name: re8ch-catalog-runtime
+  namespace: tenant-infrastructure
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: re8ch-catalog-runtime
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        ai.connectool.io/mcp-backend: 'true'
+        app: re8ch-catalog-runtime
+        saas.re8ch.com/tenant: platform
+        tenant-runtime: 'true'
+        app.kubernetes.io/name: re8ch-catalog-runtime
+        app.kubernetes.io/component: catalog-runtime
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: Exists
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution: []
+      automountServiceAccountToken: true
+      containers:
+      - env:
+        - name: SENTRY_DSN
+          value: https://2b6b17d602c68bbb6789de55c05afa1a@o4509349085577216.ingest.us.sentry.io/4509349088985088
+        - name: SENTRY_ENVIRONMENT
+          value: production
+        - name: SENTRY_RELEASE
+          value: re8ch-catalog-runtime@376a7fc4bb668c301d8459b2510e17f9761c6ac0
+        - name: RE8CH_TOOL_PROFILE
+          value: tenant
+        - name: RE8CH_TOOL_AUDIENCE
+          value: re8ch-tenant
+        - name: INVOCATION_TOKEN_ISSUER_URL
+          value: http://tenant-control-controller.tenant-infrastructure.svc/v1/invocation-tokens
+        - name: INVOCATION_TOKEN_JWKS_URL
+          value: http://tenant-control-controller.tenant-infrastructure.svc/.well-known/invocation-jwks.json
+        - name: INVOCATION_TOKEN_ISSUER
+          value: https://tools.service.re8ch.com/invocation
+        - name: TENANT_CLAIM_SERVICE_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: tenant-claim-internal-auth
+              key: TENANT_CLAIM_SERVICE_TOKEN
+              optional: false
+        - name: MCP_CATALOG_INTERNAL_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: TENANT_CLAIM_SERVICE_TOKEN
+              name: tenant-claim-internal-auth
+        - name: MCP_CATALOG_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              key: MCP_CATALOG_DATABASE_URL
+              name: mcp-catalog-database
+              optional: false
+        - name: SERVICE_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: token
+              name: admin-vmcp-backend-auth
+        - name: ALLOW_AUTHENTICATED_DEX
+          value: 'true'
+        - name: LISTEN_PORT
+          value: '19448'
+        - name: PUBLIC_MCP_URL
+          value: https://tools.service.re8ch.com/tenant-native/mcp
+        - name: OPENAI_APPS_CHALLENGE_TOKEN
+          value: 6n3O48vy3O89euYVrri4aHJMeUJ_vkofxLpzxv-6TTE
+        - name: PUBLIC_ORIGIN
+          value: https://tools.service.re8ch.com
+        - name: PUBLIC_RESOURCE_METADATA_URL
+          value: https://tools.service.re8ch.com/.well-known/oauth-protected-resource/tenant-native/mcp
+        - name: TENANT_CONTROL_URL
+          value: http://tenant-control-controller.tenant-infrastructure.svc
+        - name: AUTH_DISCOVERY_URL
+          value: http://supabase-identity-auth.supabase-identity.svc:9999/.well-known/oauth-authorization-server
+        - name: DEX_USERINFO_URL
+          value: https://api.re8ch.com/auth/userinfo
+        - name: SUPABASE_USER_URL
+          value: http://supabase-identity-auth.supabase-identity.svc:9999/user
+        - name: HARBOR_SUPPLY_CHAIN_URL
+          value: http://harbor-supply-chain.tenant-infrastructure.svc
+        - name: HARBOR_SUPPLY_CHAIN_REQUIRED
+          value: 'false'
+        - name: LITELLM_GATEWAY_URL
+          value: https://litellm.service.re8ch.com/v1
+        - name: TENANT_SERVICE_DB
+          value: /var/lib/tenant-platform/tenant-services.db
+        - name: TENANT_USAGE_CLIENT
+          value: system:serviceaccount:observability-ai:birfucate-metering
+        - name: DEVICE_REGISTRY_PATH
+          value: /var/lib/tenant-platform/tenant-devices.db
+        - name: GITHUB_GOVERNANCE_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: github-enterprise-governance-app
+              key: app-id
+        - name: GITHUB_GOVERNANCE_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: github-enterprise-governance-app
+              key: private-key
+        - name: GITHUB_DELIVERY_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: github-enterprise-delivery-app
+              key: app-id
+              optional: true
+        - name: GITHUB_DELIVERY_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: github-enterprise-delivery-app
+              key: private-key
+              optional: true
+        - name: GITHUB_SECURITY_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: github-enterprise-security-app
+              key: app-id
+              optional: true
+        - name: GITHUB_SECURITY_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: github-enterprise-security-app
+              key: private-key
+              optional: true
+        - name: GITHUB_COLLABORATION_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: github-enterprise-collaboration-app
+              key: app-id
+              optional: true
+        - name: GITHUB_COLLABORATION_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: github-enterprise-collaboration-app
+              key: private-key
+              optional: true
+        - name: GITHUB_DEVELOPER_AI_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: github-enterprise-developer-ai-app
+              key: app-id
+              optional: true
+        - name: GITHUB_DEVELOPER_AI_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: github-enterprise-developer-ai-app
+              key: private-key
+              optional: true
+        - name: GITHUB_IDENTITY_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: github-enterprise-identity-app
+              key: app-id
+              optional: true
+        - name: GITHUB_IDENTITY_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: github-enterprise-identity-app
+              key: private-key
+              optional: true
+        - name: GITHUB_BILLING_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: github-enterprise-billing-app
+              key: app-id
+              optional: true
+        - name: GITHUB_BILLING_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: github-enterprise-billing-app
+              key: private-key
+              optional: true
+        - name: PLATFORM_USERS_URL
+          value: https://api.re8ch.com/auth/v2/users
+        - name: PLATFORM_ORGANIZATIONS_URL
+          value: https://api.re8ch.com/auth/v2/organizations
+        - name: COLLABORATION_ENABLED
+          value: 'true'
+        - name: COLLABORATION_CREDENTIAL_NAMESPACE
+          value: stalwart-credentials
+        - name: STALWART_URL
+          value: https://id.re8ch.com
+        - name: STALWART_CLIENT_ID
+          value: 705c1168-43d8-4ec3-980a-0327a59c7fc6
+        - name: COLLABORATION_AUTH_MODE
+          value: auth-hub-pkce
+        - name: STALWART_AUTHORIZATION_URL
+          value: https://db-rw.re8ch.com/auth/v1/oauth/authorize
+        - name: STALWART_TOKEN_URL
+          value: https://db-rw.re8ch.com/auth/v1/oauth/token
+        - name: STALWART_REDIRECT_URI
+          value: https://tools.service.re8ch.com/collaboration/oauth/callback
+        - name: PLATFORM_MODULE_REGISTRY
+          value: /etc/re8ch/modules/modules.json
+        - name: DYNAMIC_SKILL_DB
+          value: /var/lib/tenant-platform/dynamic-skills.db
+        - name: DYNAMIC_SKILL_ADMIN_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: token
+              name: admin-vmcp-backend-auth
+        - name: ADMIN_LISTEN_PORT
+          value: '19450'
+        - name: STALWART_TOOL_CLIENT
+          value: system:serviceaccount:toolhive-system:stalwart-agent-tools
+        - name: STALWART_TOOL_REF
+          value: tool://8iops/stalwart-agent-tools
+        - name: STALWART_TOOL_OWNER_ORG_REF
+          value: publisher
+        - name: STALWART_TOOL_AUDIENCE
+          value: re8ch-tenant-tool
+        - name: STALWART_TOOL_ENDPOINT
+          value: http://mcp-stalwart-agent-tools-shadow.toolhive-system.svc.cluster.local:8088/mcp
+        envFrom:
+        - secretRef:
+            name: tenant-claim-internal-auth
+            optional: false
+        - secretRef:
+            name: tenant-registry-supply-chain
+            optional: true
+        - secretRef:
+            name: tenant-grafana-credentials
+            optional: true
+        image: ghcr.io/re8ch/service-backend-tenant-mcp@sha256:8a85eb61f4a6922a6f56d8a2e90c8b826a023861e379b0345f95dc9673047f82
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /livez
+            port: http
+          periodSeconds: 15
+          timeoutSeconds: 3
+        name: runtime
+        ports:
+        - containerPort: 19448
+          name: http
+        - containerPort: 19450
+          name: skill-admin
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /readyz
+            port: http
+          periodSeconds: 5
+          timeoutSeconds: 10
+        resources:
+          limits:
+            cpu: '4'
+            memory: 4Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /livez
+            port: http
+          periodSeconds: 2
+          timeoutSeconds: 3
+        volumeMounts:
+        - mountPath: /var/lib/tenant-platform
+          name: runtime-state
+        - mountPath: /etc/re8ch/modules
+          name: platform-modules
+          readOnly: true
+      dnsConfig:
+        nameservers:
+        - 10.43.0.53
+        options:
+        - name: ndots
+          value: '5'
+        searches:
+        - observability-ai.svc.cluster.local
+        - tenant-infrastructure.svc.cluster.local
+        - svc.cluster.local
+        - cluster.local
+      dnsPolicy: None
+      imagePullSecrets:
+      - name: harbor-registry-pull
+      securityContext:
+        fsGroup: 101
+        fsGroupChangePolicy: OnRootMismatch
+        runAsGroup: 101
+        runAsNonRoot: true
+        runAsUser: 100
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: re8ch-catalog-runtime
+      terminationGracePeriodSeconds: 75
+      tolerations:
+      - operator: Exists
+      volumes:
+      - name: runtime-state
+        persistentVolumeClaim:
+          claimName: re8ch-catalog-runtime-state
+      - configMap:
+          name: tenant-platform-modules
+        name: platform-modules
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: re8ch-catalog-runtime-state
+  namespace: tenant-infrastructure
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 4Gi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: re8ch-catalog-runtime
+  namespace: tenant-infrastructure
+automountServiceAccountToken: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: re8ch-catalog-runtime
+  namespace: tenant-infrastructure
+  labels:
+    re8ch.com/metrics-surface: tenant-mcp
+    app.kubernetes.io/name: re8ch-catalog-runtime
+spec:
+  selector:
+    app: re8ch-catalog-runtime
+  ports:
+  - name: http
+    port: 19448
+    targetPort: http
+  - name: skill-admin
+    port: 19450
+    targetPort: skill-admin
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: re8ch-catalog-runtime
+  namespace: tenant-infrastructure
+spec:
+  podSelector:
+    matchLabels:
+      app: re8ch-catalog-runtime
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: toolhive-system
+    ports:
+    - protocol: TCP
+      port: 19448
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: observability-system
+    ports:
+    - protocol: TCP
+      port: 19448
+  - from:
+    - podSelector:
+        matchLabels:
+          app: postgresql-provider
+    - podSelector:
+        matchLabels:
+          app: admin-api
+    ports:
+    - protocol: TCP
+      port: 19450
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgresql-provider-catalog-runtime
+  namespace: tenant-infrastructure
+spec:
+  podSelector:
+    matchLabels:
+      app: postgresql-provider
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: re8ch-catalog-runtime
+    ports:
+    - protocol: TCP
+      port: 8080
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: re8ch-catalog-runtime
+  namespace: tenant-infrastructure
+spec:
+  maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: re8ch-catalog-runtime
+
