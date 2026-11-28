@@ -1,6 +1,6 @@
 {
   "domain": "agent-runtime",
-  "sourceObjects": 407,
+  "sourceObjects": 409,
   "releases": [
     {
       "name": "agent-runtime-domain-ai-operations",
@@ -158,12 +158,20 @@
       "reason": "existing-release-contract"
     },
     {
+      "identity": "gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/catalog-runtime-mcp",
+      "reason": "existing-release-contract"
+    },
+    {
       "identity": "helm.toolkit.fluxcd.io/HelmRelease/flux-agent-system/toolhive-operator",
       "reason": "helm-render"
     },
     {
       "identity": "kustomize.toolkit.fluxcd.io/Kustomization/flux-agent-system/api-conformance-runner-bootstrap",
       "reason": "retired-flux-control-resource"
+    },
+    {
+      "identity": "networking.k8s.io/Ingress/tenant-infrastructure/catalog-runtime-dns-authority",
+      "reason": "existing-release-contract"
     },
     {
       "identity": "networking.k8s.io/NetworkPolicy/tenant-infrastructure/postgresql-provider-catalog-runtime",
