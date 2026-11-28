@@ -338,6 +338,18 @@ spec:
       storage: 4Gi
 ---
 apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: re8ch-catalog-runtime-state
+  namespace: tenant-infrastructure
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 4Gi
+---
+apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: re8ch-catalog-runtime
