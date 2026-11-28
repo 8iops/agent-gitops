@@ -17,6 +17,7 @@ def test_catalog_runtime_has_independent_identity_and_database_contract():
         "rollingUpdate": {"maxUnavailable": 0, "maxSurge": 1},
     }
     assert deployment["spec"]["template"]["spec"]["serviceAccountName"] == "re8ch-catalog-runtime"
+    assert "imagePullSecrets" not in deployment["spec"]["template"]["spec"]
     containers = deployment["spec"]["template"]["spec"]["containers"]
     assert [item["name"] for item in containers] == ["runtime"]
     env = {item["name"]: item for item in containers[0]["env"]}
