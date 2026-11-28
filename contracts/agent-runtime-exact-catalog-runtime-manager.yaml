@@ -32,16 +32,16 @@ spec:
     objectNames:
     - postgresql-provider-catalog-runtime
     - re8ch-catalog-runtime
+    - re8ch-catalog-runtime-state
     - re8ch-catalog-runtime-state-rbd
     allowClusterScoped: false
     requireExisting: false
     forceConflictObjects: []
   inventory:
-    digest: sha256:3ecd97a1e5b28dd0d58d692d26cb9b200cd1ff98a87d4aad455091568893f05d
+    digest: sha256:61c4dc26932a06166ec44c0a024799341c409d2f344706866f660510fc9df6d2
   lifecycle:
     prune: true
     healthTimeoutSeconds: 300
     protectedKinds:
     - PersistentVolumeClaim
-    deletionAllowlist:
-    - core/PersistentVolumeClaim/tenant-infrastructure/re8ch-catalog-runtime-state
+    deletionAllowlist: []

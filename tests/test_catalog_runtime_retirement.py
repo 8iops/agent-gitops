@@ -39,12 +39,11 @@ def test_catalog_runtime_release_is_create_capable_and_bounded():
     assert auth["requireExisting"] is False
     assert auth["allowClusterScoped"] is False
     assert contract["spec"]["lifecycle"]["prune"] is True
-    assert contract["spec"]["lifecycle"]["deletionAllowlist"] == [
-        "core/PersistentVolumeClaim/tenant-infrastructure/re8ch-catalog-runtime-state"
-    ]
+    assert contract["spec"]["lifecycle"]["deletionAllowlist"] == []
     assert set(auth["objectNames"]) == {
         "postgresql-provider-catalog-runtime",
         "re8ch-catalog-runtime",
+        "re8ch-catalog-runtime-state",
         "re8ch-catalog-runtime-state-rbd",
     }
 
@@ -59,11 +58,6 @@ def test_catalog_runtime_exact_access_tracks_rbd_claim():
         for name in rule.get("resourceNames", [])
     }
     assert "re8ch-catalog-runtime-state-rbd" in update_names
-    assert "re8ch-catalog-runtime-state" not in update_names
+    assert "re8ch-catalog-runtime-state" in update_names
     delete_rules = [rule for rule in role["rules"] if "delete" in rule.get("verbs", [])]
-    assert delete_rules == [{
-        "apiGroups": [""],
-        "resources": ["persistentvolumeclaims"],
-        "resourceNames": ["re8ch-catalog-runtime-state"],
-        "verbs": ["delete"],
-    }]
+    assert delete_rules == []
