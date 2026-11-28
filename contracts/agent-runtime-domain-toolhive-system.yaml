@@ -28,6 +28,7 @@ spec:
     - core/Service
     - core/ServiceAccount
     - gateway.networking.k8s.io/HTTPRoute
+    - gateway.networking.k8s.io/ReferenceGrant
     - networking.k8s.io/Ingress
     - networking.k8s.io/NetworkPolicy
     - policy/PodDisruptionBudget
@@ -62,6 +63,7 @@ spec:
     - re8ch-catalog-runtime-backend
     - re8ch-native
     - re8ch-native-issuer
+    - re8ch-native-public-route
     - re8ch-plugin-definitions
     - re8ch-plugin-operation-catalog
     - re8ch-plugin-runtime
@@ -99,6 +101,7 @@ spec:
     - gateway.networking.k8s.io/HTTPRoute/toolhive-system/connectool-cloud-mcp
     - gateway.networking.k8s.io/HTTPRoute/toolhive-system/tenant-mcp
     - gateway.networking.k8s.io/HTTPRoute/toolhive-system/toolhive-cloud-ui
+    - gateway.networking.k8s.io/ReferenceGrant/toolhive-system/re8ch-native-public-route
     - networking.k8s.io/Ingress/toolhive-system/admin-tools-re8ch-com
     - networking.k8s.io/Ingress/toolhive-system/connectool-tools-re8ch-com
     - networking.k8s.io/Ingress/toolhive-system/toolhive-cloud-ui
@@ -124,7 +127,7 @@ spec:
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-public-read-tools
     - toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/re8ch-native
   inventory:
-    digest: sha256:c9961aa1b00e4e5f70996778ed8f9ef01d810888d46b209c7f222f6c5d711219
+    digest: sha256:4f6111a0dd5891214fffb0db0b7599faf87578a1a0fbe817ec1586c335077df7
   lifecycle:
     prune: true
     healthTimeoutSeconds: 300
@@ -154,6 +157,7 @@ spec:
     - toolhive.stacklok.dev/MCPServerEntry/toolhive-system/ops-admin-vmcp-backend
     - toolhive.stacklok.dev/MCPServerEntry/toolhive-system/ops-observe-vmcp-backend
     - toolhive.stacklok.dev/MCPServerEntry/toolhive-system/ops-operate-vmcp-backend
+    - toolhive.stacklok.dev/MCPServerEntry/toolhive-system/tenant-api-backend
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-observe-tools
     - toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/re8ch-admin-vmcp
     - toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/re8ch-operate-vmcp

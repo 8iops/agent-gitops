@@ -7860,6 +7860,21 @@ spec:
     clientId: 2981225a-da08-5aaa-9e84-8fd151696113
     jwksAllowPrivateIP: true
 ---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: re8ch-native-public-route
+  namespace: toolhive-system
+spec:
+  from:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    namespace: tenant-infrastructure
+  to:
+  - group: ""
+    kind: Service
+    name: vmcp-re8ch-native-vmcp
+---
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: VirtualMCPServer
 metadata:
@@ -7891,7 +7906,7 @@ spec:
     aggregation:
       conflictResolution: prefix
       conflictResolutionConfig: {prefixFormat: "{workload}_"}
-      tools: [{workload: tenant-api-backend}]
+      tools: [{workload: re8ch-catalog-runtime-backend}]
     operational:
       failureHandling:
         partialFailureMode: best_effort
@@ -7899,7 +7914,7 @@ spec:
         healthCheckTimeout: 10s
         unhealthyThreshold: 3
         circuitBreaker: {enabled: false, failureThreshold: 5, timeout: 1m}
-      listChanged: {disabledWorkloads: [tenant-api-backend]}
+      listChanged: {disabledWorkloads: [re8ch-catalog-runtime-backend]}
     audit: {enabled: true, component: re8ch-native, includeRequestData: false, includeResponseData: false}
   podTemplateSpec:
     spec:

@@ -41,7 +41,10 @@ def test_native_toolhive_instance_matches_pg_identity_oauth_chain():
     assert oidc["name"] == "re8ch-native-issuer"
     assert oidc["audience"] == issuer["spec"]["inline"]["clientId"]
     assert oidc["resourceUrl"] == "https://tools.service.re8ch.com/tenant-native/mcp"
-    assert native["spec"]["config"]["aggregation"]["tools"] == [{"workload": "tenant-api-backend"}]
+    assert native["spec"]["config"]["aggregation"]["tools"] == [{"workload": "re8ch-catalog-runtime-backend"}]
+    assert native["spec"]["config"]["operational"]["listChanged"]["disabledWorkloads"] == [
+        "re8ch-catalog-runtime-backend"
+    ]
     assert native["spec"]["outgoingAuth"]["default"]["externalAuthConfigRef"]["name"] == "tenant-vmcp-backend-auth"
 
     backend = by_identity[("MCPServer", "re8ch-catalog-runtime-backend")]
@@ -51,6 +54,21 @@ def test_native_toolhive_instance_matches_pg_identity_oauth_chain():
     assert {item["name"]: item["value"] for item in backend["spec"]["env"]} == {
         "TENANT_CORE_URL": "http://re8ch-catalog-runtime.tenant-infrastructure.svc.cluster.local:19448",
         "LISTEN_ADDR": ":19449",
+    }
+
+    grant = by_identity[("ReferenceGrant", "re8ch-native-public-route")]
+    assert grant["metadata"]["namespace"] == "toolhive-system"
+    assert grant["spec"] == {
+        "from": [{
+            "group": "gateway.networking.k8s.io",
+            "kind": "HTTPRoute",
+            "namespace": "tenant-infrastructure",
+        }],
+        "to": [{
+            "group": "",
+            "kind": "Service",
+            "name": "vmcp-re8ch-native-vmcp",
+        }],
     }
 
 

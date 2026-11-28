@@ -1427,8 +1427,11 @@ spec:
           type: ReplaceFullPath
           replaceFullPath: /mcp
     backendRefs:
-    - name: tenant-api
-      port: 19449
+    - group: ""
+      kind: Service
+      name: vmcp-re8ch-native-vmcp
+      namespace: toolhive-system
+      port: 4483
   - matches:
     - path:
         type: Exact
@@ -1454,8 +1457,11 @@ spec:
         type: Exact
         value: /.well-known/oauth-protected-resource/tenant-native/mcp
     backendRefs:
-    - name: tenant-api
-      port: 80
+    - group: ""
+      kind: Service
+      name: vmcp-re8ch-native-vmcp
+      namespace: toolhive-system
+      port: 4483
   - matches:
     - path:
         type: Exact

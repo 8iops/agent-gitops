@@ -580,8 +580,11 @@ spec:
         type: Exact
         value: /.well-known/openai-apps-challenge
   - backendRefs:
-    - name: tenant-api
-      port: 19449
+    - group: ''
+      kind: Service
+      name: vmcp-re8ch-native-vmcp
+      namespace: toolhive-system
+      port: 4483
     filters:
     - type: URLRewrite
       urlRewrite:
@@ -613,8 +616,11 @@ spec:
         type: Exact
         value: /collaboration/oauth/callback
   - backendRefs:
-    - name: tenant-api
-      port: 80
+    - group: ''
+      kind: Service
+      name: vmcp-re8ch-native-vmcp
+      namespace: toolhive-system
+      port: 4483
     matches:
     - path:
         type: Exact

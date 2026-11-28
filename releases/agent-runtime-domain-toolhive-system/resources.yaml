@@ -1782,6 +1782,21 @@ spec:
         type: PathPrefix
         value: /
 ---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: re8ch-native-public-route
+  namespace: toolhive-system
+spec:
+  from:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    namespace: tenant-infrastructure
+  to:
+  - group: ''
+    kind: Service
+    name: vmcp-re8ch-native-vmcp
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -2390,7 +2405,7 @@ spec:
       conflictResolutionConfig:
         prefixFormat: '{workload}_'
       tools:
-      - workload: tenant-api-backend
+      - workload: re8ch-catalog-runtime-backend
     audit:
       component: re8ch-native
       enabled: true
@@ -2408,7 +2423,7 @@ spec:
         unhealthyThreshold: 3
       listChanged:
         disabledWorkloads:
-        - tenant-api-backend
+        - re8ch-catalog-runtime-backend
   groupRef:
     name: tenant-public
   incomingAuth:

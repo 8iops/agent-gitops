@@ -19,6 +19,7 @@
     "toolhive.stacklok.dev/MCPServerEntry/toolhive-system/ops-admin-vmcp-backend",
     "toolhive.stacklok.dev/MCPServerEntry/toolhive-system/ops-observe-vmcp-backend",
     "toolhive.stacklok.dev/MCPServerEntry/toolhive-system/ops-operate-vmcp-backend",
+    "toolhive.stacklok.dev/MCPServerEntry/toolhive-system/tenant-api-backend",
     "toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-observe-tools",
     "toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/re8ch-admin-vmcp",
     "toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/re8ch-operate-vmcp",

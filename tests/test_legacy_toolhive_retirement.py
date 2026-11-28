@@ -9,10 +9,10 @@ RETIREMENTS = json.loads((ROOT / "operations/releases/retirements.json").read_te
 
 
 def test_legacy_toolhive_retirement_is_exact_and_excludes_current_tools():
-    assert len(RETIREMENTS) == 24
+    assert len(RETIREMENTS) == 25
     assert len(set(RETIREMENTS)) == len(RETIREMENTS)
     assert not any(name.endswith(suffix) for name in RETIREMENTS for suffix in (
-        "/re8ch-native", "/re8ch-native-issuer", "/tenant-api-backend",
+        "/re8ch-native", "/re8ch-native-issuer",
         "/tenant-public", "/cloud-disk-mcp", "/stalwart-agent-tools-shadow",
     ))
 

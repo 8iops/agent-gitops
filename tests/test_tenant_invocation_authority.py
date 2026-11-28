@@ -60,3 +60,23 @@ def test_native_mcp_is_the_only_tenant_tool_publication_route():
     assert "/.well-known/oauth-protected-resource/tenant-native/mcp" in paths
     assert "/tenant-plugin/mcp" not in paths
     assert "/.well-known/oauth-protected-resource/tenant-plugin/mcp" not in paths
+
+
+def test_canonical_native_mcp_and_metadata_route_to_toolhive():
+    route = next(item for item in objects()
+                 if item["kind"] == "HTTPRoute" and item["metadata"]["name"] == "tenant-native-mcp")
+    rules = {
+        rule["matches"][0]["path"]["value"]: rule
+        for rule in route["spec"]["rules"]
+    }
+    for path in (
+        "/tenant-native/mcp",
+        "/.well-known/oauth-protected-resource/tenant-native/mcp",
+    ):
+        assert rules[path]["backendRefs"] == [{
+            "group": "",
+            "kind": "Service",
+            "name": "vmcp-re8ch-native-vmcp",
+            "namespace": "toolhive-system",
+            "port": 4483,
+        }]
