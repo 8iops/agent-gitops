@@ -4,109 +4,56 @@
 [![Reconcile](https://github.com/8iops/agent-gitops/actions/workflows/agent-runtime-reconcile.yml/badge.svg?branch=main)](https://github.com/8iops/agent-gitops/actions/workflows/agent-runtime-reconcile.yml?query=branch%3Amain)
 [![Pull request validation](https://github.com/8iops/agent-gitops/actions/workflows/validate.yml/badge.svg?event=pull_request)](https://github.com/8iops/agent-gitops/actions/workflows/validate.yml?query=event%3Apull_request)
 
-The Reconcile badge shows the latest runtime workflow result on `main`. Pull
-request validation runs once for each PR head and is not repeated after merge.
-The scheduled Reconcile badge covers only the small, declared
-Agent control-plane scope in `operations/releases/scheduled-reconcile.yaml`.
-Generated namespace-domain releases are deliberately excluded from that badge
-and run only when explicitly targeted. A passing badge is not proof that every
-release is healthy or that SSA changed an object. Open the
-run for its release scope, accepted digest, comparison, apply and health results.
-Changing observations belong in [Discussions](https://github.com/8iops/agent-gitops/discussions)
-or the [Observability Wiki](https://github.com/8iops/agent-gitops/wiki/Observability).
-The historical domain observation Project is read-only transition material;
-receipt dispatch and governance checks do not replace runtime health verification.
-Private workflow badges require repository access.
+A badge reports its latest declared workflow scope, not whole-domain health.
+Inspect accepted-artifact, SSA and independent observation evidence separately.
 <!-- gitops-status:end -->
+
+This repository is the desired-state authority for RE8CH Agent, ToolHive and
+agent-runtime guardrails. Product source and release artifacts remain in their
+own repositories.
 
 ## Requirement context
 
-Every change pull request closes an Issue, and every change Issue belongs to one
-allowed requirement Project. Issues remain free-form; use
-[Others](https://github.com/orgs/8iops/projects/5) when no narrower Project
-applies. See [the repository context model](docs/CONTEXT-MODEL.md) and its
-machine-readable declaration in `governance/context.json`.
+Every change closes an Issue in an allowed requirement Project. Use
+[Others](https://github.com/orgs/8iops/projects/5) only when no narrower Project
+applies. Cross-organization references use `owner/repository#number` or full
+URLs. See [`docs/CONTEXT-MODEL.md`](docs/CONTEXT-MODEL.md).
 
-Cross-organization parents and evidence use `owner/repository#number` or full
-URLs. The reviewed graph and static demo are documented in
-[`docs/CROSS-ORG-CONTEXT.md`](docs/CROSS-ORG-CONTEXT.md) and published through
-[GitHub Pages](https://8iops.github.io/agent-gitops/).
+## Authority
 
-Private desired-state authority for the RE8CH Agent, ToolHive, and fast-moving tool runtime guardrails.
+- `clusters/re8ch` is the production root.
+- GitHub Actions and the bounded cloud SSA executor are the only delivery path.
+- Local Flux writers are permanently retired and forbidden, including recovery.
+- Product-publisher and control-plane-direct workloads remain outside this
+  repository's runtime ownership.
+- Secret values, personal mappings, topology and raw runtime evidence do not
+  belong in Git or another public collaboration surface.
 
-Product source and release artifacts remain in their product repositories. This repository pins signed immutable artifacts and cluster configuration only.
+## Delivery
 
-## Local Flux prohibition
+Reviewed changes compile deterministic, signed artifacts. `publish` creates a
+new artifact; `reconcile` verifies and replays an accepted digest without
+rebuilding it. Missing objects, concurrent changes, undeclared inventory and
+unauthorized field ownership fail closed.
 
-Local Flux writers are permanently retired and forbidden. Do not create,
-restore, scale, restart, repair, proxy or authorize Source, Kustomize, Helm,
-Notification, image automation, compatibility or domain Flux controllers.
-Retained Flux APIs and manifests are historical/migration inputs only. GitHub
-webhooks and Actions select reviewed immutable artifacts; the bounded cloud SSA
-executor is the sole runtime writer and the only recovery path.
+Runtime contracts cannot write RBAC, bind, escalate or impersonate. Bootstrap,
+credentials, one-shot Jobs and protected storage stay outside replay ownership.
+An SSA result proves execution, not service health; read-only observation is a
+separate result and never invents rollback authority.
 
-`contracts/agent-runtime-toolhive-operator.yaml` is the first static GitOps
-shadow release. It compiles the reviewed render of the digest-pinned ToolHive
-Operator chart into a deterministic OCI bundle, signs it with the protected
-`release-executor-agent-runtime` workflow identity, and does not mutate the
-cluster. The bounded cloud SSA executor retains sole ownership through dry-run,
-takeover, replay, health and rollback; local Flux cannot be a migration writer.
+## Evidence and current contracts
 
-## Cloud release artifact reuse
+Public evidence follows the shared
+[privacy contract](https://github.com/re8ch/service-backend/blob/main/contracts/public-evidence-privacy/README.md).
+Only coarse signed claims and randomized commitments are public. Restricted
+observations belong in the private
+[Agent GitOps Observations Project](https://github.com/orgs/8iops/projects/2)
+or an approved evidence system.
 
-`static-release` defaults to `mode=publish` for a reviewed change. Use
-`mode=reconcile` with `execute=true` to replay the target's healthy accepted OCI
-digest without recompiling or publishing. Replays verify the original signer,
-inventory and contract; blocked or suspended releases are rejected. Agent owner
-migration requires an initial publication with the new canonical signer before
-accepted-artifact replay can be used. State writes use optimistic concurrency.
-
-Public pull request checks use GitHub-hosted workers. Private preparation can use
-the restricted R640 fallback. Validation supersedes obsolete runs; deployment
-runs remain serialized. No local Docker daemon is required by these workflows.
-
-## Native domain cloud handoff
-
-`python operations/releases/compile_domain.py` reuses the established SSA contract
-and bundle validators to partition the production root by namespace. Generated
-`contracts/*-domain-*.yaml` run through the existing `static-release` workflow.
-`operations/releases/domain-access.yaml` is the exact reviewed access/state seed
-for platform bootstrap; it is not included in this domain's runtime root.
-
-The existing `agent-runtime-exact-tenant-api-manager` release owns the tenant API,
-its `tenant-platform-state` PVC, and `tenant-control-controller`. The scoped access
-seed `operations/releases/tenant-api-state-access.yaml` retains named PVC and
-controller Deployment access for the existing agent-runtime group when platform
-administrators next replace the generated domain access seed. Existing live
-domain permissions cover the initial promotion. Publish this exact release for
-capacity or controller repairs, preserving unrelated Deployment and module
-configuration. Never deploy the entire tenant domain merely for these repairs.
-
-The cohort report lists every source object, either in a publishable release or
-with a specific remaining migration reason. Secret payloads and encrypted
-configuration never enter public OCI bundles. Existing chart snapshot contracts
-remain separate owners. Initial adoption permits only the exact reviewed object
-inventory through `force_takeover=true`, after the previous writer is stopped.
-Pruning is disabled during this first adoption; no migration deletes resources.
-
-CI verifies deterministic outputs and compiles every generated contract. Actual
-cloud adoption still requires the platform access seed and a successful release
-run; generated bundles alone do not establish runtime ownership.
-
-Role and RoleBinding desired objects remain platform-owned until admission can enforce their exact reviewed contents. Runtime groups receive no RBAC writes, bind, escalate or impersonate permission. Exact role names alone are not an escalation boundary.
-
-Adoption contracts set `authorization.requireExisting=true`: the executor verifies the artifact, reads each exact object's resourceVersion and sends it as the SSA precondition. Missing objects and concurrent changes fail closed; adoption never silently recreates a deleted object. Ordinary release contracts without this flag retain creation behavior. One-shot Jobs are platform-owned and excluded from replay, and protected storage objects are excluded from force-conflict requests.
-
-Restricted ConfigMaps retain their original ordered SOPS ciphertext inside the signed artifact. Only protected runtime preflight/execute receives `SOPS_AGE_KEY`; after signature validation the executor decrypts in memory, checks object identity and plaintext parity hashes, and suppresses sensitive command diagnostics. Publishing never receives a key and Secrets remain excluded.
-
-## Independent SSA and Observe actions
-
-Reconcile reports SSA execution and runtime observation separately. The SSA step
-validates authorization and the signed accepted artifact, performs server-side
-dry-run and apply, then records `outcome: applied` and `acceptedDigest`. It does
-not claim a healthy runtime. The following read-only Observe step publishes a
-separate observation artifact and records healthy, degraded or unknown health.
-Runtime health does not fail SSA, lock the release or trigger rollback. Signature,
-authorization, field ownership and API write failures remain execution failures.
-Legacy `healthyDigest` is only a fallback for older accepted records; new replay
-authorization uses the explicitly accepted digest without inventing health proof.
+- [Reconcile boundary](docs/RECONCILE-BOUNDARY.md)
+- [Stalwart self-service](operations/releases/STALWART-SELF-SERVICE.md)
+- [LiteLLM authority](operations/releases/LITELLM-AUTHORITY.md)
+- [Model gateway agent keys](docs/MODEL-GATEWAY-AGENT-KEYS.md)
+- [Cube recovery authority](operations/cube-recovery/README.md)
+- [Cross-organization context](docs/CROSS-ORG-CONTEXT.md)
+- [Dynamic tools](docs/RE8CH-TOOLS.md)
