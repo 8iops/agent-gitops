@@ -100,8 +100,6 @@ spec:
               topologyKey: kubernetes.io/hostname
       tolerations:
       - operator: Exists
-      imagePullSecrets:
-      - name: harbor-registry-pull
       securityContext:
         runAsNonRoot: true
         runAsUser: 100

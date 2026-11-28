@@ -173,8 +173,6 @@ spec:
         - svc.cluster.local
         - cluster.local
       dnsPolicy: None
-      imagePullSecrets:
-      - name: harbor-registry-pull
       securityContext:
         fsGroup: 101
         fsGroupChangePolicy: OnRootMismatch
