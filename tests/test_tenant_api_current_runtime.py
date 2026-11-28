@@ -22,7 +22,7 @@ def test_tenant_api_uses_reviewed_image_and_runtime_discovery_registry():
     assert container["image"] == "ghcr.io/re8ch/service-backend-tenant-mcp@sha256:95d4b7924153cb4cf68a17c4eac094ac4c5370af95f28250693316e3c59b99bb"
     catalog_database = next(item for item in container["env"] if item["name"] == "MCP_CATALOG_DATABASE_URL")
     assert catalog_database["valueFrom"]["secretKeyRef"] == {
-        "name": "tenant-native-mcp-catalog-database",
+        "name": "mcp-catalog-database",
         "key": "MCP_CATALOG_DATABASE_URL",
         "optional": False,
     }

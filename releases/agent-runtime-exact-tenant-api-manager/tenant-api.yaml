@@ -64,7 +64,7 @@ spec:
           valueFrom:
             secretKeyRef:
               key: MCP_CATALOG_DATABASE_URL
-              name: tenant-native-mcp-catalog-database
+              name: mcp-catalog-database
               optional: false
         - name: SERVICE_API_TOKEN
           valueFrom:
