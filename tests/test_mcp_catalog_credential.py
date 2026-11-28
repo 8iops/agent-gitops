@@ -18,7 +18,7 @@ def test_catalog_runtime_uses_immutable_provider_and_metadata_only_projection():
     container = deployment["spec"]["template"]["spec"]["containers"][0]
     assert container["image"] == (
         "registry.re8ch.com/image/re8ch-postgresql-provider@sha256:"
-        "77f1fb1cc23e3d3db77573fb2a2e8c2e08c296c183c7e098ce9056fcc3ab0522"
+        "e1bd08b7e3307761768fb4c8cf98e8726cfb2d1b2eec0ecde9cf6d82de375a24"
     )
     assert not {"MCP_CATALOG_ADMIN_TOKEN", "MCP_CATALOG_ADMIN_URL"} & {
         value["name"] for value in container["env"]
@@ -54,4 +54,9 @@ def test_catalog_projection_rbac_is_exact_and_broker_only_adds_patch():
     broker = next(item for item in items if item.get("kind") == "Role" and
                   item["metadata"]["name"] == "postgresql-provider-credential-broker")
     assert broker["rules"] == [{"apiGroups": [""], "resources": ["secrets"],
-                                 "verbs": ["get", "create", "patch"]}]
+                                 "verbs": ["get", "create"]}]
+    catalog_broker = next(item for item in items if item.get("kind") == "Role" and
+                          item["metadata"]["name"] == "postgresql-provider-catalog-broker-patch")
+    assert catalog_broker["rules"] == [{"apiGroups": [""], "resources": ["secrets"],
+                                        "resourceNames": ["postgresql-mcp-catalog-runtime"],
+                                        "verbs": ["get", "patch"]}]
