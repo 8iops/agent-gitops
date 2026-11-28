@@ -161,6 +161,75 @@ class Runner:
         return subprocess.CompletedProcess(argv, 0, "ok", "")
 
 
+def test_prune_deletes_toolhive_consumers_before_providers():
+    identities = [
+        "toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/issuer",
+        "toolhive.stacklok.dev/MCPGroup/toolhive-system/group",
+        "toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/auth",
+        "toolhive.stacklok.dev/MCPToolConfig/toolhive-system/tools",
+        "toolhive.stacklok.dev/MCPServerEntry/toolhive-system/backend",
+        "toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/publication",
+    ]
+    kinds = [identity.split("/")[1] for identity in identities]
+    names = [identity.rsplit("/", 1)[1] for identity in identities]
+    previous = {
+        "inventory": identities,
+        "objectRefs": [
+            {
+                "apiVersion": "toolhive.stacklok.dev/v1beta1",
+                "kind": kind,
+                "namespace": "toolhive-system",
+                "name": name,
+            }
+            for kind, name in zip(kinds, names)
+        ],
+    }
+    value = contract(deletion=identities)
+    runner = Runner()
+
+    executor.Executor(runner=runner).prune(previous, set(), value, "re8ch-release/demo")
+
+    deleted_kinds = [json.loads(stdin)["kind"] for argv, stdin in runner.calls if argv[:2] == ["kubectl", "delete"]]
+    delete_commands = [argv for argv, _ in runner.calls if argv[:2] == ["kubectl", "delete"]]
+    assert all("--ignore-not-found=true" in argv for argv in delete_commands)
+    assert deleted_kinds == [
+        "VirtualMCPServer",
+        "MCPServerEntry",
+        "MCPToolConfig",
+        "MCPExternalAuthConfig",
+        "MCPGroup",
+        "MCPOIDCConfig",
+    ]
+
+
+def test_prune_keeps_unknown_kinds_deterministic_after_known_consumers():
+    identities = [
+        "example.com/Zeta/demo/zeta",
+        "toolhive.stacklok.dev/VirtualMCPServer/demo/publication",
+        "example.com/Alpha/demo/alpha",
+    ]
+    previous = {
+        "inventory": identities,
+        "objectRefs": [
+            {
+                "apiVersion": identity.split("/")[0] + "/v1",
+                "kind": identity.split("/")[1],
+                "namespace": identity.split("/")[2],
+                "name": identity.split("/")[3],
+            }
+            for identity in identities
+        ],
+    }
+    value = contract(deletion=identities)
+    runner = Runner()
+
+    executor.Executor(runner=runner).prune(previous, set(), value, "re8ch-release/demo")
+
+    deleted = [(json.loads(stdin)["kind"], json.loads(stdin)["metadata"]["name"])
+               for argv, stdin in runner.calls if argv[:2] == ["kubectl", "delete"]]
+    assert deleted == [("VirtualMCPServer", "publication"), ("Alpha", "alpha"), ("Zeta", "zeta")]
+
+
 def test_reconcile_dry_runs_applies_persists_and_is_idempotent(tmp_path):
     value, operation, bundle_path = prepare(tmp_path)
     runner = Runner()

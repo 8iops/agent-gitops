@@ -32,9 +32,12 @@ spec:
     - gateway.networking.k8s.io/HTTPRoute
     - networking.k8s.io/NetworkPolicy
     - policy/PodDisruptionBudget
+    - tenancy.re8ch.com/TenantServiceInstance
     objectNames:
     - admin-api
+    - mcp-catalog-runtime
     - postgresql-provider
+    - postgresql-provider-egress
     - tenant-api
     - tenant-api-gateway
     - tenant-billing-auth-center
@@ -57,7 +60,9 @@ spec:
     - apps/Deployment/tenant-infrastructure/postgresql-provider
     - apps/Deployment/tenant-infrastructure/tenant-provider-reconciler
     - cilium.io/CiliumNetworkPolicy/tenant-infrastructure/tenant-api-gateway
+    - cilium.io/CiliumNetworkPolicy/tenant-infrastructure/postgresql-provider-egress
     - core/ConfigMap/tenant-infrastructure/tenant-platform-modules
+    - core/Secret/tenant-infrastructure/mcp-catalog-database
     - core/Service/tenant-infrastructure/admin-api
     - core/Service/tenant-infrastructure/tenant-api
     - core/Service/tenant-infrastructure/tenant-control-controller
@@ -78,8 +83,9 @@ spec:
     - networking.k8s.io/NetworkPolicy/tenant-infrastructure/tenant-control-controller
     - networking.k8s.io/NetworkPolicy/tenant-infrastructure/postgresql-provider
     - policy/PodDisruptionBudget/tenant-infrastructure/tenant-control-controller
+    - tenancy.re8ch.com/TenantServiceInstance/tenant-infrastructure/mcp-catalog-runtime
   inventory:
-    digest: sha256:70fb629ffc6385196cbd8328ada3ba3f123442b35cd649138a4c9a8722d2f83a
+    digest: sha256:235b88d7f90a2f2329f721c72d892145e2836fbf6de2be20344b20598bb67bba
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300
