@@ -36,6 +36,9 @@ spec:
     - ai-operations-ssh-config
     - cloud-device-registry
     - controlled-cluster-kubeconfigs
+    - dissosy
+    - dissosy-ops-analyst
+    - dissosy-runner
     - harbor-tenant-catalog
     - infra-device-registry
     - ops-capsule-policy
@@ -48,18 +51,21 @@ spec:
     requireExisting: true
     forceConflictObjects:
     - apps/Deployment/ai-operations/stagehand-service
+    - batch/CronJob/ai-operations/dissosy-ops-analyst
     - batch/CronJob/ai-operations/workspace-mirror-sync
     - core/ConfigMap/ai-operations/ai-operations-inventory
     - core/ConfigMap/ai-operations/ai-operations-ssh-config
     - core/ConfigMap/ai-operations/controlled-cluster-kubeconfigs
+    - core/ConfigMap/ai-operations/dissosy-runner
     - core/ConfigMap/ai-operations/harbor-tenant-catalog
     - core/ConfigMap/ai-operations/ops-capsule-policy
     - core/Service/ai-operations/stagehand-service
     - core/ServiceAccount/ai-operations/ai-operations
+    - core/ServiceAccount/ai-operations/dissosy
     - core/ServiceAccount/ai-operations/workspace-controller
     - networking.k8s.io/NetworkPolicy/ai-operations/stagehand-service
   inventory:
-    digest: sha256:6ad3679d384cbea0c17ed8d9f64bf8a76310255211dcfe5a9dd9faba0fc4a084
+    digest: sha256:f85514308bfe25061c0a4ad2d8c2036335c20243782b64fad9ca322d13d3c43d
   lifecycle:
     prune: false
     healthTimeoutSeconds: 300
