@@ -1,6 +1,6 @@
 {
   "domain": "agent-runtime",
-  "sourceObjects": 409,
+  "sourceObjects": 408,
   "releases": [
     {
       "name": "agent-runtime-domain-ai-operations",
@@ -77,7 +77,7 @@
     {
       "name": "agent-runtime-domain-tenant-infrastructure",
       "namespace": "tenant-infrastructure",
-      "objects": 27,
+      "objects": 22,
       "contract": "contracts/agent-runtime-domain-tenant-infrastructure.yaml"
     },
     {
@@ -87,14 +87,10 @@
       "contract": "contracts/agent-runtime-domain-toolhive-system.yaml"
     }
   ],
-  "publishableObjects": 326,
+  "publishableObjects": 321,
   "deferred": [
     {
       "identity": "apps/Deployment/tenant-infrastructure/re8ch-catalog-runtime",
-      "reason": "existing-release-contract"
-    },
-    {
-      "identity": "apps/Deployment/tenant-infrastructure/tenant-api",
       "reason": "existing-release-contract"
     },
     {
@@ -103,6 +99,10 @@
     },
     {
       "identity": "apps/Deployment/tenant-infrastructure/tenant-provider-reconciler",
+      "reason": "existing-release-contract"
+    },
+    {
+      "identity": "apps/Deployment/tenant-infrastructure/tenant-service-api",
       "reason": "existing-release-contract"
     },
     {
@@ -116,6 +116,10 @@
     {
       "identity": "batch/Job/flux-system/retire-toolhive-session-redis-v3",
       "reason": "one-shot-job-platform-owned"
+    },
+    {
+      "identity": "cilium.io/CiliumNetworkPolicy/tenant-infrastructure/tenant-service-api-gateway",
+      "reason": "existing-release-contract"
     },
     {
       "identity": "core/PersistentVolumeClaim/tenant-infrastructure/re8ch-catalog-runtime-state-rbd",
@@ -154,7 +158,15 @@
       "reason": "existing-release-contract"
     },
     {
+      "identity": "core/Service/tenant-infrastructure/tenant-service-api",
+      "reason": "existing-release-contract"
+    },
+    {
       "identity": "core/ServiceAccount/tenant-infrastructure/re8ch-catalog-runtime",
+      "reason": "existing-release-contract"
+    },
+    {
+      "identity": "core/ServiceAccount/tenant-infrastructure/tenant-service-api",
       "reason": "existing-release-contract"
     },
     {
@@ -171,6 +183,10 @@
     },
     {
       "identity": "networking.k8s.io/NetworkPolicy/tenant-infrastructure/re8ch-catalog-runtime",
+      "reason": "existing-release-contract"
+    },
+    {
+      "identity": "networking.k8s.io/NetworkPolicy/tenant-infrastructure/tenant-service-api",
       "reason": "existing-release-contract"
     },
     {

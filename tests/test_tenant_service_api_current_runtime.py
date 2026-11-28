@@ -5,15 +5,15 @@ import yaml
 
 
 ROOT = Path(__file__).parents[1]
-PATCH = ROOT / "clusters/re8ch/tenant-api-current-runtime-patch.yaml"
-EXACT = ROOT / "releases/agent-runtime-exact-tenant-api-manager/tenant-api.yaml"
+PATCH = ROOT / "clusters/re8ch/tenant-service-api-current-runtime-patch.yaml"
+EXACT = ROOT / "releases/agent-runtime-exact-tenant-service-api-manager/tenant-service-api.yaml"
 
 
-def test_tenant_api_uses_reviewed_image_and_runtime_discovery_registry():
+def test_tenant_service_api_uses_reviewed_image_and_runtime_discovery_registry():
     config = yaml.safe_load(PATCH.read_text())
     deployment = next(
         item for item in yaml.safe_load_all(EXACT.read_text())
-        if item and item.get("kind") == "Deployment" and item["metadata"]["name"] == "tenant-api"
+        if item and item.get("kind") == "Deployment" and item["metadata"]["name"] == "tenant-service-api"
     )
     container = next(
         item for item in deployment["spec"]["template"]["spec"]["containers"]

@@ -24,7 +24,7 @@ that SSO login works; completion requires an authorization-code login and UI
 session probe through the public hostname.
 
 `agent-runtime-domain-llm-gateway` remains the exact owner of the LiteLLM
-Deployment. The separate `agent-runtime-exact-tenant-api-manager` release keeps
+Deployment. The separate `agent-runtime-exact-tenant-service-api-manager` release keeps
 its existing field manager and only publishes the reviewed tenant API image and
 `LITELLM_GATEWAY_URL`; it does not gain authority over the gateway or its
 credentials.

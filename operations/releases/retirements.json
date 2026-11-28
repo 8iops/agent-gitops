@@ -1,4 +1,12 @@
 {
+  "tenant-infrastructure": [
+    "apps/Deployment/tenant-infrastructure/tenant-api",
+    "cilium.io/CiliumNetworkPolicy/tenant-infrastructure/tenant-api-gateway",
+    "core/Service/tenant-infrastructure/tenant-api",
+    "core/Service/tenant-infrastructure/tenant-infrastructure",
+    "core/ServiceAccount/tenant-infrastructure/tenant-api",
+    "networking.k8s.io/NetworkPolicy/tenant-infrastructure/tenant-api"
+  ],
   "toolhive-system": [
     "toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/admin-vmcp-backend-auth",
     "toolhive.stacklok.dev/MCPExternalAuthConfig/toolhive-system/vmcp-internal-backend",

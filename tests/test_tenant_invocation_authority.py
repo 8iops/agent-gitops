@@ -5,7 +5,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "clusters/re8ch/tenant-runtime-authority-resources.yaml"
-EXACT_TENANT_API = ROOT / "releases/agent-runtime-exact-tenant-api-manager/tenant-api.yaml"
+EXACT_TENANT_API = ROOT / "releases/agent-runtime-exact-tenant-service-api-manager/tenant-service-api.yaml"
 
 
 def objects():
@@ -16,13 +16,11 @@ def deployment(name):
     return next(item for item in objects() if item["kind"] == "Deployment" and item["metadata"]["name"] == name)
 
 
-def test_tenant_api_uses_native_resource_and_bound_issuer():
-    container = deployment("tenant-api")["spec"]["template"]["spec"]["containers"][0]
+def test_tenant_service_api_keeps_invocation_auth_but_not_mcp_publication():
+    container = deployment("tenant-service-api")["spec"]["template"]["spec"]["containers"][0]
     env = {item["name"]: item for item in container["env"]}
-    assert env["PUBLIC_MCP_URL"]["value"].endswith("/tenant-native/mcp")
-    assert env["PUBLIC_RESOURCE_METADATA_URL"]["value"].endswith(
-        "/.well-known/oauth-protected-resource/tenant-native/mcp"
-    )
+    assert "PUBLIC_MCP_URL" not in env
+    assert "PUBLIC_RESOURCE_METADATA_URL" not in env
     assert env["INVOCATION_TOKEN_ISSUER"]["value"] == "https://tools.service.re8ch.com/invocation"
     assert env["TENANT_CLAIM_SERVICE_TOKEN"]["valueFrom"]["secretKeyRef"] == {
         "name": "tenant-claim-internal-auth",
@@ -31,14 +29,14 @@ def test_tenant_api_uses_native_resource_and_bound_issuer():
     }
 
 
-def test_exact_tenant_api_release_keeps_native_resource_parity():
+def test_exact_tenant_service_release_has_no_mcp_gateway_sidecar():
     exact = yaml.safe_load(EXACT_TENANT_API.read_text())
-    container = exact["spec"]["template"]["spec"]["containers"][0]
+    containers = exact["spec"]["template"]["spec"]["containers"]
+    assert [item["name"] for item in containers] == ["runtime"]
+    container = containers[0]
     env = {item["name"]: item for item in container["env"]}
-    assert env["PUBLIC_MCP_URL"]["value"] == "https://tools.service.re8ch.com/tenant-native/mcp"
-    assert env["PUBLIC_RESOURCE_METADATA_URL"]["value"] == (
-        "https://tools.service.re8ch.com/.well-known/oauth-protected-resource/tenant-native/mcp"
-    )
+    assert "PUBLIC_MCP_URL" not in env
+    assert "PUBLIC_RESOURCE_METADATA_URL" not in env
 
 
 def test_issuer_reads_only_managed_secret_refs_and_binding_authority():
@@ -56,10 +54,11 @@ def test_issuer_reads_only_managed_secret_refs_and_binding_authority():
 def test_native_mcp_is_the_only_tenant_tool_publication_route():
     route = next(item for item in objects() if item["kind"] == "HTTPRoute" and item["metadata"]["name"] == "tenant-native-mcp")
     paths = {match["path"]["value"] for rule in route["spec"]["rules"] for match in rule["matches"]}
-    assert "/tenant-native/mcp" in paths
-    assert "/.well-known/oauth-protected-resource/tenant-native/mcp" in paths
-    assert "/tenant-plugin/mcp" not in paths
-    assert "/.well-known/oauth-protected-resource/tenant-plugin/mcp" not in paths
+    mcp_paths = {path for path in paths if path.endswith("/mcp")}
+    assert mcp_paths == {
+        "/tenant-native/mcp",
+        "/.well-known/oauth-protected-resource/tenant-native/mcp",
+    }
 
 
 def test_canonical_native_mcp_and_metadata_route_to_toolhive():

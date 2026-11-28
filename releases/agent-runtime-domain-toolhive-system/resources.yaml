@@ -1995,7 +1995,7 @@ spec:
           kubernetes.io/metadata.name: tenant-infrastructure
       podSelector:
         matchLabels:
-          app: tenant-api
+          app: tenant-service-api
   - ports:
     - port: 53
       protocol: UDP
@@ -2018,7 +2018,7 @@ spec:
           kubernetes.io/metadata.name: tenant-infrastructure
       podSelector:
         matchLabels:
-          app: tenant-api
+          app: tenant-service-api
     ports:
     - port: 8088
       protocol: TCP
@@ -2041,12 +2041,6 @@ spec:
         matchLabels:
           app: mcpserver
           toolhive: 'true'
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: tenant-infrastructure
-      podSelector:
-        matchLabels:
-          app: tenant-api
     ports:
     - port: 8088
       protocol: TCP
@@ -2253,7 +2247,7 @@ spec:
   - name: LISTEN_ADDRESS
     value: :8088
   - name: BINDING_BROKER_URL
-    value: http://tenant-api.tenant-infrastructure.svc.cluster.local/v1/collaboration/resolve
+    value: http://tenant-service-api.tenant-infrastructure.svc.cluster.local/v1/collaboration/resolve
   - name: BINDING_BROKER_TOKEN_FILE
     value: /var/run/secrets/tokens/stalwart-binding-broker
   groupRef:

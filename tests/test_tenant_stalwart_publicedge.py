@@ -6,14 +6,14 @@ import yaml
 
 ROOT = Path(__file__).parents[1]
 SOURCE = ROOT / "clusters/re8ch/tenant-runtime-authority-resources.yaml"
-EXACT = ROOT / "releases/agent-runtime-exact-tenant-api-manager/tenant-api.yaml"
+EXACT = ROOT / "releases/agent-runtime-exact-tenant-service-api-manager/tenant-service-api.yaml"
 
 
 def tenant_runtime_environment(path):
     deployment = next(
         item
         for item in yaml.safe_load_all(path.read_text())
-        if item and item.get("kind") == "Deployment" and item["metadata"]["name"] == "tenant-api"
+        if item and item.get("kind") == "Deployment" and item["metadata"]["name"] == "tenant-service-api"
     )
     runtime = next(item for item in deployment["spec"]["template"]["spec"]["containers"] if item["name"] == "runtime")
     return runtime, {item["name"]: item.get("value") for item in runtime["env"]}

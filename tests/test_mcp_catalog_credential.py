@@ -34,9 +34,9 @@ def test_catalog_runtime_profile_projection_and_network_are_bounded():
                     item["metadata"]["name"] == "mcp-catalog-runtime")
     assert instance["spec"]["parameters"] == {"profile": "mcp-catalog-runtime-v1"}
     assert instance["metadata"]["annotations"]["credentials.re8ch.com/rotation"] == "1"
-    tenant_api = next(item for item in items if item.get("kind") == "Deployment" and
-                      item["metadata"]["name"] == "tenant-api")
-    env = {item["name"]: item for item in tenant_api["spec"]["template"]["spec"]["containers"][0]["env"]}
+    tenant_service = next(item for item in items if item.get("kind") == "Deployment" and
+                          item["metadata"]["name"] == "tenant-service-api")
+    env = {item["name"]: item for item in tenant_service["spec"]["template"]["spec"]["containers"][0]["env"]}
     assert env["MCP_CATALOG_DATABASE_URL"]["valueFrom"]["secretKeyRef"] == {
         "name": "mcp-catalog-database", "key": "MCP_CATALOG_DATABASE_URL", "optional": False}
     policy = next(item for item in items if item.get("kind") == "CiliumNetworkPolicy" and

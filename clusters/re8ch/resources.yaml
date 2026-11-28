@@ -7137,12 +7137,6 @@ spec:
         matchLabels:
           app: mcpserver
           toolhive: 'true'
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: tenant-infrastructure
-      podSelector:
-        matchLabels:
-          app: tenant-api
     ports:
     - port: 8088
       protocol: TCP

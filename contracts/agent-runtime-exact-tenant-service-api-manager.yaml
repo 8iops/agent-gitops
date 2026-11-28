@@ -1,0 +1,53 @@
+apiVersion: delivery.re8ch.com/v1alpha1
+kind: ReleaseContract
+metadata:
+  name: agent-runtime-exact-tenant-service-api-manager
+spec:
+  authorityDomain: agent-runtime
+  target:
+    cluster: re8ch
+    namespace: tenant-infrastructure
+  source:
+    renderer: kustomize
+    revision: github-main-reviewed
+    repository: 8iops/agent-gitops
+    path: releases/agent-runtime-exact-tenant-service-api-manager
+  provenance:
+    repository: 8iops/agent-gitops
+    workflow: .github/workflows/static-release.yml
+    ref: refs/heads/main
+    environment: release-executor-agent-runtime
+    audience: https://kube-api.re8ch.com/release-executor-agent-runtime
+    signer: https://github.com/8iops/agent-gitops/.github/workflows/static-release.yml@refs/heads/main
+    issuer: https://token.actions.githubusercontent.com
+  authorization:
+    fieldManager: re8ch-release/agent-runtime-exact-tenant-service-api
+    resources:
+    - apps/Deployment
+    - cilium.io/CiliumNetworkPolicy
+    - core/PersistentVolumeClaim
+    - core/Service
+    - core/ServiceAccount
+    - networking.k8s.io/NetworkPolicy
+    objectNames:
+    - tenant-control-controller
+    - tenant-platform-state
+    - tenant-service-api
+    - tenant-service-api-gateway
+    allowClusterScoped: false
+    requireExisting: false
+    forceConflictObjects:
+    - apps/Deployment/tenant-infrastructure/tenant-control-controller
+    - apps/Deployment/tenant-infrastructure/tenant-service-api
+    - cilium.io/CiliumNetworkPolicy/tenant-infrastructure/tenant-service-api-gateway
+    - core/Service/tenant-infrastructure/tenant-service-api
+    - core/ServiceAccount/tenant-infrastructure/tenant-service-api
+    - networking.k8s.io/NetworkPolicy/tenant-infrastructure/tenant-service-api
+  inventory:
+    digest: sha256:0eddec9e894d4c5b39765e5bc11722cd4a00eb0a4444efb382764a74dc4f4908
+  lifecycle:
+    prune: true
+    healthTimeoutSeconds: 300
+    protectedKinds:
+    - PersistentVolumeClaim
+    deletionAllowlist: []

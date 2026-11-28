@@ -38,13 +38,10 @@ spec:
     - mcp-catalog-runtime
     - postgresql-provider
     - postgresql-provider-egress
-    - tenant-api
-    - tenant-api-gateway
     - tenant-billing-auth-center
     - tenant-billing-read
     - tenant-control-controller
     - tenant-credential-redemption
-    - tenant-infrastructure
     - tenant-native-mcp
     - tenant-platform-modules
     - tenant-provider-reconciler
@@ -55,21 +52,15 @@ spec:
     forceConflictObjects:
     - apps/DaemonSet/tenant-infrastructure/tenant-runtime-image-cache
     - apps/Deployment/tenant-infrastructure/admin-api
-    - apps/Deployment/tenant-infrastructure/tenant-api
-    - apps/Deployment/tenant-infrastructure/tenant-control-controller
     - apps/Deployment/tenant-infrastructure/postgresql-provider
     - apps/Deployment/tenant-infrastructure/tenant-provider-reconciler
-    - cilium.io/CiliumNetworkPolicy/tenant-infrastructure/tenant-api-gateway
     - cilium.io/CiliumNetworkPolicy/tenant-infrastructure/postgresql-provider-egress
     - core/ConfigMap/tenant-infrastructure/tenant-platform-modules
     - core/Secret/tenant-infrastructure/mcp-catalog-database
     - core/Service/tenant-infrastructure/admin-api
-    - core/Service/tenant-infrastructure/tenant-api
     - core/Service/tenant-infrastructure/tenant-control-controller
-    - core/Service/tenant-infrastructure/tenant-infrastructure
     - core/Service/tenant-infrastructure/postgresql-provider
     - core/ServiceAccount/tenant-infrastructure/admin-api
-    - core/ServiceAccount/tenant-infrastructure/tenant-api
     - core/ServiceAccount/tenant-infrastructure/tenant-control-controller
     - core/ServiceAccount/tenant-infrastructure/postgresql-provider
     - core/ServiceAccount/tenant-infrastructure/tenant-provider-reconciler
@@ -79,15 +70,14 @@ spec:
     - gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-native-mcp
     - gateway.networking.k8s.io/HTTPRoute/tenant-infrastructure/tenant-self-service-capabilities
     - networking.k8s.io/NetworkPolicy/tenant-infrastructure/admin-api
-    - networking.k8s.io/NetworkPolicy/tenant-infrastructure/tenant-api
     - networking.k8s.io/NetworkPolicy/tenant-infrastructure/tenant-control-controller
     - networking.k8s.io/NetworkPolicy/tenant-infrastructure/postgresql-provider
     - policy/PodDisruptionBudget/tenant-infrastructure/tenant-control-controller
     - tenancy.re8ch.com/TenantServiceInstance/tenant-infrastructure/mcp-catalog-runtime
   inventory:
-    digest: sha256:a82195dea295af73859eb698bfa78859110d8aa671c40952d700e7d1e1ffe2d1
+    digest: sha256:75bcf81c48edacfc36b49cab8d07d6a50e7bb5ebc4467fa00ae21db62ea7cb6c
   lifecycle:
-    prune: false
+    prune: true
     healthTimeoutSeconds: 300
     protectedKinds:
     - Namespace
@@ -95,4 +85,10 @@ spec:
     - PersistentVolume
     - PersistentVolumeClaim
     - StorageClass
-    deletionAllowlist: []
+    deletionAllowlist:
+    - apps/Deployment/tenant-infrastructure/tenant-api
+    - cilium.io/CiliumNetworkPolicy/tenant-infrastructure/tenant-api-gateway
+    - core/Service/tenant-infrastructure/tenant-api
+    - core/Service/tenant-infrastructure/tenant-infrastructure
+    - core/ServiceAccount/tenant-infrastructure/tenant-api
+    - networking.k8s.io/NetworkPolicy/tenant-infrastructure/tenant-api

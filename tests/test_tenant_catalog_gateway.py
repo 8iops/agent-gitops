@@ -6,7 +6,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_gateway_ingress_allows_tenant_core_and_catalog_ports():
+def test_service_gateway_ingress_allows_only_the_non_mcp_runtime_port():
     documents = yaml.safe_load_all(
         (ROOT / "clusters/re8ch/tenant-runtime-authority-resources.yaml").read_text()
     )
@@ -15,7 +15,7 @@ def test_gateway_ingress_allows_tenant_core_and_catalog_ports():
         for document in documents
         if document
         and document.get("kind") == "CiliumNetworkPolicy"
-        and document["metadata"]["name"] == "tenant-api-gateway"
+        and document["metadata"]["name"] == "tenant-service-api-gateway"
     )
     ports = {
         port["port"]
@@ -23,4 +23,4 @@ def test_gateway_ingress_allows_tenant_core_and_catalog_ports():
         for group in rule["toPorts"]
         for port in group["ports"]
     }
-    assert ports == {"19448", "19449"}
+    assert ports == {"19448"}
