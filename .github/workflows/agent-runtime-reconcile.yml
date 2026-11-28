@@ -179,7 +179,14 @@ jobs:
           jq -e '.outcome == "applied" or .outcome == "healthy" or .outcome == "degraded"' "$RUNNER_TEMP/result.json" >/dev/null
       - name: Observe runtime health (read-only)
         if: always()
-        run: python operations/releases/observe_runtime.py
+        env:
+          RECONCILE_SUCCEEDED: ${{ steps.accepted.outcome == 'success' && 'true' || 'false' }}
+        run: |
+          args=()
+          if [[ "$RECONCILE_SUCCEEDED" == true && -f "$RUNNER_TEMP/operation.json" ]]; then
+            args+=(--require-healthy)
+          fi
+          python operations/releases/observe_runtime.py "${args[@]}"
       - name: Preserve independent observation
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

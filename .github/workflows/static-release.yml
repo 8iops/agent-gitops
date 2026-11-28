@@ -355,6 +355,7 @@ jobs:
           echo "KUBECONFIG=$kubeconfig" >> "$GITHUB_ENV"
           echo "EXECUTOR_AUDIENCE=$EXECUTOR_AUDIENCE" >> "$GITHUB_ENV"
       - name: Pull signed digest, resume durable state and reconcile
+        id: reconcile
         env:
           CONTRACT: '${{ inputs.contract }}'
           SOPS_AGE_KEY: '${{ secrets.SOPS_AGE_KEY }}'
@@ -416,7 +417,14 @@ jobs:
           exit "$executor_status"
       - name: Observe runtime health (read-only)
         if: always()
-        run: python operations/releases/observe_runtime.py
+        env:
+          RECONCILE_SUCCEEDED: ${{ steps.reconcile.outcome == 'success' && 'true' || 'false' }}
+        run: |
+          args=()
+          if [[ "$RECONCILE_SUCCEEDED" == true && -f "$RUNNER_TEMP/operation.json" ]]; then
+            args+=(--require-healthy)
+          fi
+          python operations/releases/observe_runtime.py "${args[@]}"
       - name: Preserve independent observation
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
