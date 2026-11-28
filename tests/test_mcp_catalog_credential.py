@@ -48,6 +48,10 @@ def test_catalog_runtime_profile_projection_and_network_are_bounded():
     }}]
     assert policy["spec"]["egress"][1]["toServices"][0]["k8sService"] == {
         "serviceName": "pg-re8ch-primary", "namespace": "pigsty-external"}
+    primary = next(rule for rule in policy["spec"]["egress"] if rule.get("toCIDR"))
+    assert primary == {"toCIDR": ["10.250.0.128/32"], "toPorts": [{"ports": [
+        {"port": "5432", "protocol": "TCP"},
+    ]}]}
 
 
 def test_catalog_projection_rbac_is_exact_and_broker_only_adds_patch():

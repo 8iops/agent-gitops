@@ -379,6 +379,12 @@ spec:
     - k8sService:
         namespace: pigsty-external
         serviceName: pg-re8ch-primary
+  - toCIDR:
+    - 10.250.0.128/32
+    toPorts:
+    - ports:
+      - port: '5432'
+        protocol: TCP
   - toEndpoints:
     - matchLabels:
         k8s:app.kubernetes.io/name: advanced-fabric-doh
