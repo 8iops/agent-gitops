@@ -45,3 +45,15 @@ def test_runtime_profiles_cannot_write_rbac_or_escalate():
         for rule in role['rules']:
             assert 'rbac.authorization.k8s.io' not in rule['apiGroups']
             assert not {'bind','escalate','impersonate'} & set(rule['verbs'])
+
+
+def test_tenant_runtime_observation_is_namespace_bounded_and_read_only():
+    import yaml
+    access=list(yaml.safe_load_all((ROOT/'operations/releases/domain-access.yaml').read_text()))
+    role=next(item for item in access if item['kind']=='Role'
+              and item['metadata']['name']=='agent-runtime-domain-tenant-infrastructure')
+    diagnostic={(tuple(rule['apiGroups']),tuple(rule['resources']),tuple(rule['verbs']))
+                for rule in role['rules'] if not rule.get('resourceNames')}
+    assert (('',),('pods','events'),('get','list')) in diagnostic
+    assert (('apps',),('replicasets',),('get','list')) in diagnostic
+    assert role['metadata']['namespace']=='tenant-infrastructure'
