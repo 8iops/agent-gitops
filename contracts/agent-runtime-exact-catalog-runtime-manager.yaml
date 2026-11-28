@@ -43,4 +43,5 @@ spec:
     healthTimeoutSeconds: 300
     protectedKinds:
     - PersistentVolumeClaim
-    deletionAllowlist: []
+    deletionAllowlist:
+    - core/PersistentVolumeClaim/tenant-infrastructure/re8ch-catalog-runtime-state
