@@ -27,6 +27,7 @@ def test_exact_provider_release_has_one_digest_pinned_deployment():
         "namespace": "tenant-infrastructure",
     }
     assert deployment["spec"]["template"]["spec"]["containers"][0]["image"] == IMAGE
+    assert "imagePullSecrets" not in deployment["spec"]["template"]["spec"]
     serialized = yaml.safe_dump(deployment)
     assert "tenant-api" not in serialized
     assert "HTTPRoute" not in serialized

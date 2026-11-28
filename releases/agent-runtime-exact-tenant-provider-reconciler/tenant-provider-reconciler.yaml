@@ -72,8 +72,6 @@ spec:
         - svc.cluster.local
         - cluster.local
       dnsPolicy: None
-      imagePullSecrets:
-      - name: harbor-registry-pull
       serviceAccountName: tenant-provider-reconciler
       tolerations:
       - operator: Exists
