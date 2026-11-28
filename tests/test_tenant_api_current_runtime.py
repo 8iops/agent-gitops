@@ -19,7 +19,9 @@ def test_tenant_api_uses_reviewed_image_and_runtime_discovery_registry():
         item for item in deployment["spec"]["template"]["spec"]["containers"]
         if item["name"] == "runtime"
     )
-    assert container["image"] == "ghcr.io/re8ch/service-backend-tenant-mcp@sha256:8a85eb61f4a6922a6f56d8a2e90c8b826a023861e379b0345f95dc9673047f82"
+    assert container["image"] == "ghcr.io/re8ch/service-backend-tenant-mcp@sha256:95d4b7924153cb4cf68a17c4eac094ac4c5370af95f28250693316e3c59b99bb"
+    release = next(item for item in container["env"] if item["name"] == "SENTRY_RELEASE")
+    assert release["value"] == "tenant-mcp@296a404a14f6556a30553be9e8b14e88f40d1c0c"
     catalog_database = next(item for item in container["env"] if item["name"] == "MCP_CATALOG_DATABASE_URL")
     assert catalog_database["valueFrom"]["secretKeyRef"] == {
         "name": "mcp-catalog-database",
