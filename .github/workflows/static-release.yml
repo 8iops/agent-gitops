@@ -425,6 +425,11 @@ jobs:
             args+=(--require-healthy)
           fi
           python operations/releases/observe_runtime.py "${args[@]}"
+      - name: Probe canonical RE8CH MCP route
+        if: >-
+          steps.reconcile.outcome == 'success' &&
+          needs.validate.outputs.release-id == 'agent-runtime-domain-tenant-infrastructure'
+        run: python operations/releases/probe_re8ch_mcp.py --timeout 120
       - name: Preserve independent observation
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
