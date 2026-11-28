@@ -806,6 +806,12 @@ spec:
     toPorts:
     - ports:
       - {port: '5432', protocol: TCP}
+  # Same-node selectorless Service translation is classified as Cilium's
+  # reserved host identity; this is database traffic, not Kubernetes control.
+  - toEntities: [host]
+    toPorts:
+    - ports:
+      - {port: '5432', protocol: TCP}
   - toEndpoints:
     - matchLabels:
         k8s:io.kubernetes.pod.namespace: kube-system
