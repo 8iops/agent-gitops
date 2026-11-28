@@ -52,6 +52,8 @@ def test_catalog_runtime_profile_projection_and_network_are_bounded():
     assert primary == {"toCIDR": ["10.250.0.128/32"], "toPorts": [{"ports": [
         {"port": "5432", "protocol": "TCP"},
     ]}]}
+    host = next(rule for rule in policy["spec"]["egress"] if rule.get("toEntities") == ["host"])
+    assert host["toPorts"] == [{"ports": [{"port": "5432", "protocol": "TCP"}]}]
 
 
 def test_catalog_projection_rbac_is_exact_and_broker_only_adds_patch():
