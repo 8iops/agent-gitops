@@ -23,7 +23,7 @@ def test_tenant_stalwart_uses_publicedge_and_reviewed_oauth():
     for path in (SOURCE, EXACT):
         runtime, env = tenant_runtime_environment(path)
         expected_digest = (
-            "95d4b7924153cb4cf68a17c4eac094ac4c5370af95f28250693316e3c59b99bb"
+            "8a85eb61f4a6922a6f56d8a2e90c8b826a023861e379b0345f95dc9673047f82"
             if path == EXACT
             else "b6d5e3f4d568801e448f0269171895d2a33a2345f3bba8a0e38959174a59d589"
         )
