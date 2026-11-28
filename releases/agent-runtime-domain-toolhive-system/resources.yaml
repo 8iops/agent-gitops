@@ -1654,6 +1654,13 @@ metadata:
   namespace: toolhive-system
 ---
 apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  name: re8ch-catalog-runtime-backend
+  namespace: toolhive-system
+---
+apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: re8ch-plugin-runtime
@@ -2155,6 +2162,43 @@ spec:
     issuer: https://db-rw.re8ch.com/auth/v1
     jwksAllowPrivateIP: true
   type: inline
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  labels:
+    ai.connectool.io/distribution-plane: toolhive
+    ai.connectool.io/runtime-owner: catalog-runtime
+    re8ch.com/publication-stage: shadow
+  name: re8ch-catalog-runtime-backend
+  namespace: toolhive-system
+spec:
+  audit:
+    enabled: true
+  backendReplicas: 1
+  env:
+  - name: TENANT_CORE_URL
+    value: http://re8ch-catalog-runtime.tenant-infrastructure.svc.cluster.local:19448
+  - name: LISTEN_ADDR
+    value: :19449
+  groupRef:
+    name: tenant-public
+  image: ghcr.io/among-clusters/connectool-catalog-gateway@sha256:c444a5de464580bd2146132b1be4f23ed40295693153da10144208178392a0e7
+  mcpPort: 19449
+  proxyPort: 8080
+  replicas: 1
+  resources:
+    limits:
+      cpu: '2'
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  serviceAccount: re8ch-catalog-runtime-backend
+  sessionAffinity: ClientIP
+  sessionStorage:
+    provider: memory
+  transport: streamable-http
 ---
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServer

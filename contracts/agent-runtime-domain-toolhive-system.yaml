@@ -59,6 +59,7 @@ spec:
     - plugin-public-edge
     - plugin-rook-ceph
     - re8ch-approved-tool-catalog
+    - re8ch-catalog-runtime-backend
     - re8ch-native
     - re8ch-native-issuer
     - re8ch-plugin-definitions
@@ -91,6 +92,7 @@ spec:
     - core/ServiceAccount/toolhive-system/plugin-mihomos-cluster
     - core/ServiceAccount/toolhive-system/plugin-public-edge
     - core/ServiceAccount/toolhive-system/plugin-rook-ceph
+    - core/ServiceAccount/toolhive-system/re8ch-catalog-runtime-backend
     - core/ServiceAccount/toolhive-system/re8ch-plugin-runtime
     - core/ServiceAccount/toolhive-system/stalwart-agent-tools
     - gateway.networking.k8s.io/HTTPRoute/toolhive-system/admin-tools-public
@@ -114,6 +116,7 @@ spec:
     - toolhive.stacklok.dev/MCPGroup/toolhive-system/platform-tools-public
     - toolhive.stacklok.dev/MCPGroup/toolhive-system/tenant-public
     - toolhive.stacklok.dev/MCPOIDCConfig/toolhive-system/re8ch-native-issuer
+    - toolhive.stacklok.dev/MCPServer/toolhive-system/re8ch-catalog-runtime-backend
     - toolhive.stacklok.dev/MCPServer/toolhive-system/stalwart-agent-tools-shadow
     - toolhive.stacklok.dev/MCPTelemetryConfig/toolhive-system/platform-tools-telemetry
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-admin-tools
@@ -121,7 +124,7 @@ spec:
     - toolhive.stacklok.dev/MCPToolConfig/toolhive-system/ops-public-read-tools
     - toolhive.stacklok.dev/VirtualMCPServer/toolhive-system/re8ch-native
   inventory:
-    digest: sha256:d2784903dffa78878ab408b1aab7bf31e7bb9681cfd2ac0e688762a81b9e7b80
+    digest: sha256:c9961aa1b00e4e5f70996778ed8f9ef01d810888d46b209c7f222f6c5d711219
   lifecycle:
     prune: true
     healthTimeoutSeconds: 300
