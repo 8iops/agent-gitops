@@ -154,7 +154,9 @@ class Runner:
             return subprocess.CompletedProcess(argv, 1, "", "field manager conflict")
         if argv[:2] == ["kubectl", "get"]:
             body = self.live or {"metadata": {"generation": 2}, "spec": {"replicas": 1},
-                                 "status": {"observedGeneration": 2, "availableReplicas": 1}}
+                                 "status": {"observedGeneration": 2, "updatedReplicas": 1,
+                                            "readyReplicas": 1, "availableReplicas": 1,
+                                            "unavailableReplicas": 0}}
             return subprocess.CompletedProcess(argv, 0, json.dumps(body), "")
         if argv[:3] == ["flux", "pull", "artifact"] and self.pulled_bundle:
             Path(argv[argv.index("--output") + 1], "release.bundle").write_bytes(self.pulled_bundle)
@@ -361,6 +363,21 @@ def test_completed_job_does_not_require_observed_generation():
     item = {"apiVersion": "batch/v1", "kind": "Job", "metadata": {"name": "migrate", "namespace": "demo"}}
     live = {"metadata": {"generation": 1}, "spec": {"completions": 1}, "status": {"succeeded": 1}}
     assert executor.Executor(runner=Runner(live=live)).healthy(item) == (True, "job incomplete")
+
+
+@pytest.mark.parametrize(("status", "expected_reason"), [
+    ({"observedGeneration": 2, "updatedReplicas": 0, "readyReplicas": 1,
+      "availableReplicas": 1}, "updated replicas below desired 1"),
+    ({"observedGeneration": 2, "updatedReplicas": 1, "readyReplicas": 0,
+      "availableReplicas": 1}, "ready replicas below desired 1"),
+    ({"observedGeneration": 2, "updatedReplicas": 1, "readyReplicas": 1,
+      "availableReplicas": 1, "unavailableReplicas": 1}, "unavailable replicas remain"),
+])
+def test_workload_requires_complete_rollout(status, expected_reason):
+    item = {"apiVersion": "apps/v1", "kind": "Deployment",
+            "metadata": {"name": "demo", "namespace": "demo"}}
+    live = {"metadata": {"generation": 2}, "spec": {"replicas": 1}, "status": status}
+    assert executor.Executor(runner=Runner(live=live)).healthy(item) == (False, expected_reason)
 
 
 def test_http_route_requires_accepted_parent_with_resolved_references():

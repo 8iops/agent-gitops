@@ -524,9 +524,30 @@ class Executor:
         spec = live.get("spec", {})
         if ref["kind"] in {"Deployment", "StatefulSet"}:
             desired = spec.get("replicas", 1)
-            return status.get("availableReplicas", 0) >= desired, "replicas unavailable"
+            counters = {
+                "updated": status.get("updatedReplicas", 0),
+                "ready": status.get("readyReplicas", 0),
+                "available": status.get("availableReplicas", 0),
+            }
+            missing = [name for name, count in counters.items() if count < desired]
+            if missing:
+                return False, f"{','.join(missing)} replicas below desired {desired}"
+            if status.get("unavailableReplicas", 0):
+                return False, "unavailable replicas remain"
+            return True, "workload replicas ready and available"
         if ref["kind"] == "DaemonSet":
-            return status.get("numberAvailable", 0) >= status.get("desiredNumberScheduled", 0), "daemon pods unavailable"
+            desired = status.get("desiredNumberScheduled", 0)
+            counters = {
+                "updated": status.get("updatedNumberScheduled", 0),
+                "ready": status.get("numberReady", 0),
+                "available": status.get("numberAvailable", 0),
+            }
+            missing = [name for name, count in counters.items() if count < desired]
+            if missing:
+                return False, f"daemon {','.join(missing)} pods below desired {desired}"
+            if status.get("numberUnavailable", 0):
+                return False, "daemon unavailable pods remain"
+            return True, "daemon pods ready and available"
         if ref["kind"] == "Job":
             return status.get("succeeded", 0) >= spec.get("completions", 1), "job incomplete"
         return True, "healthy"
