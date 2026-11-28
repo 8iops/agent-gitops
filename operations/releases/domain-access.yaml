@@ -1250,7 +1250,6 @@ rules:
   - ciliumnetworkpolicies
   resourceNames:
   - postgresql-provider-egress
-  - tenant-api-gateway
   verbs:
   - get
   - patch
@@ -1273,7 +1272,6 @@ rules:
   resourceNames:
   - admin-api
   - postgresql-provider
-  - tenant-api
   - tenant-control-controller
   - tenant-provider-reconciler
   verbs:
@@ -1287,9 +1285,7 @@ rules:
   resourceNames:
   - admin-api
   - postgresql-provider
-  - tenant-api
   - tenant-control-controller
-  - tenant-infrastructure
   verbs:
   - get
   - patch
@@ -1299,6 +1295,7 @@ rules:
   resources:
   - httproutes
   resourceNames:
+  - catalog-runtime-mcp
   - tenant-billing-auth-center
   - tenant-billing-read
   - tenant-credential-redemption
@@ -1315,7 +1312,6 @@ rules:
   resourceNames:
   - admin-api
   - postgresql-provider
-  - tenant-api
   - tenant-control-controller
   verbs:
   - get
@@ -1356,6 +1352,52 @@ rules:
   verbs:
   - get
   - list
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  resourceNames:
+  - tenant-api
+  verbs:
+  - get
+  - delete
+- apiGroups:
+  - cilium.io
+  resources:
+  - ciliumnetworkpolicies
+  resourceNames:
+  - tenant-api-gateway
+  verbs:
+  - get
+  - delete
+- apiGroups:
+  - ''
+  resources:
+  - serviceaccounts
+  resourceNames:
+  - tenant-api
+  verbs:
+  - get
+  - delete
+- apiGroups:
+  - ''
+  resources:
+  - services
+  resourceNames:
+  - tenant-api
+  - tenant-infrastructure
+  verbs:
+  - get
+  - delete
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  resourceNames:
+  - tenant-api
+  verbs:
+  - get
+  - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -1455,6 +1497,16 @@ rules:
   - patch
   - update
 - apiGroups:
+  - gateway.networking.k8s.io
+  resources:
+  - referencegrants
+  resourceNames:
+  - re8ch-native-public-route
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - networking.k8s.io
   resources:
   - ingresses
@@ -1495,6 +1547,7 @@ rules:
   resources:
   - mcpexternalauthconfigs
   resourceNames:
+  - tenant-vmcp-backend-auth
   - vmcp-admin-backend-auth
   - vmcp-observe-backend-auth
   verbs:
@@ -1620,6 +1673,7 @@ rules:
   - ops-admin-vmcp-backend
   - ops-observe-vmcp-backend
   - ops-operate-vmcp-backend
+  - tenant-api-backend
   verbs:
   - get
   - delete

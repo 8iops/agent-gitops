@@ -1782,6 +1782,21 @@ spec:
         type: PathPrefix
         value: /
 ---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: re8ch-native-public-route
+  namespace: toolhive-system
+spec:
+  from:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    namespace: tenant-infrastructure
+  to:
+  - group: ''
+    kind: Service
+    name: vmcp-re8ch-native
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -1980,7 +1995,7 @@ spec:
           kubernetes.io/metadata.name: tenant-infrastructure
       podSelector:
         matchLabels:
-          app: tenant-api
+          app: tenant-service-api
   - ports:
     - port: 53
       protocol: UDP
@@ -2003,7 +2018,7 @@ spec:
           kubernetes.io/metadata.name: tenant-infrastructure
       podSelector:
         matchLabels:
-          app: tenant-api
+          app: tenant-service-api
     ports:
     - port: 8088
       protocol: TCP
@@ -2026,12 +2041,6 @@ spec:
         matchLabels:
           app: mcpserver
           toolhive: 'true'
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: tenant-infrastructure
-      podSelector:
-        matchLabels:
-          app: tenant-api
     ports:
     - port: 8088
       protocol: TCP
@@ -2075,6 +2084,21 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: toolhive-operator
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPExternalAuthConfig
+metadata:
+  labels:
+    ai.connectool.io/distribution-plane: toolhive
+    ai.connectool.io/identity-provider: oidc
+  name: tenant-vmcp-backend-auth
+  namespace: toolhive-system
+spec:
+  tokenExchange:
+    audience: re8ch-tenant
+    subjectTokenType: access_token
+    tokenUrl: https://db-rw.re8ch.com/auth/v1/oauth/token
+  type: tokenExchange
 ---
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPExternalAuthConfig
@@ -2178,7 +2202,7 @@ spec:
   backendReplicas: 1
   env:
   - name: TENANT_CORE_URL
-    value: http://re8ch-catalog-runtime.tenant-infrastructure.svc.cluster.local:19448
+    value: https://catalog-runtime.service.re8ch.com/mcp
   - name: LISTEN_ADDR
     value: :19449
   groupRef:
@@ -2223,7 +2247,7 @@ spec:
   - name: LISTEN_ADDRESS
     value: :8088
   - name: BINDING_BROKER_URL
-    value: http://tenant-api.tenant-infrastructure.svc.cluster.local/v1/collaboration/resolve
+    value: http://tenant-service-api.tenant-infrastructure.svc.cluster.local/v1/collaboration/resolve
   - name: BINDING_BROKER_TOKEN_FILE
     value: /var/run/secrets/tokens/stalwart-binding-broker
   groupRef:
@@ -2390,7 +2414,7 @@ spec:
       conflictResolutionConfig:
         prefixFormat: '{workload}_'
       tools:
-      - workload: tenant-api-backend
+      - workload: re8ch-catalog-runtime-backend
     audit:
       component: re8ch-native
       enabled: true
@@ -2408,7 +2432,7 @@ spec:
         unhealthyThreshold: 3
       listChanged:
         disabledWorkloads:
-        - tenant-api-backend
+        - re8ch-catalog-runtime-backend
   groupRef:
     name: tenant-public
   incomingAuth:

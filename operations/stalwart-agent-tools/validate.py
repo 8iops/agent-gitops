@@ -45,19 +45,18 @@ assert policy["spec"]["ingress"] == [{
         "namespaceSelector": {
             "matchLabels": {"kubernetes.io/metadata.name": "tenant-infrastructure"}
         },
-        "podSelector": {"matchLabels": {"app": "tenant-api"}},
+        "podSelector": {"matchLabels": {"app": "tenant-service-api"}},
     }],
     "ports": [{"protocol": "TCP", "port": 8088}],
 }]
 
-broker = named(documents(CLUSTER / "stalwart-agent-tools-broker-patch.yaml"), "Deployment", "tenant-api")
+broker = named(documents(CLUSTER / "stalwart-agent-tools-broker-patch.yaml"), "Deployment", "tenant-service-api")
 broker_env = broker["spec"]["template"]["spec"]["containers"][0]["env"]
 assert {entry["name"] for entry in broker_env} == {
     "STALWART_TOOL_CLIENT", "STALWART_TOOL_REF", "STALWART_TOOL_OWNER_ORG_REF", "STALWART_TOOL_AUDIENCE"
 }
 
-# The migration is additive: the established collaboration runtime and route
-# remain a required part of every render until parity, soak, and rollback close.
+# The collaboration broker remains on the explicit non-MCP service runtime.
 legacy = (CLUSTER / "tenant-runtime-authority-resources.yaml").read_text()
 assert "name: COLLABORATION_ENABLED\n          value: 'true'" in legacy
 assert "name: tenant-mcp-publication-resources.yaml" not in legacy
@@ -68,4 +67,4 @@ assert "stalwart-agent-tools-shadow.yaml" in kustomization["resources"]
 
 assert len(baseline["userOperations"]) == 9
 assert len(baseline["requiredScopes"]) == 6
-print("validated additive Stalwart shadow baseline: 9 tools, 6 scopes, legacy runtime preserved")
+print("validated Stalwart shadow baseline: 9 tools, 6 scopes, service broker preserved")

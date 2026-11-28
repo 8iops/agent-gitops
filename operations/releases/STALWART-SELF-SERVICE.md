@@ -8,11 +8,12 @@ Repository ownership and runtime ownership remain separate:
 | User-scoped bindings, mail/calendar/file tools | `re8ch/service-backend`, `platform/apps/tenant-mcp/` |
 | Restricted management tools | `re8ch/service-backend`, `operations/cloud-platform/` and the current module publication allowlists |
 | Stalwart runtime and client access contract | `8iops/agent-gitops`, `clusters/re8ch/mail-authority-resources.yaml` plus reviewed Kustomize patches |
-| Tenant MCP runtime, module registry and self-service routes | `siren-observer/observability-gitops`, `clusters/re8ch/charts/birfucate-metering/` and `contracts/observability-chart-birfucate-metering-tenant-infrastructure.yaml` |
+| Tenant MCP runtime | ToolHive `VirtualMCPServer/re8ch-native` backed by the PostgreSQL Catalog runtime |
+| Non-MCP collaboration and self-service routes | `8iops/agent-gitops`, `agent-runtime-exact-tenant-service-api-manager` |
 
-Do not duplicate the tenant-api Deployment in this repository or change its
-authority as a side effect of adding collaboration tools. The existing
-`tenant-go-release` source workflow builds the application image. Preserve its
+Do not couple collaboration delivery to the retired tenant-api runtime. The
+independent `tenant-service-api` release owns its callback and binding broker. The
+existing `tenant-go-release` source workflow builds the shared application image. Preserve its
 immutable digest and provenance; the runtime authority consumes that artifact.
 Its legacy source-repository image ConfigMap update alone is not deployment
 evidence for the current cloud SSA release.

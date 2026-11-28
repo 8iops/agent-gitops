@@ -23,22 +23,18 @@ spec:
   authorization:
     fieldManager: re8ch-release/agent-runtime-exact-tenant-api
     resources:
-    - apps/Deployment
-    - core/PersistentVolumeClaim
+    - core/ConfigMap
     objectNames:
-    - tenant-api
-    - tenant-platform-state
-    - tenant-control-controller
+    - ssa-state-agent-runtime-exact-tenant-api-manager
     allowClusterScoped: false
-    requireExisting: true
-    forceConflictObjects:
-    - apps/Deployment/tenant-infrastructure/tenant-api
-    - apps/Deployment/tenant-infrastructure/tenant-control-controller
+    requireExisting: false
+    forceConflictObjects: []
   inventory:
-    digest: sha256:638a621e9e32f8bf55dbd708a9e101f677cc23e15b899da7c66ff52ccddf9088
+    digest: sha256:ac78e8621f345cbd1358c0c69c2bc9f578dab5c09150a631be6447ed4b63e7d4
   lifecycle:
-    prune: false
-    healthTimeoutSeconds: 300
+    prune: true
+    healthTimeoutSeconds: 120
     protectedKinds:
     - PersistentVolumeClaim
-    deletionAllowlist: []
+    deletionAllowlist:
+    - apps/Deployment/tenant-infrastructure/tenant-api

@@ -51,7 +51,6 @@ metadata:
   namespace: tenant-infrastructure
   labels:
     re8ch.com/publication-stage: release-gated
-    ai.connectool.io/mcp-backend: 'true'
 spec:
   replicas: 1
   strategy:
@@ -96,7 +95,7 @@ spec:
             podAffinityTerm:
               labelSelector:
                 matchLabels:
-                  app: tenant-api
+                  app: tenant-service-api
               topologyKey: kubernetes.io/hostname
       tolerations:
       - operator: Exists
@@ -139,7 +138,7 @@ spec:
         - name: DEVICE_REGISTRY_PATH
           value: /var/lib/tenant-platform/admin-devices.db
         - name: DYNAMIC_SKILL_ADMIN_URL
-          value: http://tenant-api.tenant-infrastructure.svc:19450/internal/dynamic-skills
+          value: http://tenant-service-api.tenant-infrastructure.svc:19450/internal/dynamic-skills
         envFrom:
         - secretRef:
             name: tenant-claim-internal-auth
@@ -192,25 +191,23 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tenant-api
+  name: tenant-service-api
   namespace: tenant-infrastructure
   labels:
     re8ch.com/publication-stage: release-gated
-    ai.connectool.io/mcp-backend: 'true'
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: tenant-api
+      app: tenant-service-api
   template:
     metadata:
       labels:
-        app: tenant-api
+        app: tenant-service-api
         tenant-runtime: 'true'
         saas.re8ch.com/tenant: platform
-        ai.connectool.io/mcp-backend: 'true'
     spec:
       affinity:
         nodeAffinity:
@@ -222,7 +219,7 @@ spec:
         podAffinity:
           requiredDuringSchedulingIgnoredDuringExecution: []
       terminationGracePeriodSeconds: 75
-      serviceAccountName: tenant-api
+      serviceAccountName: tenant-service-api
       automountServiceAccountToken: true
       dnsPolicy: None
       dnsConfig:
@@ -263,10 +260,6 @@ spec:
             name: tenant-grafana-credentials
             optional: true
         env:
-        - name: RE8CH_TOOL_PROFILE
-          value: tenant
-        - name: RE8CH_TOOL_AUDIENCE
-          value: re8ch-tenant
         - name: INVOCATION_TOKEN_ISSUER_URL
           value: http://tenant-control-controller.tenant-infrastructure.svc/v1/invocation-tokens
         - name: INVOCATION_TOKEN_JWKS_URL
@@ -299,14 +292,10 @@ spec:
           value: 'true'
         - name: LISTEN_PORT
           value: '19448'
-        - name: PUBLIC_MCP_URL
-          value: https://tools.service.re8ch.com/tenant-native/mcp
         - name: OPENAI_APPS_CHALLENGE_TOKEN
           value: 6n3O48vy3O89euYVrri4aHJMeUJ_vkofxLpzxv-6TTE
         - name: PUBLIC_ORIGIN
           value: https://tools.service.re8ch.com
-        - name: PUBLIC_RESOURCE_METADATA_URL
-          value: https://tools.service.re8ch.com/.well-known/oauth-protected-resource/tenant-native/mcp
         - name: TENANT_CONTROL_URL
           value: http://tenant-control-controller.tenant-infrastructure.svc
         - name: AUTH_DISCOVERY_URL
@@ -403,42 +392,6 @@ spec:
         - name: platform-modules
           mountPath: /etc/re8ch/modules
           readOnly: true
-      - name: catalog-gateway
-        image: ghcr.io/among-clusters/connectool-catalog-gateway@sha256:c433add3e20b71d9e328bd7dc6b25dda491e1f7b25c551799ae1dfaf8057093f
-        imagePullPolicy: IfNotPresent
-        env:
-        - name: TENANT_CORE_URL
-          value: http://127.0.0.1:19448
-        - name: LISTEN_ADDR
-          value: :19449
-        ports:
-        - name: catalog-mcp
-          containerPort: 19449
-        readinessProbe:
-          httpGet:
-            path: /livez
-            port: catalog-mcp
-          periodSeconds: 5
-          timeoutSeconds: 3
-        livenessProbe:
-          httpGet:
-            path: /livez
-            port: catalog-mcp
-          periodSeconds: 15
-          timeoutSeconds: 3
-        resources:
-          requests:
-            cpu: 25m
-            memory: 32Mi
-          limits:
-            cpu: 250m
-            memory: 128Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
       volumes:
       - name: runtime-state
         persistentVolumeClaim:
@@ -847,7 +800,7 @@ spec:
   - from:
     - podSelector:
         matchLabels:
-          app: tenant-api
+          app: tenant-service-api
     ports:
     - protocol: TCP
       port: 8080
@@ -855,20 +808,18 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: tenant-api-gateway
+  name: tenant-service-api-gateway
   namespace: tenant-infrastructure
 spec:
   endpointSelector:
     matchLabels:
-      app: tenant-api
+      app: tenant-service-api
   ingress:
   - fromEntities:
     - ingress
     toPorts:
     - ports:
       - port: '19448'
-        protocol: TCP
-      - port: '19449'
         protocol: TCP
 ---
 apiVersion: v1
@@ -1235,13 +1186,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: tenant-api
+  name: tenant-service-api
   namespace: tenant-infrastructure
   labels:
-    re8ch.com/metrics-surface: tenant-mcp
+    re8ch.com/metrics-surface: tenant-service-control
 spec:
   selector:
-    app: tenant-api
+    app: tenant-service-api
   ports:
   - name: http
     port: 80
@@ -1249,9 +1200,6 @@ spec:
   - name: skill-admin
     port: 19450
     targetPort: skill-admin
-  - name: catalog-mcp
-    port: 19449
-    targetPort: catalog-mcp
 ---
 apiVersion: v1
 kind: Service
@@ -1268,19 +1216,6 @@ spec:
     targetPort: http
 ---
 apiVersion: v1
-kind: Service
-metadata:
-  name: tenant-infrastructure
-  namespace: tenant-infrastructure
-spec:
-  selector:
-    app: tenant-api
-  ports:
-  - name: http
-    port: 80
-    targetPort: http
----
-apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: admin-api
@@ -1290,7 +1225,7 @@ automountServiceAccountToken: false
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: tenant-api
+  name: tenant-service-api
   namespace: tenant-infrastructure
 automountServiceAccountToken: false
 ---
@@ -1345,7 +1280,7 @@ spec:
           type: ReplaceFullPath
           replaceFullPath: /billing/usage
     backendRefs:
-    - name: tenant-api
+    - name: tenant-service-api
       port: 80
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -1364,6 +1299,13 @@ spec:
   - matches:
     - path:
         type: Exact
+        value: /.well-known/openai-apps-challenge
+    backendRefs:
+    - name: tenant-service-api
+      port: 80
+  - matches:
+    - path:
+        type: Exact
         value: /tenant-native/billing/usage
     filters:
     - type: URLRewrite
@@ -1372,7 +1314,7 @@ spec:
           type: ReplaceFullPath
           replaceFullPath: /billing/usage
     backendRefs:
-    - name: tenant-api
+    - name: tenant-service-api
       port: 80
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -1393,8 +1335,42 @@ spec:
         type: Exact
         value: /credentials/redeem
     backendRefs:
-    - name: tenant-api
+    - name: tenant-service-api
       port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: 'false'
+    external-dns.alpha.kubernetes.io/hostname: catalog-runtime.service.re8ch.com
+    external-dns.alpha.kubernetes.io/ttl: '60'
+  labels:
+    public.re8ch.com/external-dns: enabled
+  name: catalog-runtime-mcp
+  namespace: tenant-infrastructure
+spec:
+  parentRefs:
+  - name: re8ch-gateway-canary
+    namespace: kube-system
+    sectionName: service-wildcard-https
+  hostnames:
+  - catalog-runtime.service.re8ch.com
+  rules:
+  - matches:
+    - path:
+        type: Exact
+        value: /mcp
+    backendRefs:
+    - name: re8ch-catalog-runtime
+      port: 19448
+  - matches:
+    - path:
+        type: Exact
+        value: /.well-known/oauth-protected-resource/mcp
+    backendRefs:
+    - name: re8ch-catalog-runtime
+      port: 19448
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -1412,13 +1388,6 @@ spec:
   - matches:
     - path:
         type: Exact
-        value: /.well-known/openai-apps-challenge
-    backendRefs:
-    - name: tenant-api
-      port: 80
-  - matches:
-    - path:
-        type: Exact
         value: /tenant-native/mcp
     filters:
     - type: URLRewrite
@@ -1427,42 +1396,28 @@ spec:
           type: ReplaceFullPath
           replaceFullPath: /mcp
     backendRefs:
-    - name: tenant-api
-      port: 19449
-  - matches:
-    - path:
-        type: Exact
-        value: /tenant-self-service/mcp
-    filters:
-    - type: URLRewrite
-      urlRewrite:
-        path:
-          type: ReplaceFullPath
-          replaceFullPath: /self-service/mcp
-    backendRefs:
-    - name: tenant-api
-      port: 80
+    - group: ""
+      kind: Service
+      name: vmcp-re8ch-native
+      namespace: toolhive-system
+      port: 4483
   - matches:
     - path:
         type: Exact
         value: /collaboration/oauth/callback
     backendRefs:
-    - name: tenant-api
+    - name: tenant-service-api
       port: 80
   - matches:
     - path:
         type: Exact
         value: /.well-known/oauth-protected-resource/tenant-native/mcp
     backendRefs:
-    - name: tenant-api
-      port: 80
-  - matches:
-    - path:
-        type: Exact
-        value: /.well-known/oauth-protected-resource/tenant-self-service/mcp
-    backendRefs:
-    - name: tenant-api
-      port: 80
+    - group: ""
+      kind: Service
+      name: vmcp-re8ch-native
+      namespace: toolhive-system
+      port: 4483
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -1488,7 +1443,7 @@ spec:
           type: ReplaceFullPath
           replaceFullPath: /self-service/capabilities
     backendRefs:
-    - name: tenant-api
+    - name: tenant-service-api
       port: 80
 ---
 apiVersion: networking.k8s.io/v1
@@ -1513,7 +1468,7 @@ spec:
           toolhive-name: re8ch-admin-vmcp
     - podSelector:
         matchLabels:
-          app: tenant-api
+          app: tenant-service-api
     ports:
     - protocol: TCP
       port: 19449
@@ -1521,12 +1476,12 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: tenant-api
+  name: tenant-service-api
   namespace: tenant-infrastructure
 spec:
   podSelector:
     matchLabels:
-      app: tenant-api
+      app: tenant-service-api
   policyTypes:
   - Ingress
   ingress:
@@ -1551,8 +1506,6 @@ spec:
     ports:
     - protocol: TCP
       port: 19448
-    - protocol: TCP
-      port: 19449
   - from:
     - namespaceSelector:
         matchLabels:

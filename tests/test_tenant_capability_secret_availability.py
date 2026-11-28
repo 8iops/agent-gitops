@@ -5,14 +5,14 @@ import subprocess
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / 'releases/agent-runtime-exact-tenant-api-manager'
+SOURCE = ROOT / 'releases/agent-runtime-exact-tenant-service-api-manager'
 
 
 def runtime():
     documents = yaml.safe_load_all(subprocess.check_output(
         ['kubectl', 'kustomize', str(SOURCE)], text=True))
     deployment = next(item for item in documents
-                      if item['kind'] == 'Deployment' and item['metadata']['name'] == 'tenant-api')
+                      if item['kind'] == 'Deployment' and item['metadata']['name'] == 'tenant-service-api')
     return next(container for container in deployment['spec']['template']['spec']['containers']
                 if container['name'] == 'runtime')
 
