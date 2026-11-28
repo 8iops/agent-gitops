@@ -85,15 +85,20 @@ def test_catalog_runtime_has_independent_identity_and_database_contract():
     assert "tenant-api" not in {item["metadata"]["name"] for item in objects}
 
 
-def test_catalog_runtime_exact_deployment_matches_reviewed_source():
-    def deployment(path):
+def test_catalog_runtime_exact_objects_match_reviewed_source():
+    def object_named(path, kind, name):
         return next(
             item for item in yaml.safe_load_all(path.read_text())
-            if item and item.get("kind") == "Deployment"
-            and item["metadata"]["name"] == "re8ch-catalog-runtime"
+            if item and item.get("kind") == kind and item["metadata"]["name"] == name
         )
 
-    assert deployment(RELEASE) == deployment(SOURCE)
+    for identity in (
+        ("Deployment", "re8ch-catalog-runtime"),
+        ("HTTPRoute", "catalog-runtime-mcp"),
+        ("Ingress", "catalog-runtime-dns-authority"),
+        ("NetworkPolicy", "re8ch-catalog-runtime"),
+    ):
+        assert object_named(RELEASE, *identity) == object_named(SOURCE, *identity)
 
 
 def test_catalog_runtime_release_is_create_capable_and_bounded():
