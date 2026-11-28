@@ -799,6 +799,13 @@ spec:
     toPorts:
     - ports:
       - {port: '5432', protocol: TCP}
+  # Cilium does not currently expand selectorless Service EndpointSlices into
+  # toServices identities; retain the Service rule and pin its reviewed primary.
+  - toCIDR:
+    - 10.250.0.128/32
+    toPorts:
+    - ports:
+      - {port: '5432', protocol: TCP}
   - toEndpoints:
     - matchLabels:
         k8s:io.kubernetes.pod.namespace: kube-system
